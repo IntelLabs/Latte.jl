@@ -1,0 +1,15 @@
+.DS_Store
+*.hdf5
+*.sublime*
+tags
+train.txt
+test.txt
+*.o
+*.so
+*.dylib
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt

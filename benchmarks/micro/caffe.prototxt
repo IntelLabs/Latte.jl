@@ -1,0 +1,49 @@
+name: "vgg_a"
+input: "data"
+# input_dim: 128
+input_dim: 128
+input_dim: 3
+input_dim: 224
+input_dim: 224
+force_backward: true
+layers {
+  name: "conv1/3x3_s1"
+  type: CONVOLUTION
+  bottom: "data"
+  top: "conv1/3x3_s1"
+  blobs_lr: 1
+  blobs_lr: 2 
+  weight_decay: 1
+  weight_decay: 0 
+  convolution_param {
+    num_output: 64
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
+layers {
+  name: "conv1/relu"
+  type: RELU
+  bottom: "conv1/3x3_s1"
+  top: "conv1/3x3_s1"
+}
+layers {
+  name: "pool1/2x2_s2"
+  type: POOLING
+  bottom: "conv1/3x3_s1"
+  top: "pool1/2x2_s2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}

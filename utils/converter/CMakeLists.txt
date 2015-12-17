@@ -1,0 +1,16 @@
+cmake_minimum_required (VERSION 2.8.11)
+SET(CMAKE_C_COMPILER mpicc)
+SET(CMAKE_CXX_COMPILER mpicxx)
+project (convert_imagenet)
+find_package( OpenCV REQUIRED )
+find_package( HDF5 REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+include_directories( ${HDF5_INCLUDE_DIRS} )
+set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
+
+add_executable (convert_imagenet convert.cpp)
+target_link_libraries(convert_imagenet mpi)
+target_link_libraries(convert_imagenet ${HDF5_LIBRARIES})
+target_link_libraries(convert_imagenet ${OpenCV_LIBS})
+
+install(TARGETS convert_imagenet DESTINATION bin)

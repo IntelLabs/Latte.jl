@@ -1,0 +1,108 @@
+# Copyright (c) 2015 Intel Corporation. All rights reserved.
+using FactCheck
+using Latte
+
+function convolution_forward(filter::Array, bias::Array, input::Array,
+                             output::Array, stride, pad, kernel)
+    width, height, channel, num = size(input)
+    width_out, height_out, n_filter, _ = size(output)
+
+    for n = 1:num, o = 1:n_filter, y = 1:height_out, x = 1:width_out,
+        k = 1:channel, p = 1:kernel, q = 1:kernel
+
+        in_y = (y-1) * stride - pad + p
+        in_x = (x-1) * stride - pad + q
+        if (in_y >= 1 && in_y <= height && in_x >= 1 && in_x <= width)
+            filter_idx = ((k - 1) * kernel + (p - 1)) * kernel + q
+            output[x, y, o, n] += input[in_x, in_y, k, n] *
+                                  filter[filter_idx, o]
+        end
+    end
+
+    # add bias
+    for n = 1:num, o = 1:n_filter, y = 1:height_out, x = 1:width_out
+        output[x, y, o, n] += bias[o]
+    end
+
+    return output
+end
+
+function convolution_backward(filter::Array, bias::Array, input::Array,
+                              top_diff::Array, stride, pad, kernel,
+                              ∇filter::Array, ∇bias::Array, ∇input::Array)
+    width, height, channels, num = size(input)
+    width_out, height_out, n_filter, _ = size(top_diff)
+
+    # ∇bias
+    for n = 1:num, o = 1:n_filter, y = 1:height_out, x = 1:width_out
+        ∇bias[o] += top_diff[x, y, o, n]
+    end
+
+    # ∇filter and ∇input
+    for n = 1:num, o = 1:n_filter, k = 1:channels, y = 1:height_out,
+        x = 1:width_out, p = 1:kernel, q = 1:kernel
+
+        in_y = (y-1) * stride - pad + p
+        in_x = (x-1) * stride - pad + q
+        if (in_y >= 1 && in_y <= height && in_x >= 1 && in_x <= width)
+            filter_idx = ((k - 1) * kernel + (p - 1)) * kernel + q
+            ∇filter[filter_idx, o] += top_diff[x,y,o,n] * input[in_x,in_y,k,n]
+            ∇input[in_x,in_y,k,n] += top_diff[x,y,o,n] * filter[filter_idx,o]
+        end
+    end
+
+    return (∇filter, ∇bias, ∇input)
+end
+
+pad = 1
+
+srand(1234)
+net = Net(8)
+data,  data_value   = MemoryDataLayer(net, :data, (227, 227, 3))
+label, label_value = MemoryDataLayer(net, :label, (1,))
+data_value[:]  = rand(Float32, size(data_value)...) * 256
+label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10)
+conv1        = ConvolutionLayer(:conv1, net, data, 10, 3, 1, pad)
+conv2        = ConvolutionLayer(:conv2, net, conv1, 10, 3, 1, pad)
+fc1          = InnerProductLayer(:fc1, net, conv2, 10)
+loss         = SoftmaxLossLayer(:loss, net, fc1, label)
+
+init(net)
+ϵ = 1e-3
+
+input    = get_buffer(net, :conv1value)
+∇input   = get_buffer(net, :conv1∇)
+filters  = get_buffer(net, :conv2weights)
+∇filters = get_buffer(net, :conv2∇weights)
+bias     = get_buffer(net, :conv2bias)
+rand!(bias)
+∇bias    = get_buffer(net, :conv2∇bias)
+top_diff = get_buffer(net, :conv2∇)
+# rand!(top_diff)
+expected = zeros(get_buffer(net, :conv2value))
+∇input_expected   = zeros(∇input)
+∇filters_expected = zeros(size(∇filters))
+∇bias_expected    = zeros(size(∇bias))
+
+facts("Testing Convolution Layer") do
+    context("Forward") do
+        forward(net)
+        convolution_forward(filters, bias, input, expected, 1, pad, 3)
+        # @fact expected --> roughly(net.buffers[:conv2value])
+        @fact all(-ϵ .< expected - get_buffer(net, :conv2value) .< ϵ) --> true
+    end
+    context("Backward") do
+        clear_∇(net)
+        backward(net)
+        convolution_backward(filters, bias, input, top_diff, 1, pad, 3,
+                             ∇filters_expected, ∇bias_expected,
+                             ∇input_expected)
+        @fact all(-ϵ .< ∇input - ∇input_expected .< ϵ) --> true
+        # @fact sum(∇filters, ndims(∇filters)) --> roughly(∇filters_expected, atol=1e-3)
+        # @fact sum(∇bias, ndims(∇bias))       --> roughly(∇bias_expected, atol=1e-3)
+        @pending all(-ϵ .< ∇filters - ∇filters_expected .< ϵ) --> true
+        @pending all(-ϵ .< ∇bias - ∇bias_expected .< ϵ) --> true
+    end
+end
+
+FactCheck.exitstatus()
