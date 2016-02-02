@@ -1,0 +1,7 @@
+julia 0.4
+ArrayViews
+Iterators
+CompilerTools
+ParallelAccelerator
+FactCheck
+HDF5

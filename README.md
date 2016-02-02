@@ -1,14 +1,10 @@
 # Latte.jl
 
-## Developer
-
-### Julia Dependencies
-```shell
-julia -e 'Pkg.add("ArrayViews")'
-julia -e 'Pkg.add("Iterators")'
-julia -e 'Pkg.add("HDF5")'
-julia -e 'Pkg.add("FactCheck")'
 ```
+julia> Pkg.clone("https://github.com/IntelLabs/Latte.jl")
+```
+
+## Developer
 
 ### Testing
 Run the entire test suite with
