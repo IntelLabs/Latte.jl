@@ -38,8 +38,8 @@ softmax     = SoftmaxLossLayer(:softmax, net, fc1, label)
 
 init(net)
 
-input = net.buffers[:fc1value]
-label = net.buffers[:labelvalue]
+input = get_buffer(net, :fc1value)
+label = get_buffer(net, :labelvalue)
 
 expected_grad = zeros(Float32, size(input))
 
@@ -58,7 +58,7 @@ expected_loss /= batch_size
 
 facts("Testing SoftmaxLoss layer") do
     context("Forward") do
-        @fact net.buffers[:softmaxvalue][1] --> roughly(expected_loss)
+        @fact get_buffer(net, :softmaxvalue)[1] --> roughly(expected_loss)
     end
     context("Backward") do
         backward(net)
@@ -68,7 +68,7 @@ facts("Testing SoftmaxLoss layer") do
             expected_grad[label_value, n] -= 1
         end
         expected_grad /= batch_size
-        @fact net.buffers[:fc1∇] --> roughly(expected_grad)
+        @fact get_buffer(net, :fc1∇) --> roughly(expected_grad)
     end
 end
 

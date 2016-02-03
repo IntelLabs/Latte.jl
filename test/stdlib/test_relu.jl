@@ -42,19 +42,19 @@ init(net)
 
 
 ϵ = 1e-5
-input   = net.buffers[:conv1value]
+input   = get_buffer(net, :conv1value)
 facts("Testing ReLU Layer") do
     context("Forward") do
         forward(net)
 
         expected = map((x) -> x > 0.0f0 ? x : 0.0f0, input)
-        @fact expected --> roughly(net.buffers[:relu1value])
+        @fact expected --> roughly(get_buffer(net, :relu1value))
     end
     context("Backward") do
         backward(net)
-        top_diff = net.buffers[:relu1∇]
+        top_diff = get_buffer(net, :relu1∇)
         expected = map((x, y) -> x > 0.0f0 ? y : 0.0f0, input, top_diff)
-        @fact expected --> roughly(net.buffers[:conv1∇])
+        @fact expected --> roughly(get_buffer(net, :conv1∇))
     end
 end
 
