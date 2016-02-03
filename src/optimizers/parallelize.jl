@@ -54,8 +54,8 @@ function parallelize_batch_tile_loops(statements)
                 push!(pre, :($var = _REMOVE_THIS_LINE()))
             end
             unique = gensym("loop_ranges")
-            start_vars = []
-            stop_vars = []
+            start_vars = Union{Symbol,Int}[]
+            stop_vars = Union{Symbol,Int}[]
             for (i, range) in enumerate(ranges)
                 # range_var = symbol(unique,:range,i)
                 # push!(pre, :($range_var = $range))

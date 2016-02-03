@@ -30,6 +30,7 @@ export Net, init, forward, backward, clear_∇, clear_values, add_ensemble,
        get_param, get_value, get_gradient
 importall ParallelAccelerator
 import ParallelAccelerator.CGen
+import ParallelAccelerator.CGen.mk_parallel_loophead
 import CompilerTools
 CGen.set_include_blas()
 # using ParallelAccelerator.J2CArray
@@ -47,8 +48,6 @@ const MICRO_BATCH_SIZE = num_threads
 NOFUSE = 0
 LATTE_DISABLE_TILING = false
 LATTE_DISABLE_TILE_FUSION = false
-
-mk_parallel_loophead(loopvars, starts, stops; num_threads=0, schedule="") = Expr(:parallel_loophead, loopvars, starts, stops, Set{Union{GenSym, Symbol}}(), num_threads, "")
 
 """
 Construct a Dict{Symbol, Any} that maps the arguments of the function
