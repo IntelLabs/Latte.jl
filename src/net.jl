@@ -29,9 +29,9 @@ export Net, init, forward, backward, clear_∇, clear_values, add_ensemble,
        add_connections, copy_from_mic, copy_to_mic, get_buffer,
        get_param, get_value, get_gradient
 importall ParallelAccelerator
-import ParallelAccelerator.cgen
+import ParallelAccelerator.CGen
 import CompilerTools
-cgen.set_include_blas()
+CGen.set_include_blas()
 # using ParallelAccelerator.J2CArray
 ENV["KMP_AFFINITY"] = "granularity=fine,compact"
 
@@ -470,13 +470,14 @@ function generate_c_function(func::Function, signature::Tuple,
     func_ref = GlobalRef(def.module, symbol(string(func)))
     ast = code_typed(func, signature)[1]
 
+    ast = remove_temp_nodes(ast)
     ast = collect_parallel_loop_private_vars(ast)
 
     # dir_ast = Driver.toDomainIR(func_ref, ast, signature)
     # pir_ast = Driver.toParallelIR(func_ref, dir_ast, signature)
 
-    function_name_string = cgen.canonicalize(string(func_ref.name))
-    s = cgen.from_root(ast, function_name_string)
+    function_name_string = CGen.canonicalize(string(func_ref.name))
+    s = CGen.from_root_entry(ast, function_name_string)
     proxy_name = string("_", function_name_string, "_j2c_proxy")
     proxy_sym = symbol(proxy_name)
     j2c_name = string("_", function_name_string, "_unaliased_")
@@ -486,13 +487,13 @@ function generate_c_function(func::Function, signature::Tuple,
     end
     if LATTE_MPI
         s = "#include \"comm.h\"\n" * s
-        outfile_name = cgen.writec(s)
-        cgen.compile(outfile_name; flags=["-I$latte_library_path/communication"])
-        dyn_lib = cgen.link(outfile_name; flags=["-L$latte_library_path", "-lLatteComm"])
+        outfile_name = CGen.writec(s)
+        CGen.compile(outfile_name; flags=["-I$latte_library_path/communication"])
+        dyn_lib = CGen.link(outfile_name; flags=["-L$latte_library_path", "-lLatteComm"])
     else
-        outfile_name = cgen.writec(s)
-        cgen.compile(outfile_name)
-        dyn_lib = cgen.link(outfile_name)
+        outfile_name = CGen.writec(s)
+        CGen.compile(outfile_name)
+        dyn_lib = CGen.link(outfile_name)
     end
 
     proxy_params = [:($arg::$typ) for (arg, typ) in zip(args, signature)]

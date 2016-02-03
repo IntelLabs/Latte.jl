@@ -260,12 +260,12 @@ end
     return 0
 end
 
-@noinline function exp(arg)
-    Base.log(arg)
+function exp{T}(arg::T)
+    ccall((:exp, "libm"), T, (T, ), arg)
 end
 
-@noinline function log(arg)
-    Base.log(arg)
+function log{T}(arg::T)
+    ccall((:log, "libm"), T, (T, ), arg)
 end
 
 function gradient_check(f::Function, inputs::Vector{Array}, grad_outputs::Vector{Array}, eps=1e-3)
@@ -292,4 +292,22 @@ end
 
 macro NotImplemented()
     return :(throw("Not Implemented"))
+end
+
+function remove_temp_nodes(ast)
+    function walker(node, cbdata, index, top_level, read)
+        if isa(node, Expr) && node.head == :(=) &&
+           isa(node.args[2], Expr) && node.args[2].head == :call &&
+           isa(node.args[2].args[1], GlobalRef) &&
+           node.args[2].args[1].mod == Latte &&
+           node.args[2].args[1].name == :_REMOVE_THIS_LINE
+            return ASTWALK_REMOVE
+        elseif isa(node, Expr) && node.head in [:parallel_loophead,
+                                                :parallel_loopend,
+                                                :loophead, :loopend]
+            return node
+        end
+        ASTWALK_RECURSE
+    end
+    AstWalk(ast, walker, nothing)
 end
