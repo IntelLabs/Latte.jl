@@ -68,20 +68,21 @@ int main(int argc, char *argv[]) {
   int mpi_size = MPI::COMM_WORLD.Get_size();
 
   if (argc < 3) {
-    std::cout << "Error: Usage - convert $target_file_name $metadata_file $(mean_file_name, optional)" << std::endl;
+    std::cout << "Error: Usage - convert $size $target_file_name $metadata_file $(mean_file_name, optional)" << std::endl;
     return -1;
   }
-  bool compute_mean = argc == 4;
-  std::string target_file_name(argv[1]);
-  std::string metadata_file(argv[2]);
+  bool compute_mean = argc == 5;
+  bool size = atoi(argv[1]);
+  std::string target_file_name(argv[2]);
+  std::string metadata_file(argv[3]);
 
   hid_t file_id = create_hdf5_file(target_file_name);
 
   std::vector<std::pair<std::string, int> > lines;
   read_metadata(metadata_file, lines);
   int channels = 3;
-  int height = 256;
-  int width = 256;
+  int height = size;
+  int width = size;
   float *mean;
   if (compute_mean) {
       mean = new float[channels * height * width];
@@ -179,7 +180,7 @@ int main(int argc, char *argv[]) {
           }
       }
       MPI_OUT << "Writing Mean to File" <<  std::endl;
-      hid_t mean_file = create_hdf5_file(std::string(argv[3]));
+      hid_t mean_file = create_hdf5_file(std::string(argv[4]));
       hsize_t dim[] = {channels, height, width};
       hid_t dataspace = H5Screate_simple(3, dim, NULL);
       hid_t dset_id = H5Dcreate(mean_file, "mean", H5T_NATIVE_FLOAT, 
