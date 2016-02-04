@@ -41,7 +41,6 @@ function array_expr_inliner(node, cbdata, index, top_level, read)
                 # 1-d indexing
                 @assert length(idxs) == 1
             end
-            return node
         elseif node.head == :call && node.args[1] == :size
             arr = cbdata[node.args[2]]
             dim = node.args[3]

@@ -311,3 +311,32 @@ function remove_temp_nodes(ast)
     end
     AstWalk(ast, walker, nothing)
 end
+
+@noinline function pointer(args...)
+    Base.pointer(args...)
+end
+
+function transform_to_raw_array(ast)
+    function walker(node, cbdata, index, top_level, read)
+        if isa(node, Expr) && node.head == :call
+            if isa(node.args[1], GlobalRef)
+                if node.args[1].name == :arrayref
+                    node.args[1] = :raw_arrayref
+                    return node
+                elseif node.args[1].name == :arrayset
+                    node.args[1] = :raw_arrayset
+                    return node
+                elseif node.args[1].name == :pointer
+                    node.args[1] = :raw_pointer
+                    return node
+                end
+            end
+        elseif isa(node, Expr) && node.head in [:parallel_loophead,
+                                                :parallel_loopend,
+                                                :loophead, :loopend]
+            return node
+        end
+        ASTWALK_RECURSE
+    end
+    AstWalk(ast, walker, nothing)
+end

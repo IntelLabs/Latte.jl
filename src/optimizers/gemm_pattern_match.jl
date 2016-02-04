@@ -77,7 +77,7 @@ function get_target(A, offsets)
             offset = :($offset * size($(A.args[1]), $(i - 1)))
         end
     end
-    return :(ParallelAccelerator.API.pointer($(A.args[1]), $offset))
+    return :(pointer($(A.args[1]), $offset))
 end
 function collapse_blocks(node)
     body = []
