@@ -51,18 +51,18 @@ facts("Testing HDF5 Layer") do
     end
 
     net = Net(8)
-    data, label  = HDF5DataLayer(net, "$_file.txt", "$_file.txt"; scale=.5, shuffle=false)
+    data, label  = HDF5DataLayer(net, "$_file.txt", "$_file.txt"; shuffle=false)
 
     init(net)
     forward(net)
-    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,1:8] * .5
+    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,1:8]
     @fact get_buffer(net, :labelvalue) --> label_value[:,1:8]
     forward(net)
-    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,9:16] * .5
+    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,9:16]
     @fact get_buffer(net, :labelvalue) --> label_value[:,9:16]
     # Test wrap around
     forward(net)
-    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,1:8] * .5
+    @fact get_buffer(net, :datavalue) --> data_value[:,:,:,1:8]
     @fact get_buffer(net, :labelvalue) --> label_value[:,1:8]
     rm("$_file.txt")
     rm("$_file.hdf5")

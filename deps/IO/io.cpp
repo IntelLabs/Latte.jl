@@ -28,8 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "io.h"
 
 void init(bool use_mpi) {
-    MPI_Init(NULL, NULL);
     if (use_mpi) {
+        // MPI_Init(NULL, NULL);
         // MPI_Comm comm  = MPI_COMM_WORLD;
         // MPI_Info info  = MPI_INFO_NULL;
 
@@ -39,9 +39,9 @@ void init(bool use_mpi) {
     }
 }
 
-int init_dataset(int _batch_size, char *data_file_name, bool _shuffle, float scale, bool use_mpi, bool divide_by_rank)
+int init_dataset(int _batch_size, char *data_file_name, bool _shuffle, bool use_mpi, bool divide_by_rank)
 {
-    Dataset* dset = new Dataset(data_file_name, _batch_size, _shuffle, scale, use_mpi, divide_by_rank);
+    Dataset* dset = new Dataset(data_file_name, _batch_size, _shuffle, use_mpi, divide_by_rank);
 
     int id = datasets.size();
     datasets.push_back(dset);
@@ -95,5 +95,4 @@ int get_epoch(int dset_id) {
 
 void clean_up() {
   datasets.clear();
-  MPI_Finalize();
 }

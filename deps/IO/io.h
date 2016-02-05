@@ -47,8 +47,7 @@ extern "C" {
     void init(bool use_mpi);
     void clean_up();
 
-    int init_dataset(int _batch_size, char *data_file_name, bool _shuffle, 
-            float scale, bool use_mpi, bool divide_by_rank);
+    int init_dataset(int _batch_size, char *data_file_name, bool _shuffle, bool use_mpi, bool divide_by_rank);
     void get_next_batch(int dset_id);
     int get_epoch(int dset_id);
     int* get_data_shape(int dset_id);

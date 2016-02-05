@@ -27,9 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "dataset.h"
 
-Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, 
-        float _scale, bool _use_mpi, bool divide_by_rank) {
-    scale = _scale;
+Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use_mpi, bool divide_by_rank) {
     use_mpi = use_mpi;
     shuffle = _shuffle;
     batch_size = _batch_size;
@@ -72,8 +70,6 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle,
     hsize_t space_dims[data_ndim];
     hsize_t space_maxdims[data_ndim];
     H5Sget_simple_extent_dims(space_id, space_dims, space_maxdims);
-
-    H5Sclose(space_id);
     // printf("dataset dimensions: ");
     // for (int i = 0; i < data_ndim; i++) {
     //     printf("%lu ", space_dims[i]);
@@ -137,7 +133,6 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle,
     hsize_t label_space_dims[label_ndim];
     hsize_t label_space_maxdims[label_ndim];
     H5Sget_simple_extent_dims(space_id, label_space_dims, label_space_maxdims);
-    H5Sclose(space_id);
     label_shape = new int[label_ndim];
     for (int i = 0; i < label_ndim; i++) {
         label_shape[i] = label_space_dims[i];
@@ -235,7 +230,6 @@ void Dataset::get_next_batch() {
         int n = batch_idxs[i];
         memcpy(data_out + (i-start)*data_item_size, data_buffer + n*data_item_size,
                data_item_size*sizeof(float));
-        cblas_sscal(data_item_size, scale, data_out + (i-start)*data_item_size, 1);
         memcpy(label_out + (i-start)*label_item_size, label_buffer + n*label_item_size,
                label_item_size*sizeof(float));
     }
@@ -248,7 +242,6 @@ void Dataset::get_next_batch() {
         for (int i = leftover_start; i < leftover_end; i++) {
             memcpy(data_out + (i + end - start)*data_item_size, data_buffer + batch_idxs[i]*data_item_size,
                    data_item_size*sizeof(float));
-            cblas_sscal(data_item_size, scale, data_out + (i + end - start)*data_item_size, 1);
             memcpy(label_out + (i + end - start)*label_item_size, label_buffer + batch_idxs[i]*label_item_size,
                    label_item_size*sizeof(float));
         }
