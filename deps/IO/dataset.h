@@ -32,6 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stdlib.h"
 #include <assert.h>
 #include <string.h>
+#include <mkl.h>
 #ifdef LATTE_BUILD_MPI
 #include <mpi.h>
 #endif
@@ -43,6 +44,7 @@ class Dataset {
     float* label_buffer;
 
     bool shuffle;
+    float scale;
     int curr_item;
     int batch_size;
     int data_item_size;
@@ -67,7 +69,7 @@ class Dataset {
         void fetch_next_chunk(bool force);
         void get_next_batch();
 
-        Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use_mpi, bool divide_by_rank);
+        Dataset(char* data_file_name, int _batch_size, bool _shuffle, float scale, bool _use_mpi, bool divide_by_rank);
 	~Dataset() {
 	    H5Dclose(data_dataset_id);
 	    H5Dclose(label_dataset_id);

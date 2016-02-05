@@ -99,7 +99,15 @@ end
     @assert(batch_size > 0, "Data Layer batch_size must be greater than 0")
     train_data_source = parse_hdf5_source(train_data_source)
     test_data_source = parse_hdf5_source(test_data_source)
-    train_id = ccall((:init_dataset, $libIO), Cint, (Cint, Ptr{UInt8}, Cuchar, Cuchar, Cuchar), batch_size, train_data_source, shuffle, LATTE_MPI, false)
-    test_id = ccall((:init_dataset, $libIO), Cint, (Cint, Ptr{UInt8}, Cuchar, Cuchar, Cuchar), batch_size, test_data_source, false, LATTE_MPI, true)
+    train_id = ccall((:init_dataset, $libIO), Cint, 
+                                              (Cint, Ptr{UInt8}, Cuchar,
+                                               Cfloat, Cuchar, Cuchar), 
+                                              batch_size, train_data_source,
+                                              shuffle, scale, LATTE_MPI, false)
+    test_id = ccall((:init_dataset, $libIO), Cint, 
+                                             (Cint, Ptr{UInt8}, Cuchar, Cfloat,
+                                              Cuchar, Cuchar),
+                                             batch_size, test_data_source,
+                                             false, scale, LATTE_MPI, true)
     HDF5DataEnsemble(net, train_id, test_id, :data), HDF5DataEnsemble(net, train_id, test_id, :label)
 end
