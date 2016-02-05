@@ -8,6 +8,6 @@ julia create_metadata.jl
 echo "Converting validation set"
 ../../../bin/convert_imagenet 64 ./val.hdf5 ./val_metadata.txt
 echo "Converting train set"
-../../../bin/convert_imagenet 64 ./train.hdf5 ./train_metadata.txt.txt
+../../../bin/convert_imagenet 64 ./train.hdf5 ./train_metadata.txt mean.hdf5
 echo "data/train.hdf5" >> train.txt
 echo "data/val.hdf5" >> val.txt

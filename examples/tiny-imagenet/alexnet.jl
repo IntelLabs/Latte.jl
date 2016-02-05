@@ -27,11 +27,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using Latte
 
-batch_size = 64
+batch_size = 32
 
 net = Net(batch_size)
-data, label  = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
-trans = TransformLayer(net, :trans, data; crop=(56, 56), random_mirror=true, mean_file="data/mean.hdf5")
+data, label  = HDF5DataLayer(net, "data/train.txt", "data/val.txt")
+trans = TransformLayer(net, :trans, data; crop=(56, 56), scale=1/256.0f0, random_mirror=true, mean_file="data/mean.hdf5")
 
 conv1 = ConvolutionLayer(:conv1, net, trans, 64, 3, 1, 1)
 relu1 = ReLULayer(:relu1, net, conv1)
@@ -49,10 +49,10 @@ conv5 = ConvolutionLayer(:conv5, net, relu4, 256, 3, 1, 1; bias_init=0.1f0)
 relu5 = ReLULayer(:relu5, net, conv5)
 pool5 = MaxPoolingLayer(:pool5, net, relu5, 2, 2, 0)
 
-fc6     = InnerProductLayer(:fc6, net, pool5, 4096;
+fc6     = InnerProductLayer(:fc6, net, pool5, 256;
                             weight_init=gaussian(std=0.005), bias_init=0.1f0)
 relu6   = ReLULayer(:relu6, net, fc6)
-fc7     = InnerProductLayer(:fc7, net, relu6, 4096;
+fc7     = InnerProductLayer(:fc7, net, relu6, 256;
                             weight_init=gaussian(std=0.005), bias_init=0.1f0)
 relu7   = ReLULayer(:relu7, net, fc7)
 fc8     = InnerProductLayer(:fc8, net, relu7, 200)
