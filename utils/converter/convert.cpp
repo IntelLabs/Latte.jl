@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     return -1;
   }
   bool compute_mean = argc == 5;
-  bool size = atoi(argv[1]);
+  int size = atoi(argv[1]);
   std::string target_file_name(argv[2]);
   std::string metadata_file(argv[3]);
 
