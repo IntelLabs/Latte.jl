@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
         for (int row=0; row < width; row++) {
           for (int channel=0; channel < channels; channel++) {
             float val = (float) ((float*) im_resized.data)[col * width * channels + row * channels + channel];
-            im_to_store[channel * height * width + row * width + col] = val;
+            im_to_store[channel * height * width + row * width + col] = val / 255.0;
             if (compute_mean) {
               mean[channel * height * width + row * width + col] += val;
             }
