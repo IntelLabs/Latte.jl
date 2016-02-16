@@ -684,10 +684,7 @@ function init(net::SingleNet)
                 param.gradient = gradient
                 param.hist = zeros(param.value)
                 if LATTE_MPI
-                    # request_buf = symbol(ensemble.name,:∇,param.name,:request)
                     param.request = @eval ccall((:init_request, $libComm), Cint, ())
-                    # set_buffer(net, request_buf, param.request)
-                    # push!(backward_compute_args[Train], request_buf)
                     unshift!(backward_compute_body[Train],quote
                         ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), $(length(param.gradient)), $(param.request));
                     end)
