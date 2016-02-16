@@ -689,7 +689,7 @@ function init(net::SingleNet)
                     # set_buffer(net, request_buf, param.request)
                     # push!(backward_compute_args[Train], request_buf)
                     unshift!(backward_compute_body[Train],quote
-                        ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), $(param.gradient_name), $(length(param.gradient)), $(param.request));
+                        ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), $(length(param.gradient)), $(param.request));
                     end)
                 end
                 push!(net.params, param)
