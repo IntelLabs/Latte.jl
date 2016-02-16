@@ -46,11 +46,11 @@ fc6      = InnerProductLayer(:fc6, net, relu5, 10)
 loss     = SoftmaxLossLayer(:loss, net, fc6, label)
 accuracy = AccuracyLayer(:accuracy, net, fc6, label)
 
-params = SolverParameters(
-    LRPolicy.Inv(0.01, 0.0001, 0.75),
-    MomPolicy.Fixed(0.9),
-    100000,
-    .0005,
-    1000)
-sgd = SGD(params)
-solve(sgd, net)
+# params = SolverParameters(
+#     LRPolicy.Inv(0.01, 0.0001, 0.75),
+#     MomPolicy.Fixed(0.9),
+#     100000,
+#     .0005,
+#     1000)
+# sgd = SGD(params)
+# solve(sgd, net)

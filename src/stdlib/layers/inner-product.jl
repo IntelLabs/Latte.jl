@@ -46,8 +46,8 @@ function InnerProductLayer(name::Symbol, net::Net,
                                     view(bias, :, i), view(∇bias, :, i))
     end
     # Construct the ensemble
-    ip = Ensemble(net, name, neurons, [Param(net, name,:weights, 1.0f0, 1.0f0), 
-                                       Param(net, name,:bias, 2.0f0, 0.0f0)])
+    ip = Ensemble(net, name, neurons, [Param(name,:weights, 1.0f0, 1.0f0), 
+                                       Param(name,:bias, 2.0f0, 0.0f0)])
 
     # Connect each neuron in input_ensemble to each neuron in ip
     add_connections(net, input_ensemble, ip,

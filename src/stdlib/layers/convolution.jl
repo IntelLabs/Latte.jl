@@ -61,8 +61,8 @@ function ConvolutionLayer(name::Symbol, net::Net,
                                           view(bias, :, o), view(∇bias, :, o))
     end
 
-    conv = Ensemble(net, name, neurons, [Param(net, name, :weights, 1.0f0, 1.0f0), 
-                                         Param(net, name, :bias, 2.0f0, 0.0f0)])
+    conv = Ensemble(net, name, neurons, [Param(name, :weights, 1.0f0, 1.0f0), 
+                                         Param(name, :bias, 2.0f0, 0.0f0)])
     add_connections(net, input_ensemble, conv, function (x, y, _)
         in_x = (x-1)*stride - pad
         in_y = (y-1)*stride - pad

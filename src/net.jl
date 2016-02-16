@@ -561,8 +561,8 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
 end
 
 function add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net)
-    test_args = (ensemble, symbol(ensemble.name, :value), Test)
-    train_args = (ensemble, symbol(ensemble.name, :value), Train)
+    test_args = (ensemble, symbol(ensemble.name, :value), net, Test)
+    train_args = (ensemble, symbol(ensemble.name, :value), net, Train)
     push!(tasks[Train], JuliaTask(forward, train_args))
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
@@ -818,18 +818,30 @@ function test(net::SingleNet)
     accuracy / num_batches * 100.0f0
 end
 
-import Base.show
-function Base.show(io::IO, net::Net)
-    println(io, "Net")
-    println(io, "Ensembles")
-    println(io, "---------")
-    for ensemble in net.ensembles
-        println(io, "    ", AbstractString(ensemble))
+# import Base.show
+# function Base.show(io::IO, net::Net)
+#     println(io, "Net")
+#     println(io, "Ensembles")
+#     println(io, "---------")
+#     for ensemble in net.ensembles
+#         println(io, "    ", AbstractString(ensemble))
+#     end
+#     println(io, " ")
+#     println(io, "Forward Tasks")
+#     println(io, "-------------")
+#     for task in net.forward_tasks
+#         println(io, "    ", task.func)
+#     end
+# end
+
+using JLD
+export save
+function save(file::AbstractString, net::Net)
+  param_dict = Dict{Symbol, Vector{Array}}
+  for ens in net.ensembles
+    if :params in fieldnames(ens) && length(ens.params) > 0
+      param_dict[ens.name] = ens.params
     end
-    println(io, " ")
-    println(io, "Forward Tasks")
-    println(io, "-------------")
-    for task in net.forward_tasks
-        println(io, "    ", task.func)
-    end
+  end
+  write(file, "param_dict", param_dict)
 end

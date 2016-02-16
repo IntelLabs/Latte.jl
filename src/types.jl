@@ -46,7 +46,6 @@ end
 abstract Net
 
 type Param
-    net            :: Net
     name           :: Symbol
     gradient_name  :: Symbol
     learning_rate  :: Float32
@@ -57,9 +56,9 @@ type Param
     gradient :: Array
     hist     :: Array
     request  :: Cint
-    Param(net::Net, ensemble_name::Symbol, name::Symbol,
+    Param(ensemble_name::Symbol, name::Symbol,
           learning_rate::Float32, regu_coef::Float32) =
-              new(net, symbol(ensemble_name, name),
+              new(symbol(ensemble_name, name),
                   symbol(ensemble_name,:∇,name), learning_rate, regu_coef, -1.0f0)
 end
 

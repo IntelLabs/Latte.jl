@@ -28,7 +28,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export HDF5DataLayer
 
 type HDF5DataEnsemble <: DataEnsemble
-    net         :: Net
     name        :: Symbol
     neurons     :: Array{DataNeuron}
     train_id    :: Cint
@@ -51,7 +50,7 @@ end
     for i = 1:length(neurons)
         neurons[i] = DataNeuron(0.0f0)
     end
-    ens = HDF5DataEnsemble(net, target, neurons, train_id, test_id, 1, 1)
+    ens = HDF5DataEnsemble(target, neurons, train_id, test_id, 1, 1)
     add_ensemble(net, ens)
     ens
 end
@@ -69,7 +68,7 @@ end
     end
 end
 
-@eval function forward{N}(ens::HDF5DataEnsemble, data::Array{Float32,N}, phase::Phase)
+@eval function forward{N}(ens::HDF5DataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
     if phase == Train
         id = ens.train_id
     else
@@ -80,9 +79,9 @@ end
     end
     epoch = ccall((:get_epoch, $libIO), Cint, (Cint,), id)
     if phase == Train
-        ens.net.train_epoch = epoch
+        net.train_epoch = epoch
     else
-        ens.net.test_epoch = epoch
+        net.test_epoch = epoch
     end
 end
 
