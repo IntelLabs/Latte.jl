@@ -1,5 +1,7 @@
 # Latte.jl
 
+Check out our the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
+
 ## Quick Install
 ```
 $ julia -e 'Pkg.clone("https://github.com/IntelLabs/Latte.jl")'
