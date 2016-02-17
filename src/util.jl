@@ -268,6 +268,10 @@ function log{T}(arg::T)
     ccall((:log, "libm"), T, (T, ), arg)
 end
 
+function tanh{T}(arg::T)
+    ccall((:tanh, "libm"), T, (T, ), arg)
+end
+
 function gradient_check(f::Function, inputs::Vector{Array}, grad_outputs::Vector{Array}, eps=1e-3)
     grads = [zeros(x) for x in inputs]
     for (x, gx) in zip(inputs, grads)

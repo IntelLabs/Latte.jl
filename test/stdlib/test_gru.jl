@@ -62,9 +62,8 @@ facts("Testing GRU layer") do
         r = sigmoid(x_r .+ (U_r' * h_tm1))
         hh = tanh(x_h .+ (U_h' * (r .* h_tm1)))
         h = z .* h_tm1 + (1-z) .* hh
-        eps = 1e-1
-        # @fact all(-eps .< get_buffer(net, :gru1value, t) - h .< eps) --> true
-        @fact get_buffer(net, :gru1value, t) --> roughly(h, atol=eps)
+        eps = 1e-2
+        @fact all(-eps .< get_buffer(net, :gru1value, t) - h .< eps) --> true
     end
     backward(net)
 end
