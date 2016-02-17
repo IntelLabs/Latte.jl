@@ -1,6 +1,6 @@
 # Latte.jl
 
-Check out our the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
+Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
 
 ## Quick Install
 ```
