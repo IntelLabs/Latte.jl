@@ -61,6 +61,9 @@ fc6     = InnerProductLayer(:fc6,     net, pool5,   4096)
 fc7     = InnerProductLayer(:fc7,     net, fc6,   4096)
 fc8     = InnerProductLayer(:fc8,     net, fc7,   1000)
 
+loss     = SoftmaxLossLayer(:loss, net, fc8, label)
+accuracy = AccuracyLayer(:accuracy, net, fc8, label)
+
 params = SolverParameters(
     LRPolicy.Step(.01, .1, 100000),
     MomPolicy.Fixed(0.9),
