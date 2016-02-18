@@ -14,3 +14,4 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 bin/convert_imagenet
+sftp-config.json
