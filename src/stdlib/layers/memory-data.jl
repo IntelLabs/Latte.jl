@@ -33,11 +33,11 @@ type MemoryDataEnsemble{N,M} <: DataEnsemble
     value      :: Array{Float32, M}  # M != N because of batch dimension
 end
 
-function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, phase::Phase)
+function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
     data[:] = ens.value[:]
 end
 
-function backward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, phase::Phase)
+function backward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
 end
 
 function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple; time_steps=1)

@@ -832,13 +832,25 @@ end
 # end
 
 using JLD
-export save
-function save(file::AbstractString, net::Net)
-  param_dict = Dict{Symbol, Vector{Array}}
-  for ens in net.ensembles
-    if :params in fieldnames(ens) && length(ens.params) > 0
-      param_dict[ens.name] = ens.params
+export save_snapshot, load_snapshot
+
+function save_snapshot(net::Net, file::AbstractString)
+    param_dict = Dict{Symbol, Vector{Param}}()
+    for ens in net.ensembles
+        if :params in fieldnames(ens) && length(ens.params) > 0
+            param_dict[ens.name] = ens.params
+        end
     end
-  end
-  write(file, "param_dict", param_dict)
+    save(file, "param_dict", param_dict)
+end
+
+function load_snapshot(net::Net, file::AbstractString)
+    param_dict = load(file, "param_dict")
+    for ens in net.ensembles
+        if :params in fieldnames(ens) && length(ens.params) > 0
+            for (param, saved) in zip(ens.params, param_dict[ens.name])
+                param.value[:] = saved.value[:]
+            end
+        end
+    end
 end
