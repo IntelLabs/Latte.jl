@@ -119,6 +119,7 @@ end
 
 function update(sgd::SGD, net::Net)
     for param in net.params
+        l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
         sgd_update(sgd.state.learning_rate * param.learning_rate,
                    sgd.state.momentum, param.value, param.gradient, param.hist)
     end
@@ -129,6 +130,7 @@ end
     for i in length(net.params):-1:1
         param = net.params[i]
         ccall((:wait, $libComm), Void, (Cint,), param.request)
+        l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
         sgd_update(sgd.state.learning_rate * param.learning_rate,
                    sgd.state.momentum, param.value, param.gradient, param.hist)
     end
@@ -155,16 +157,16 @@ function clip_gradients(sgd::SGD, net::Net)
         if param.clip_gradients < 0.0f0
             return
         end
-        sumsq = 0.0
+    end
+    sumsq = 0.0
+    for param in net.params
+        sumsq += dot(param.gradient[:], param.gradient[:])
+    end
+    l2norm_diff = sqrt(sumsq)
+    if l2norm_diff > param.clip_gradients
+        scale = param.clip_gradients / l2norm_diff
         for param in net.params
-            sumsq += dot(param.gradient[:], param.gradient[:])
-        end
-        l2norm_diff = sqrt(sumsq)
-        if l2norm_diff > param.clip_gradients
-            scale = param.clip_gradients / l2norm_diff
-            for param in net.params
-                BLAS.scal!(length(param.gradient), scale, pointer(param.gradient), 1)
-            end
+            BLAS.scal!(length(param.gradient), scale, pointer(param.gradient), 1)
         end
     end
 end
@@ -208,8 +210,8 @@ function solve(solver::Solver, net::Net)
         solver.state.obj_val = get_buffer(net, :lossvalue)[1]
         solver.state.learning_rate = get_learning_rate(solver.params.lr_policy, solver.state)
         solver.state.momentum = get_momentum(solver.params.mom_policy, solver.state)
-        clip_gradients(solver, net)
-        regularize(solver, net)
+        # clip_gradients(solver, net)
+        # regularize(solver, net)
 
         if LATTE_MPI
             update_chunk(solver, net)

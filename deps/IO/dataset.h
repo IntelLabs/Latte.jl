@@ -32,12 +32,20 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stdlib.h"
 #include <assert.h>
 #include <string.h>
+#include <iostream>
 #ifdef LATTE_BUILD_MPI
 #include <mpi.h>
 #endif
 #include <omp.h>
 
+#ifdef DEBUG
+#define debug(M, ...) fprintf(stderr, "DEBUG %s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#else
+#define debug(M, ...)
+#endif
+
 class Dataset {
+    int* chunks;
     int* batch_idxs;
     float* data_buffer;
     float* label_buffer;
@@ -55,6 +63,7 @@ class Dataset {
     int chunk_start;
     int chunk_idx;
     int chunk_end;
+    int n_chunks;
     bool use_mpi;
     public:
         int epoch;

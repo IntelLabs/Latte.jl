@@ -44,13 +44,13 @@ int init_request() {
 void sync_gradients(float *data, int count, int request_id) {
     MPI_Request *request = requests[request_id];
     MPI_Iallreduce(MPI_IN_PLACE, data, count, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD, request);
-    int size;
-    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    // int size;
+    // MPI_Comm_size(MPI_COMM_WORLD, &size);
     // Scale for gradient accumulation normalization
-    #pragma omp parallel for simd
-    for (int i=0; i < count; i++) {
-        data[i] /= (float) size;
-    }
+    // #pragma omp parallel for simd
+    // for (int i=0; i < count; i++) {
+    //     data[i] /= (float) size;
+    // }
 }
 
 void wait(int request_id) {

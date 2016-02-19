@@ -6,6 +6,11 @@ if(LATTE_MPI)
     SET(CMAKE_CXX_COMPILER mpiicpc)
     add_definitions(-DLATTE_BUILD_MPI)
 endif(LATTE_MPI)
+
+if(DEBUG)
+    add_definitions(-DDEBUG)
+endif(DEBUG)
+
 find_package( HDF5 REQUIRED )
 include_directories( ${HDF5_INCLUDE_DIRS} )
 FIND_PACKAGE( OpenMP REQUIRED)

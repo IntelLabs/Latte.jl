@@ -28,7 +28,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "dataset.h"
 
 Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use_mpi, bool divide_by_rank) {
-    use_mpi = use_mpi;
+#ifdef LATTE_BUILD_MPI
+    int rank;
+    if (_use_mpi) {
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        debug("Rank %d : Initializing dataset %s (shuffle=%d, use_mpi=%d).", rank, data_file_name, _shuffle, _use_mpi);
+    }
+#else
+    debug("Initializing dataset %s.", data_file_name);
+#endif
+    use_mpi = _use_mpi;
     shuffle = _shuffle;
     batch_size = _batch_size;
     epoch = 0;
@@ -40,11 +49,17 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
 
     herr_t ret;
     if (use_mpi) {
+        debug("Rank %d : Setting up parallel access to dataset %s.", rank, data_file_name);
 #ifdef LATTE_BUILD_MPI
         /* set Parallel access with communicator */
         ret = H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
         assert(ret != -1);
+#else
+        std::cout << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON"
+        assert(false);
 #endif
+    } else {
+        debug("use_mpi=%d, accesing dataset %s in sequential mode.", use_mpi, data_file_name);
     }
    
     // open file
@@ -86,21 +101,20 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     }
 
     num_total_items = data_shape[0];
-    if (use_mpi && divide_by_rank) {
+    if (use_mpi) { // && divide_by_rank) {
 #ifdef LATTE_BUILD_MPI
-        int rank, size;
+        int size;
         MPI_Comm_size(MPI_COMM_WORLD, &size);
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         int chunk_size = num_total_items / size + 1;
         chunk_start = rank * chunk_size;
         chunk_end = std::min(chunk_start+chunk_size, num_total_items);
         num_total_items = chunk_end - chunk_start;
+        debug("Rank %d : chunk_size=%d, chunk_start=%d, chunk_end=%d, num_total_items=%d", rank, chunk_size, chunk_start, chunk_end, num_total_items);
 #endif
     } else {
         chunk_start = 0;
         chunk_end = num_total_items;
     }
-    chunk_idx = chunk_start;
     data_item_size = 1;
     for (int i = 1; i < data_ndim; i++) {
         data_item_size *= data_shape[i];
@@ -118,6 +132,16 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     } else {
         num_local_items = num_total_items;
     }
+
+    // chunk_idx = chunk_start;
+    chunk_idx = 0;
+    n_chunks = num_total_items / num_local_items;
+    chunks = new int[n_chunks];
+    for (int i = 0; i < n_chunks; i++) {
+        chunks[i] = chunk_start + num_local_items * i;
+    }
+    if (shuffle) std::random_shuffle(chunks, chunks + n_chunks);
+
     // printf("num_local_items %d\n", num_local_items);
     batch_idxs = new int[num_local_items];
     for (int i = 0; i < num_local_items; i++) batch_idxs[i] = i;
@@ -154,7 +178,9 @@ void Dataset::fetch_next_chunk(bool force) {
         hsize_t count[data_ndim];
         hsize_t start[data_ndim];
         count[0] = num_local_items;
-        start[0] = chunk_idx;
+        // start[0] = chunk_idx;
+        start[0] = chunks[chunk_idx];
+        debug("Fetching chunk %d", start[0]);
         // printf("chunk_idx: %d\n", chunk_idx);
         // printf("num_local_items: %d\n", num_local_items);
         // printf("count: ");
@@ -177,12 +203,12 @@ void Dataset::fetch_next_chunk(bool force) {
 
         hid_t xfer_plist = H5Pcreate (H5P_DATASET_XFER);
         assert(xfer_plist != -1);
-        if (use_mpi) {
-#ifdef LATTE_BUILD_MPI
-            ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
-            assert(ret != -1);
-#endif
-        }
+//         if (use_mpi) {
+// #ifdef LATTE_BUILD_MPI
+//             ret = H5Pset_dxpl_mpio(xfer_plist, H5FD_MPIO_COLLECTIVE);
+//             assert(ret != -1);
+// #endif
+//         }
 
         /* read data collectively */
         ret = H5Dread(data_dataset_id, H5T_NATIVE_FLOAT, mem_dataspace, my_dataspace,
@@ -191,7 +217,8 @@ void Dataset::fetch_next_chunk(bool force) {
         assert(ret != -1);
 
         count[0] = num_local_items;
-        start[0] = chunk_idx;
+        // start[0] = chunk_idx;
+        start[0] = chunks[chunk_idx];
         for (int i = 1; i < label_ndim; i++) {
             count[i] = label_shape[i];
             start[i] = 0;
@@ -208,11 +235,15 @@ void Dataset::fetch_next_chunk(bool force) {
         ret = H5Dread(label_dataset_id, H5T_NATIVE_FLOAT, mem_dataspace, my_dataspace,
                 xfer_plist, label_buffer);
         assert(ret != -1);
-        if (chunk_idx + 2 * num_local_items > chunk_end) {
-            chunk_idx = chunk_start;
+        if (chunk_idx + 1 >= n_chunks) {
+            chunk_idx = 0;
+        // if (chunk_idx + 2 * num_local_items > chunk_end) {
+            // chunk_idx = chunk_start;
             epoch += 1;
+            if (shuffle) std::random_shuffle(chunks, chunks + n_chunks);
         } else {
-            chunk_idx += num_local_items;
+            // chunk_idx += num_local_items;
+            chunk_idx++;
         }
         H5Sclose(my_dataspace);
         H5Sclose(mem_dataspace);

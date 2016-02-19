@@ -30,11 +30,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 void init(bool use_mpi) {
     if (use_mpi) {
         // MPI_Init(NULL, NULL);
-        // MPI_Comm comm  = MPI_COMM_WORLD;
+        MPI_Comm comm  = MPI_COMM_WORLD;
         // MPI_Info info  = MPI_INFO_NULL;
 
         // MPI_Comm_size(comm, &mpi_size);
-        // MPI_Comm_rank(comm, &mpi_rank);  
+        MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);  
+        srand(time(NULL) + mpi_rank);
         // MPI_Barrier(comm);
     }
 }

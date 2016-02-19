@@ -48,8 +48,10 @@ LATTE_MPI = false
 
 if haskey(ENV, "LATTE_MPI")
     LATTE_MPI = true
-end
 
+    @eval ccall((:init, $libComm), Void, ())
+    # info("Finished initializing comm library")
+end
 @eval ccall((:init, $libIO), Void, (Cuchar,), LATTE_MPI)
 atexit(() -> @eval ccall((:clean_up, $libIO), Void, ()))
 
@@ -59,11 +61,6 @@ export TrainTest, Train, Test
 include("neuron.jl")
 
 include("util.jl")
-
-if LATTE_MPI
-    @eval ccall((:init, $libComm), Void, ())
-    info("Finished initializing comm library")
-end
 include("types.jl")
 include("param.jl")
 include("net.jl")

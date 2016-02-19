@@ -30,8 +30,9 @@ using HDF5
 
 net = Net(64)
 data, label  = HDF5DataLayer(net, "data/train.txt", "data/val.txt")
+trans = TransformLayer(net, :trans, data; crop=(224, 224), random_mirror=true, mean_file="data/mean.hdf5")   
 
-conv1_1 = ConvolutionLayer( :conv1_1, net, data,    64,  3, 1, 1)
+conv1_1 = ConvolutionLayer( :conv1_1, net, trans,    64,  3, 1, 1)
 relu1_1 = ReLULayer(        :relu1_1, net, conv1_1)
 pool1   = MaxPoolingLayer(  :pool1,   net, relu1_1, 2,   2, 0)
 
