@@ -831,7 +831,6 @@ end
 #     end
 # end
 
-using JLD
 export save_snapshot, load_snapshot
 
 function save_snapshot(net::Net, file::AbstractString)
