@@ -1,12 +1,17 @@
 #!/bin/bash
+TARGET_DIR="$1"
+
+if [[ -z "TARGET_DIR" ]] ; then
+    TARGET_DIR=dirname "$0"
+fi
 
 ARCHIVE=cifar-10-binary.tar.gz
-curl -O http://www.cs.toronto.edu/~kriz/$ARCHIVE
+curl -o $TARGET_DIR/$ARCHIVE -O http://www.cs.toronto.edu/~kriz/$ARCHIVE
 
 echo Unpacking archive...
-tar xf $ARCHIVE
+tar xf $TARGET_DIR/$ARCHIVE -C $TARGET_DIR
 
-julia convert.jl
+julia convert.jl $TARGET_DIR
 
-echo "data/train.hdf5" >> train.txt
-echo "data/test.hdf5" >> test.txt
+echo "$TARGET_DIR/train.hdf5" >> train.txt
+echo "$TARGET_DIR/test.hdf5" >> test.txt

@@ -28,6 +28,12 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # convert binary into HDF5 data
 using HDF5
 
+base_dir = "./"
+
+if length(ARGS) > 0
+  base_dir = ARGS[1]
+end
+
 datasets = [("train", ["data_batch_$i.bin" for i in 1:5]),
             ("test", ["test_batch.bin"])]
 
@@ -39,14 +45,14 @@ const batch_size = 10000
 mean_model = zeros(Float32, width, height, channels, 1)
 
 for (key, sources) in datasets
-  h5open("$key.hdf5", "w") do h5
+  h5open("$base_dir/$key.hdf5", "w") do h5
     dset_data = d_create(h5, "data", datatype(Float32), 
         dataspace(width, height, channels, batch_size * length(sources)))
     dset_label = d_create(h5, "label", datatype(Float32), 
         dataspace(1, batch_size * length(sources)))
 
     for n = 1:length(sources)
-      open("cifar-10-batches-bin/$(sources[n])") do f
+      open("$base_dir/cifar-10-batches-bin/$(sources[n])") do f
         println("Processing $(sources[n])...")
         mat = readbytes(f, (1 + width*height*channels) * batch_size)
         mat = reshape(mat, 1+width*height*channels, batch_size)

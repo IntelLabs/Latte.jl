@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 2.8.11)
-SET(CMAKE_C_COMPILER mpicc)
-SET(CMAKE_CXX_COMPILER mpicxx)
+SET(CMAKE_C_COMPILER mpiicc)
+SET(CMAKE_CXX_COMPILER mpiicpc)
 project (convert_imagenet)
 find_package( OpenCV REQUIRED )
 find_package( HDF5 REQUIRED )

@@ -25,30 +25,37 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
+BASE_DIR = "."
+if length(ARGS) == 1 
+    BASE_DIR = ARGS[1]
+elseif length(ARGS) > 1
+    throw("Error: create_metadata.jl accepts only 1 optional argument for file path")
+end
+
 id_to_label = Dict{AbstractString, Int}()
-open("tiny-imagenet-200/wnids.txt", "r") do ids
+open("$BASE_DIR/tiny-imagenet-200/wnids.txt", "r") do ids
     for (index, line) in enumerate(eachline(ids))
         id_to_label[chomp(line)] = index - 1
     end
 end
 
 val_images = []
-open("tiny-imagenet-200/val/val_annotations.txt", "r") do val
+open("$BASE_DIR/tiny-imagenet-200/val/val_annotations.txt", "r") do val
     for line in eachline(val)
         _line = split(line)
         push!(val_images, (_line[1], id_to_label[_line[2]]))
     end
 end
-open("val_metadata.txt", "w") do metadata
+open("$BASE_DIR/val_metadata.txt", "w") do metadata
     for val in val_images
-        write(metadata, "tiny-imagenet-200/val/images/$(val[1]) $(val[2])\n")
+        write(metadata, "$BASE_DIR/tiny-imagenet-200/val/images/$(val[1]) $(val[2])\n")
     end
 end
 
-train_classes = readdir("tiny-imagenet-200/train")
-open("train_metadata.txt", "w") do metadata
+train_classes = readdir("$BASE_DIR/tiny-imagenet-200/train")
+open("$BASE_DIR/train_metadata.txt", "w") do metadata
     for class in train_classes
-        image_path = "tiny-imagenet-200/train/$class/images"
+        image_path = "$BASE_DIR/tiny-imagenet-200/train/$class/images"
         for image in readdir(image_path)
             write(metadata, "$image_path/$image $(id_to_label[class])\n")
         end
