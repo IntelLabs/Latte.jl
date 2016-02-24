@@ -28,10 +28,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # convert binary into HDF5 data
 using HDF5
 
-srand(12345678)
+base_dir = "./"
 
-datasets = Dict("train" => ["train-labels-idx1-ubyte","train-images-idx3-ubyte"],
-                "test" => ["t10k-labels-idx1-ubyte","t10k-images-idx3-ubyte"])
+if length(ARGS) > 0
+  base_dir = ARGS[1]
+end
+
+datasets = Dict("train" => ["$base_dir/train-labels-idx1-ubyte","$base_dir/train-images-idx3-ubyte"],
+                "test" => ["$base_dir/t10k-labels-idx1-ubyte","$base_dir/t10k-images-idx3-ubyte"])
 
 for key in keys(datasets)
   label_fn, data_fn = datasets[key]
@@ -54,7 +58,7 @@ for key in keys(datasets)
 
   println("Exporting $n_data digits of size $h x $w")
 
-  h5open("$key.hdf5", "w") do h5
+  h5open("$base_dir/$key.hdf5", "w") do h5
     dset_data = d_create(h5, "data", datatype(Float32), dataspace(w, h, 1, n_data))
     dset_label = d_create(h5, "label", datatype(Float32), dataspace(1, n_data))
 

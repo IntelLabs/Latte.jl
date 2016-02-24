@@ -2,8 +2,6 @@ cmake_minimum_required (VERSION 2.8.11)
 project (LatteIO)
 option(LATTE_MPI "Include MPI support when building the Latte runtime" OFF)
 if(LATTE_MPI)
-    SET(CMAKE_C_COMPILER mpiicc)
-    SET(CMAKE_CXX_COMPILER mpiicpc)
     add_definitions(-DLATTE_BUILD_MPI)
 endif(LATTE_MPI)
 

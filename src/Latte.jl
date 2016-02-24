@@ -51,7 +51,7 @@ if haskey(ENV, "LATTE_MPI")
     LATTE_MPI = true
 
     @eval ccall((:init, $libComm), Void, ())
-    # info("Finished initializing comm library")
+    info("Finished initializing comm library")
 end
 @eval ccall((:init, $libIO), Void, (Cuchar,), LATTE_MPI)
 atexit(() -> @eval ccall((:clean_up, $libIO), Void, ()))

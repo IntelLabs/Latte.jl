@@ -1,7 +1,7 @@
 #!/bin/bash
 TARGET_DIR="$1"
 
-if [[ -z "TARGET_DIR" ]] ; then
+if [[ -z "$TARGET_DIR" ]] ; then
     TARGET_DIR=dirname "$0"
 fi
 
