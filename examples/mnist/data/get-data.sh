@@ -3,7 +3,7 @@
 TARGET_DIR="$1"
 
 if [[ -z "$TARGET_DIR" ]] ; then
-    TARGET_DIR=dirname "$0"
+    TARGET_DIR="."
 fi
 
 for dset in train-images-idx3-ubyte.gz train-labels-idx1-ubyte.gz \
