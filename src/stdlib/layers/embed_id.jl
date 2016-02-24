@@ -28,8 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export EmbedNeuron, EmbedIDLayer
 
 @neuron type EmbedNeuron
-    weights  :: DenseArray{LatteFloat}
-    ∇weights :: DenseArray{LatteFloat}
+    weights  :: DenseArray{Float32}
+    ∇weights :: DenseArray{Float32}
 end
 
 @neuron forward(neuron::EmbedNeuron) do

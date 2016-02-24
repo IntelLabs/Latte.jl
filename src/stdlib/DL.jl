@@ -37,11 +37,11 @@ function DataNeuron(value::AbstractFloat)
 end
 
 @neuron type WeightedNeuron
-    weights  :: DenseArray{LatteFloat}
-    ∇weights :: DenseArray{LatteFloat}
+    weights  :: DenseArray{Float32}
+    ∇weights :: DenseArray{Float32}
 
-    bias     :: DenseArray{LatteFloat}
-    ∇bias    :: DenseArray{LatteFloat}
+    bias     :: DenseArray{Float32}
+    ∇bias    :: DenseArray{Float32}
 end
 
 @neuron forward(neuron::WeightedNeuron) do

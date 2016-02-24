@@ -28,8 +28,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export LSTMLayer
 
 @neuron type LSTMNeuron
-    state  :: Batch{LatteFloat}
-    ∇state :: Batch{LatteFloat}
+    state  :: Batch{Float32}
+    ∇state :: Batch{Float32}
 end
 
 function LSTMNeuron()
