@@ -55,7 +55,7 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
         ret = H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
         assert(ret != -1);
 #else
-        std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" std::endl;
+        std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" << std::endl;
         assert(false);
 #endif
     } else {

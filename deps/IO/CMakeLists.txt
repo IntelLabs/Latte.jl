@@ -12,8 +12,15 @@ endif(DEBUG)
 find_package( HDF5 REQUIRED )
 include_directories( ${HDF5_INCLUDE_DIRS} )
 FIND_PACKAGE( OpenMP REQUIRED)
+
+find_package(MPI)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 add_library(LatteIO SHARED io.cpp io.h dataset.cpp dataset.h)
-target_link_libraries(LatteIO ${HDF5_LIBRARIES})
+target_link_libraries(LatteIO ${HDF5_C_LIBRARIES})
+
+if(${HDF5_IS_PARALLEL})
+    include_directories(SYSTEM ${MPI_INCLUDE_PATH})
+    target_link_libraries(LatteIO ${MPI_C_LIBRARIES})
+endif()
