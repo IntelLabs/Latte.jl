@@ -29,6 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 void init(bool use_mpi) {
     if (use_mpi) {
+#ifdef LATTE_BUILD_MPI
         // MPI_Init(NULL, NULL);
         MPI_Comm comm  = MPI_COMM_WORLD;
         // MPI_Info info  = MPI_INFO_NULL;
@@ -36,7 +37,13 @@ void init(bool use_mpi) {
         // MPI_Comm_size(comm, &mpi_size);
         MPI_Comm_rank(MPI_COMM_WORLD, &mpi_rank);  
         srand(time(NULL) + mpi_rank);
+#else
+        std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" << std::endl;
+        assert(false);
+#endif
         // MPI_Barrier(comm);
+    } else {
+        srand(time(NULL));
     }
 }
 

@@ -201,7 +201,7 @@ void Dataset::fetch_next_chunk(bool force) {
         hid_t mem_dataspace = H5Screate_simple (data_ndim, count, NULL);
         assert (mem_dataspace != -1);
 
-        hid_t xfer_plist = H5Pcreate (H5P_DATASET_XFER);
+        hid_t xfer_plist = H5Pcreate (H5P_DATASET_ACCESS);
         assert(xfer_plist != -1);
 //         if (use_mpi) {
 // #ifdef LATTE_BUILD_MPI
@@ -234,6 +234,7 @@ void Dataset::fetch_next_chunk(bool force) {
 
         ret = H5Dread(label_dataset_id, H5T_NATIVE_FLOAT, mem_dataspace, my_dataspace,
                 xfer_plist, label_buffer);
+        H5Pclose(xfer_plist);
         assert(ret != -1);
         if (chunk_idx + 1 >= n_chunks) {
             chunk_idx = 0;
