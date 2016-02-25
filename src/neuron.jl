@@ -51,7 +51,7 @@ macro neuron(expr)
         type_defn = expr.args[2]
         expr.args[2] = Expr(:(<:), type_defn, :Neuron)
         original = remove_line_nodes(copy(expr.args[3])).args
-        T = LatteFloat
+        T = Float32
         block = expr.args[3].args
         unshift!(block, :(∇inputs :: DenseArray{$T}))
         unshift!(block, :(inputs  :: DenseArray{$T}))

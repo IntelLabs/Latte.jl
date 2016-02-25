@@ -31,36 +31,35 @@ abstract Solver
 
 type SolverState
     iter :: Int
-    obj_val :: LatteFloat
-    learning_rate :: LatteFloat
-    momentum :: LatteFloat
+    obj_val :: Float32
+    learning_rate :: Float32
+    momentum :: Float32
 end
 
 abstract LearningRatePolicy
 module LRPolicy
 using ..Latte.LearningRatePolicy
-import ..Latte.LatteFloat
 type Fixed <: LearningRatePolicy
-    base_lr :: LatteFloat
+    base_lr :: Float32
 end
 
 # base_lr * gamma ^ (floor(iter / stepsize))
 type Step <: LearningRatePolicy
-    base_lr  :: LatteFloat
-    gamma    :: LatteFloat
+    base_lr  :: Float32
+    gamma    :: Float32
     stepsize :: Int
 end
 
 # base_lr * gamma ^ iter
 type Exp <: LearningRatePolicy
-    base_lr :: LatteFloat
-    gamma   :: LatteFloat
+    base_lr :: Float32
+    gamma   :: Float32
 end
 
 type Inv <: LearningRatePolicy
-    base_lr :: LatteFloat
-    gamma   :: LatteFloat
-    power   :: LatteFloat
+    base_lr :: Float32
+    gamma   :: Float32
+    power   :: Float32
 end
 end # module LRPolicy
 
@@ -74,25 +73,24 @@ get_learning_rate(policy::LRPolicy.Inv, state::SolverState) =
 
 abstract MomentumPolicy
 module MomPolicy
-import ..Latte.LatteFloat
 using ..Latte.MomentumPolicy
 type Fixed <: MomentumPolicy
-  base_mom :: LatteFloat
+  base_mom :: Float32
 end
 
 # min(base_mom * gamma ^ (floor(iter / stepsize)), max_mom)
 type Step <: MomentumPolicy
-    base_mom :: LatteFloat
-    gamma    :: LatteFloat
+    base_mom :: Float32
+    gamma    :: Float32
     stepsize :: Int
-    max_mom  :: LatteFloat
+    max_mom  :: Float32
 end
 
 type Linear <: MomentumPolicy
-    base_mom :: LatteFloat
-    gamma    :: LatteFloat
+    base_mom :: Float32
+    gamma    :: Float32
     stepsize :: Int
-    max_mom  :: LatteFloat
+    max_mom  :: Float32
 end
 end # module MomPolicy
 
@@ -107,7 +105,7 @@ type SolverParameters
     lr_policy::LearningRatePolicy
     mom_policy::MomentumPolicy
     max_itr::Int
-    regu_coef::LatteFloat
+    regu_coef::Float32
     test_every::Int
 end
 
@@ -136,7 +134,7 @@ end
     end
 end
 
-function sgd_update{T}(learning_rate::AbstractFloat, momentum::LatteFloat,
+function sgd_update{T}(learning_rate::AbstractFloat, momentum::Float32,
                        param::Array{T}, gradient::Array{T}, hist::Array{T})
     momentum = convert(T, momentum)
     learning_rate = convert(T, learning_rate)
@@ -177,7 +175,7 @@ function regularize(sgd::SGD, net::Net)
     end
 end
 
-function l2_regularization(regu_coef::LatteFloat, param::Array, gradient::Array)
+function l2_regularization(regu_coef::Float32, param::Array, gradient::Array)
     BLAS.axpy!(length(param), convert(eltype(param), 2.0 * regu_coef), pointer(param), 1, pointer(gradient), 1)
 end
 

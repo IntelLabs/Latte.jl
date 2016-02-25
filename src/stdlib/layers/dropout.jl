@@ -29,7 +29,7 @@ export DropoutLayer
 
 @neuron type DropoutNeuron
     ratio   :: Shared{Float32}
-    randval :: Batch{LatteFloat}
+    randval :: Batch{Float32}
 end
 
 DropoutNeuron(ratio::Float32) = DropoutNeuron(Shared(ratio), Batch(0.0f0))

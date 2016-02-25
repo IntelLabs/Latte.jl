@@ -42,7 +42,6 @@ libsuffix = @osx ? ".dylib" : ".so"
 libIO = "$latte_library_path/libLatteIO$libsuffix"
 libComm = "$latte_library_path/libLatteComm$libsuffix"
 
-typealias LatteFloat Float32
 type LatteException <: Exception end
 
 LATTE_MPI = false
