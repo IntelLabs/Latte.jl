@@ -199,7 +199,7 @@ function solve(solver::Solver, net::Net)
     if LATTE_MPI
         broadcast_initial_params(net)
     end
-    info("Entering solve loop")
+    log_info("Entering solve loop")
     while solver.state.iter < solver.params.max_itr
         solver.state.iter += 1
         forward(net)
@@ -220,18 +220,18 @@ function solve(solver::Solver, net::Net)
         clear_values(net)
         clear_∇(net)
         if solver.state.iter % 20 == 0
-            info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
+            log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
         end
         if solver.state.iter % solver.params.test_every == 0
-            info("Iter $(solver.state.iter) - Testing... (Current train epoch: $(net.train_epoch))")
+            log_info("Iter $(solver.state.iter) - Testing... (Current train epoch: $(net.train_epoch))")
             acc = test(net)
             if LATTE_MPI
                 total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
                 if total_acc >= 0.0f0
-                    info("Iter $(solver.state.iter) - Test Result: $total_acc%")
+                    log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
                 end
             else
-                info("Iter $(solver.state.iter) - Test Result: $acc%")
+                log_info("Iter $(solver.state.iter) - Test Result: $acc%")
             end
         end
     end
