@@ -529,7 +529,6 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
         end
         arg_bufs = [buffers[arg] for arg in args]
         signature = tuple([typeof(buf) for buf in arg_bufs]...)
-        println(signature)
         params = [:($arg::$typ) for (arg, typ) in zip(args, signature)]
         compute_body[phase] = clean_for_loops(compute_body[phase])
         # println(:(function $compute_task($(params...))
