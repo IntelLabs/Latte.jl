@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 2.8.11)
-SET(CMAKE_C_COMPILER mpiicc)
-SET(CMAKE_CXX_COMPILER mpiicpc)
+if (DEFINED ENV{NERSC_HOST})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -dynamic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -dynamic")
+endif()
 project (convert_imagenet)
 find_package( OpenCV REQUIRED )
 find_package( HDF5 REQUIRED )
@@ -9,7 +11,6 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 set( CMAKE_EXPORT_COMPILE_COMMANDS 1 )
 
 add_executable (convert_imagenet convert.cpp)
-target_link_libraries(convert_imagenet mpi)
 target_link_libraries(convert_imagenet ${HDF5_LIBRARIES})
 target_link_libraries(convert_imagenet ${OpenCV_LIBS})
 

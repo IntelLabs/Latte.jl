@@ -35,6 +35,8 @@ using JLD
 
 export init_mpi
 
+include("util.jl")
+
 pkg_root = joinpath(dirname(@__FILE__), "..")
 latte_library_path = "$pkg_root/deps"
 latte_include_path = "$pkg_root/deps/include"
@@ -60,7 +62,6 @@ export TrainTest, Train, Test
 
 include("neuron.jl")
 
-include("util.jl")
 include("types.jl")
 include("param.jl")
 include("net.jl")
