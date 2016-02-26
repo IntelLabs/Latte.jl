@@ -13,5 +13,5 @@ tar xf $TARGET_DIR/$ARCHIVE -C $TARGET_DIR
 
 julia convert.jl $TARGET_DIR
 
-echo "$TARGET_DIR/train.hdf5" >> train.txt
-echo "$TARGET_DIR/test.hdf5" >> test.txt
+echo "$TARGET_DIR/train.hdf5" > train.txt
+echo "$TARGET_DIR/test.hdf5" > test.txt
