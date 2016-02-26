@@ -342,6 +342,9 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
         unshift!(body, :NOFUSE)
     end
     if ensemble.phase in [Train, TrainTest]
+        for param in ensemble.params
+            push!(compute_body[Train], :(update_param($(object_id(param)))))
+        end
         append!(compute_body[Train], deepcopy(body))
         union!(compute_args[Train], args)
     end
@@ -524,11 +527,10 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
         if length(args) == 0
             continue
         end
-        compute_task = gensym("compute_task")
         arg_bufs = [buffers[arg] for arg in args]
         signature = tuple([typeof(buf) for buf in arg_bufs]...)
+        println(signature)
         params = [:($arg::$typ) for (arg, typ) in zip(args, signature)]
-        push!(compute_body[phase], :(return 0))
         compute_body[phase] = clean_for_loops(compute_body[phase])
         # println(:(function $compute_task($(params...))
         #     $(compute_body[phase]...)
@@ -542,21 +544,52 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
         compute_body[phase] = distribute_batch_loops(compute_body[phase])
         compute_body[phase] = parallelize_batch_tile_loops(compute_body[phase])
         compute_body[phase] = fuse_loops(compute_body[phase])
-        func = :(function $compute_task($(params...))
-            $(compute_body[phase]...)
-        end)
-        # println(func)
-        func = wrap_for_loops(func)
-        func = inline_array_expressions(func, buffers)
-        func = @eval $func
-        # println(code_typed(func, signature))
-        # throw("Err")
+        is_update_param_call = (node) -> isa(node, Expr) && node.head == :call && node.args[1] == :update_param
+        to_push = []
+        for statement in compute_body[phase]
+            if is_update_param_call(statement)
+                if length(to_push) > 0
+                    compute_task = gensym("compute_task")
+                    func = :(function $compute_task($(params...))
+                        $(to_push...)
+                        return 0
+                    end)
+                    func = wrap_for_loops(func)
+                    func = inline_array_expressions(func, buffers)
+                    func = @eval $func
+                    # println(code_typed(func, signature))
+                    # throw("Err")
 
-        proxy_func = generate_c_function(func, signature, run_where,
-                                         signal, buffers)
-        proxy_args = arg_bufs
+                    proxy_func = generate_c_function(func, signature, run_where,
+                                                     signal, buffers)
+                    proxy_args = arg_bufs
 
-        push!(tasks[phase], JuliaTask(proxy_func, tuple(args...)))
+                    push!(tasks[phase], JuliaTask(proxy_func, tuple(args...)))
+                end
+                to_push = []
+                push!(tasks[phase], UpdateTask(eval(statement.args[2])))
+            else
+                push!(to_push, statement)
+            end
+        end
+        if length(to_push) > 0
+            compute_task = gensym("compute_task")
+            func = :(function $compute_task($(params...))
+                $(to_push...)
+                return 0
+            end)
+            func = wrap_for_loops(func)
+            func = inline_array_expressions(func, buffers)
+            func = @eval $func
+            # println(code_typed(func, signature))
+            # throw("Err")
+
+            proxy_func = generate_c_function(func, signature, run_where,
+                                             signal, buffers)
+            proxy_args = arg_bufs
+
+            push!(tasks[phase], JuliaTask(proxy_func, tuple(args...)))
+        end
     end
 end
 
@@ -651,6 +684,18 @@ function init(net::SingleNet)
     end
     # Generate forward tasks
     for ensemble in net.ensembles
+        # TODO: Should param initialization be done in ensemble init??
+        if :params in fieldnames(ensemble)
+            for param in ensemble.params
+                param.value = get_buffer(net, param.name)
+                param.gradient = get_buffer(net, param.gradient_name)
+                param.hist = zeros(param.value)
+                set_buffer(net, param.hist_name, param.hist)
+                if LATTE_MPI
+                    param.request = @eval ccall((:init_request, $libComm), Cint, ())
+                end
+            end
+        end
         # Skip code generation for data and loss ensembles
         if typeof(ensemble) <: DataEnsemble
             add_forward_data_tasks(ensemble, forward_data_tasks, net)
@@ -679,13 +724,8 @@ function init(net::SingleNet)
             # Not implemented yet
         else
             for param in ensemble.params
-                param.value = get_buffer(net, param.name)
-                gradient = get_buffer(net, param.gradient_name)
-                param.gradient = gradient
-                param.hist = zeros(param.value)
                 if LATTE_MPI
-                    param.request = @eval ccall((:init_request, $libComm), Cint, ())
-                    unshift!(backward_compute_body[Train],quote
+                    unshift!(backward_compute_body[Train], quote
                         ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), $(length(param.gradient)), $(param.request));
                     end)
                 end
@@ -728,17 +768,22 @@ end
 # and backward.
 for direction in [:forward, :backward]
     tasks = symbol(direction,:_tasks)
-    @eval function $direction(net::SingleNet; phase=Train, t=1)
+    @eval function $direction(net::SingleNet; phase=Train, t=1, solver=nothing)
         for (index, task) in enumerate(net.$tasks[phase])
-            args = []
-            for arg in task.args
-                if isa(arg, Symbol)
-                    push!(args, get_buffer(net, arg, t))
-                else
-                    push!(args, arg)
+            if isa(task, JuliaTask)
+                args = []
+                for arg in task.args
+                    if isa(arg, Symbol)
+                        push!(args, get_buffer(net, arg, t))
+                    else
+                        push!(args, arg)
+                    end
                 end
+                task.func(args...)
+            elseif isa(task, UpdateTask)
+                @assert phase == Train && solver != nothing
+                update(solver, net, task.param_id)
             end
-            task.func(args...)
         end
     end
 end

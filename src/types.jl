@@ -29,10 +29,15 @@ abstract AbstractEnsemble
 abstract DataEnsemble <: AbstractEnsemble
 abstract NormalizationEnsemble <: AbstractEnsemble
 
+abstract LatteTask
 
-type JuliaTask
+type JuliaTask <: LatteTask
     func :: Function
     args :: Tuple
+end
+
+type UpdateTask <: LatteTask
+    param_id   :: UInt64
 end
 
 type Batch{T}
@@ -48,6 +53,7 @@ abstract Net
 type Param
     name           :: Symbol
     gradient_name  :: Symbol
+    hist_name      :: Symbol
     learning_rate  :: Float32
     regu_coef      :: Float32
     clip_gradients :: Float32
@@ -59,12 +65,13 @@ type Param
     Param(ensemble_name::Symbol, name::Symbol,
           learning_rate::Float32, regu_coef::Float32) =
               new(symbol(ensemble_name, name),
-                  symbol(ensemble_name,:∇,name), learning_rate, regu_coef, -1.0f0)
+                  symbol(ensemble_name,:∇,name), 
+                  symbol(ensemble_name, name, :hist), learning_rate, regu_coef, -1.0f0)
 end
 
 type TaskSet
-    tasks :: Dict{Phase, Vector{JuliaTask}}
-    TaskSet() = new(Dict{Phase, Vector{JuliaTask}}(Train => [], Test => []))
+    tasks :: Dict{Phase, Vector{LatteTask}}
+    TaskSet() = new(Dict{Phase, Vector{LatteTask}}(Train => [], Test => []))
 end
 
 function TaskSet(tasks::Dict{Phase, Set})
@@ -104,7 +111,7 @@ type SingleNet <: Net
     buffers        :: Vector{Dict{Symbol, Array}}
     forward_tasks  :: TaskSet
     backward_tasks :: TaskSet
-    update_tasks   :: Vector{JuliaTask}
+    update_tasks   :: Vector{LatteTask}
     params         :: Vector{Param}
     run_where      :: Int
     signal         :: Array{Cint, 1}

@@ -115,12 +115,49 @@ type SGD <: Solver
     SGD(params::SolverParameters) = new(params, SolverState(0, 0.0, 0.0, 0.0))
 end
 
+if LATTE_MPI
+    @eval function update_param(request, global_learning_rate, param_learning_rate,
+            momentum, param::Array, gradient::Array, hist::Array)
+        ccall((:wait, $libComm), Void, (Cint,), param.request)
+
+        # hist *= momentum
+        BLAS.scal!(length(hist), momentum, pointer(hist), 1)
+        BLAS.axpy!(length(hist), global_learning_rate * param_learning_rate, pointer(gradient), 1, pointer(hist), 1)
+        # param -= hist
+        BLAS.axpy!(length(hist), -1.0f0, pointer(hist), 1, pointer(param), 1)
+    end
+else
+    function update_param(request, global_learning_rate, param_learning_rate,
+            momentum, param::Array, gradient::Array, hist::Array)
+        # hist *= momentum
+        BLAS.scal!(length(hist), momentum, pointer(hist), 1)
+        BLAS.axpy!(length(hist), global_learning_rate * param_learning_rate, pointer(gradient), 1, pointer(hist), 1)
+        # param -= hist
+        BLAS.axpy!(length(hist), -1.0f0, pointer(hist), 1, pointer(param), 1)
+    end
+end
+
+function update(solver::Solver, net::Net, param_id::UInt64)
+    for param in net.params
+        if object_id(param) == param_id
+            update(solver, param)
+            break
+        end
+    end
+end
+
 function update(sgd::SGD, net::Net)
     for param in net.params
         l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
         sgd_update(sgd.state.learning_rate * param.learning_rate,
                    sgd.state.momentum, param.value, param.gradient, param.hist)
     end
+end
+
+function update(sgd::SGD, param::Param)
+    l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
+    sgd_update(sgd.state.learning_rate * param.learning_rate,
+               sgd.state.momentum, param.value, param.gradient, param.hist)
 end
 
 @eval function update_chunk(sgd::SGD, net::Net)
@@ -134,7 +171,7 @@ end
     end
 end
 
-function sgd_update{T}(learning_rate::AbstractFloat, momentum::Float32,
+function sgd_update{T}(learning_rate::Float32, momentum::Float32,
                        param::Array{T}, gradient::Array{T}, hist::Array{T})
     momentum = convert(T, momentum)
     learning_rate = convert(T, learning_rate)
@@ -202,7 +239,8 @@ function solve(solver::Solver, net::Net)
     log_info("Entering solve loop")
     while solver.state.iter < solver.params.max_itr
         solver.state.iter += 1
-        forward(net)
+        forward(net; solver=solver)
+        clear_∇(net)
         backward(net)
 
         solver.state.obj_val = get_buffer(net, :lossvalue)[1]
@@ -211,14 +249,13 @@ function solve(solver::Solver, net::Net)
         # clip_gradients(solver, net)
         # regularize(solver, net)
 
-        if LATTE_MPI
-            update_chunk(solver, net)
-        else
-            update(solver, net)
-        end
+        # if LATTE_MPI
+        #     update_chunk(solver, net)
+        # else
+        #     update(solver, net)
+        # end
         update_rand(net)
         clear_values(net)
-        clear_∇(net)
         if solver.state.iter % 20 == 0
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
         end

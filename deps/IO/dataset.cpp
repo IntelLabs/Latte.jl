@@ -201,7 +201,7 @@ void Dataset::fetch_next_chunk(bool force) {
         hid_t mem_dataspace = H5Screate_simple (data_ndim, count, NULL);
         assert (mem_dataspace != -1);
 
-        hid_t xfer_plist = H5Pcreate (H5P_DATASET_ACCESS);
+        hid_t xfer_plist = H5Pcreate (H5P_DATASET_XFER);
         assert(xfer_plist != -1);
 //         if (use_mpi) {
 // #ifdef LATTE_BUILD_MPI
