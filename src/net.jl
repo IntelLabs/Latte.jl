@@ -628,7 +628,7 @@ end
 
 
 function init(net::SingleNet)
-    info("Initializing net...")
+    log_info("Initializing net...")
     forward_tasks = net.forward_tasks
     backward_tasks = net.backward_tasks
     forward_compute_body = Dict{Phase, Vector}(Train => [], Test => [])

@@ -55,7 +55,7 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
         ret = H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
         assert(ret != -1);
 #else
-        std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" std::endl;
+        std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" << std::endl;
         assert(false);
 #endif
     } else {
@@ -201,7 +201,7 @@ void Dataset::fetch_next_chunk(bool force) {
         hid_t mem_dataspace = H5Screate_simple (data_ndim, count, NULL);
         assert (mem_dataspace != -1);
 
-        hid_t xfer_plist = H5Pcreate (H5P_DATASET_XFER);
+        hid_t xfer_plist = H5Pcreate (H5P_DATASET_ACCESS);
         assert(xfer_plist != -1);
 //         if (use_mpi) {
 // #ifdef LATTE_BUILD_MPI
@@ -234,6 +234,7 @@ void Dataset::fetch_next_chunk(bool force) {
 
         ret = H5Dread(label_dataset_id, H5T_NATIVE_FLOAT, mem_dataspace, my_dataspace,
                 xfer_plist, label_buffer);
+        H5Pclose(xfer_plist);
         assert(ret != -1);
         if (chunk_idx + 1 >= n_chunks) {
             chunk_idx = 0;

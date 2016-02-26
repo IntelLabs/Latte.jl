@@ -197,7 +197,7 @@ function clean_tree(ast)
     remove_line_nodes(ast)
 end
 
-function Base.info(args...)
+function log_info(args...)
     _time = string(Libc.strftime("%d-%b %H:%M:%S",time())," - ")
     if LATTE_MPI
         rank = @eval ccall((:get_rank, $libComm), Cint, ())
