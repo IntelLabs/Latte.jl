@@ -128,12 +128,15 @@ int main(int argc, char *argv[]) {
     MPI_OUT << "Beginning conversion" << std::endl;
     float im_to_store[height*width*channels];
     for (hsize_t i = start; i < end; i++) {
+        if (i >= lines.size()) {
+            break;
+        }
         cv::Mat image, im_resized, float_im;
         int shuffled_index = shuffled_indexes[i];
         hsize_t label_offset[] = {shuffled_index, 0};
         hsize_t data_offset[] = {shuffled_index, 0, 0, 0};
         float *label, *data;
-        if (i < lines.size()) {
+        if (shuffled_index < lines.size()) {
             image = cv::imread(lines[i].first, CV_LOAD_IMAGE_COLOR);
             image.convertTo(float_im, CV_32FC3);
             cv::resize(float_im, im_resized, cv::Size(height, width));
@@ -155,16 +158,9 @@ int main(int argc, char *argv[]) {
                 }
             }
             data = im_to_store;
-        } else {
-            H5Sselect_none(data_memspace);
-            H5Sselect_none(data_slab_space);
-            H5Sselect_none(label_memspace);
-            H5Sselect_none(label_slab_space);
-            data = NULL;
-            label = NULL;
+            status = H5Dwrite(dset_data_id, H5T_NATIVE_FLOAT, data_memspace, data_slab_space, plist_id, data);
+            status = H5Dwrite(dset_label_id, H5T_NATIVE_FLOAT, label_memspace, label_slab_space, plist_id, label);
         }
-        status = H5Dwrite(dset_data_id, H5T_NATIVE_FLOAT, data_memspace, data_slab_space, plist_id, data);
-        status = H5Dwrite(dset_label_id, H5T_NATIVE_FLOAT, label_memspace, label_slab_space, plist_id, label);
         if (((int) i - start) % 100 == 0) {
             MPI_OUT << "Finished " << i - start << " of " << end - start << " images" << std::endl;
         }
