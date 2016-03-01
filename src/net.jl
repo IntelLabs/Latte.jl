@@ -610,8 +610,62 @@ function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::N
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
-function init_forward(ensemble::NormalizationEnsemble, compute_args::ArgSet,
-                      compute_body)
+function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+    asts = []
+    output_name = symbol(ensemble.name, :value)
+    push!(compute_args[Train], output_name)
+    push!(compute_args[Test], output_name)
+    for (index, input) in enumerate(ensemble.inputs)
+        input_name = symbol(input.name, :value)
+        push!(compute_args[Train], input_name)
+        push!(compute_args[Test], input_name)
+        loopvars = []
+        loopranges = []
+        for i in size(input)
+            push!(loopvars, gensym("loopvar"))
+            push!(loopranges, :(1:$i))
+        end
+        # Add batch loop
+        push!(loopvars, gensym("loopvar"))
+        push!(loopranges, :(1:$(net.batch_size)))
+
+        push!(asts, gen_loop_nest(
+            :($output_name[$(loopvars[1:end-1]...), $index, $(loopvars[end])] = 
+                $input_name[$(loopvars...)]), 
+            loopvars, loopranges))
+    end
+    for phase in [Train, Test]
+        append!(compute_body[phase], asts)
+    end
+end
+
+function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+    asts = []
+    output_name = symbol(ensemble.name, :∇)
+    push!(compute_args[Train], output_name)
+    for (index, input) in enumerate(ensemble.inputs)
+        input_name = symbol(input.name, :∇)
+        push!(compute_args[Train], input_name)
+        loopvars = []
+        loopranges = []
+        for i in size(input)
+            push!(loopvars, gensym("loopvar"))
+            push!(loopranges, :(1:$i))
+        end
+        # Add batch loop
+        push!(loopvars, gensym("loopvar"))
+        push!(loopranges, :(1:$(net.batch_size)))
+
+        push!(asts, gen_loop_nest(
+            :($input_name[$(loopvars...)] = 
+              $output_name[$(loopvars[1:end-1]...), $index, $(loopvars[end])]),
+            loopvars, loopranges))
+    end
+    append!(compute_body[Train], asts)
+end
+
+function init_forward(ensemble::NormalizationEnsemble, net::Net,
+        compute_args::ArgSet, compute_body)
     args = get_forward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
 
@@ -633,7 +687,8 @@ function init_forward(ensemble::NormalizationEnsemble, compute_args::ArgSet,
     push!(compute_body[ensemble.phase], body)
 end
 
-function init_backward(ensemble::NormalizationEnsemble, compute_args::ArgSet, compute_body)
+function init_backward(ensemble::NormalizationEnsemble, net::Net,
+        compute_args::ArgSet, compute_body)
     args = get_backward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
     for connection in ensemble.connections
@@ -701,9 +756,13 @@ function init(net::SingleNet)
         elseif typeof(ensemble) <: JuliaEnsemble
             add_forward_julia_tasks(ensemble, forward_data_tasks, net)
         elseif typeof(ensemble) <: NormalizationEnsemble
-            init_forward(ensemble, forward_compute_args, forward_compute_body)
-        else
+            init_forward(ensemble, net, forward_compute_args, forward_compute_body)
+        elseif typeof(ensemble) <: ConcatEnsemble
+            init_forward(ensemble, net, forward_compute_args, forward_compute_body)
+        elseif typeof(ensemble) <: Ensemble
             gen_neuron_forward(ensemble, net, forward_compute_body, forward_compute_args)
+        else
+            throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
         end
     end
     append!(net.forward_tasks, forward_data_tasks)
@@ -717,11 +776,11 @@ function init(net::SingleNet)
         if typeof(ensemble) <: DataEnsemble || ensemble.phase == Test
             # Don't backprop on data ensembles
             continue
-        elseif typeof(ensemble) <: NormalizationEnsemble
-            init_backward(ensemble, backward_compute_args, backward_compute_body)
+        elseif typeof(ensemble) in [NormalizationEnsemble, ConcatEnsemble]
+            init_backward(ensemble, net, backward_compute_args, backward_compute_body)
         elseif typeof(ensemble) <: JuliaEnsemble
             # Not implemented yet
-        else
+        elseif typeof(ensemble) <: Ensemble
             for param in ensemble.params
                 if LATTE_MPI
                     unshift!(backward_compute_body[Train], quote
@@ -731,6 +790,8 @@ function init(net::SingleNet)
                 push!(net.params, param)
             end
             gen_neuron_backward(ensemble, net, backward_compute_body[Train], backward_compute_args[Train])
+        else
+            throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
         end
     end
 
