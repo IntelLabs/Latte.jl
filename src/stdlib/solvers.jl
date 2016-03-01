@@ -115,28 +115,6 @@ type SGD <: Solver
     SGD(params::SolverParameters) = new(params, SolverState(0, 0.0, 0.0, 0.0))
 end
 
-if LATTE_MPI
-    @eval function update_param(request, global_learning_rate, param_learning_rate,
-            momentum, param::Array, gradient::Array, hist::Array)
-        ccall((:wait, $libComm), Void, (Cint,), param.request)
-
-        # hist *= momentum
-        BLAS.scal!(length(hist), momentum, pointer(hist), 1)
-        BLAS.axpy!(length(hist), global_learning_rate * param_learning_rate, pointer(gradient), 1, pointer(hist), 1)
-        # param -= hist
-        BLAS.axpy!(length(hist), -1.0f0, pointer(hist), 1, pointer(param), 1)
-    end
-else
-    function update_param(request, global_learning_rate, param_learning_rate,
-            momentum, param::Array, gradient::Array, hist::Array)
-        # hist *= momentum
-        BLAS.scal!(length(hist), momentum, pointer(hist), 1)
-        BLAS.axpy!(length(hist), global_learning_rate * param_learning_rate, pointer(gradient), 1, pointer(hist), 1)
-        # param -= hist
-        BLAS.axpy!(length(hist), -1.0f0, pointer(hist), 1, pointer(param), 1)
-    end
-end
-
 function update(solver::Solver, net::Net, param_id::UInt64)
     for param in net.params
         if object_id(param) == param_id
@@ -154,17 +132,15 @@ function update(sgd::SGD, net::Net)
     end
 end
 
-function update(sgd::SGD, param::Param)
-    l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
-    sgd_update(sgd.state.learning_rate * param.learning_rate,
-               sgd.state.momentum, param.value, param.gradient, param.hist)
-end
-
-@eval function update_chunk(sgd::SGD, net::Net)
-    # Sync gradients
-    for i in length(net.params):-1:1
-        param = net.params[i]
-        ccall((:wait, $libComm), Void, (Cint,), param.request)
+if LATTE_MPI
+    function update(sgd::SGD, param::Param)
+        @eval ccall((:wait, $libComm), Void, (Cint,), $(param.request))
+        l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
+        sgd_update(sgd.state.learning_rate * param.learning_rate,
+                   sgd.state.momentum, param.value, param.gradient, param.hist)
+    end
+else
+    function update(sgd::SGD, param::Param)
         l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
         sgd_update(sgd.state.learning_rate * param.learning_rate,
                    sgd.state.momentum, param.value, param.gradient, param.hist)

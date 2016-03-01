@@ -344,3 +344,11 @@ function transform_to_raw_array(ast)
     end
     AstWalk(ast, walker, nothing)
 end
+
+"""
+Defines @expr only if LATTE_MPI is enabled
+"""
+macro latte_mpi(expr)
+    LATTE_MPI ? esc(expr) : nothing
+end
+
