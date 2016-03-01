@@ -686,7 +686,8 @@ function init(net::SingleNet)
                 println(param.name)
                 if LATTE_MPI
                     param.request = @eval ccall((:init_request, $libComm), Cint, ())
-                    unshift!(backward_compute_body[Train],quote
+                    push!(backward_compute_args[Train], param.name)
+                    unshift!(backward_compute_body[Train], quote
                         ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), pointer($(param.name)), $(length(param.gradient)), $(param.request));
                         #ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), $(length(param.gradient)), $(param.request));
                     end)
