@@ -123,20 +123,17 @@ int main(int argc, char *argv[]) {
     hid_t label_memspace = H5Screate_simple(2, label_count, NULL);
 
     hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-    // H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
     herr_t status;
     MPI_OUT << "Beginning conversion" << std::endl;
     float im_to_store[height*width*channels];
     for (hsize_t i = start; i < end; i++) {
-        if (i >= lines.size()) {
-            break;
-        }
-        cv::Mat image, im_resized, float_im;
-        int shuffled_index = shuffled_indexes[i];
-        hsize_t label_offset[] = {shuffled_index, 0};
-        hsize_t data_offset[] = {shuffled_index, 0, 0, 0};
         float *label, *data;
-        if (shuffled_index < lines.size()) {
+        if (i < lines.size() && shuffled_indexes[i] < lines.size()) {
+            cv::Mat image, im_resized, float_im;
+            int shuffled_index = shuffled_indexes[i];
+            hsize_t label_offset[] = {shuffled_index, 0};
+            hsize_t data_offset[] = {shuffled_index, 0, 0, 0};
             image = cv::imread(lines[i].first, CV_LOAD_IMAGE_COLOR);
             image.convertTo(float_im, CV_32FC3);
             cv::resize(float_im, im_resized, cv::Size(height, width));
@@ -158,9 +155,16 @@ int main(int argc, char *argv[]) {
                 }
             }
             data = im_to_store;
-            status = H5Dwrite(dset_data_id, H5T_NATIVE_FLOAT, data_memspace, data_slab_space, plist_id, data);
-            status = H5Dwrite(dset_label_id, H5T_NATIVE_FLOAT, label_memspace, label_slab_space, plist_id, label);
+        } else {
+            H5Sselect_none(data_memspace);
+            H5Sselect_none(data_slab_space);     
+            H5Sselect_none(label_memspace);     
+            H5Sselect_none(label_slab_space);      
+            data = NULL; 
+            label = NULL;
         }
+        status = H5Dwrite(dset_data_id, H5T_NATIVE_FLOAT, data_memspace, data_slab_space, plist_id, data); 
+        status = H5Dwrite(dset_label_id, H5T_NATIVE_FLOAT, label_memspace, label_slab_space, plist_id, label);
         if (((int) i - start) % 100 == 0) {
             MPI_OUT << "Finished " << i - start << " of " << end - start << " images" << std::endl;
         }

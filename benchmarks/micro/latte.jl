@@ -41,13 +41,15 @@ pool1   = MaxPoolingLayer(  :pool1,   net, relu1_1, 2,   2, 0)
 
 init(net)
 
-forward(net)
+forward(net; phase=Latte.Test)
 backward(net)
 
-forward_task = net.forward_tasks[Latte.Train][end]
+forward_task = net.forward_tasks[Latte.Test][end]
 forward_args = []
 for arg in forward_task.args
     if isa(arg, Symbol)
+        println(arg)
+        println(typeof(arg))
         push!(forward_args, net.buffers[arg])
     else
         push!(forward_args, arg)

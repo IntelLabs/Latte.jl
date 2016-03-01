@@ -134,7 +134,7 @@ mask2_out = zeros(mask2)
 pool2_out = zeros(get_buffer(net, :pool2value))
 
 facts("Testing Conv-Relu-Pool fusion") do
-    forward(net)
+    forward(net; phase=Latte.Test)
     convolution_forward(filters1, bias1, input, conv1_out, 1, 1, 3)
     map!((x) -> x > 0.0f0 ? x : 0.0f0, conv1_out)
     @fact conv1_out --> roughly(get_buffer(net, :conv1value))

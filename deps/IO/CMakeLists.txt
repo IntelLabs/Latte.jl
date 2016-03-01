@@ -16,8 +16,12 @@ FIND_PACKAGE( OpenMP REQUIRED)
 
 find_package(MPI)
 
-if(${HDF5_IS_PARALLEL})
-    include_directories( ${MPI_INCLUDE_PATH})
+if(LATTE_MPI)
+    if(${HDF5_IS_PARALLEL})
+        include_directories( ${MPI_INCLUDE_PATH})
+    else()
+        message( FATAL_ERROR "HDF5 must be compiled with --enable-parallel to use Latte with MPI" )
+    endif()
 endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")

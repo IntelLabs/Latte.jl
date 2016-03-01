@@ -37,6 +37,13 @@ function fuse_loops(block::Vector{Any})
     end
     for statement in block[2:end]
         if isa(statement, Expr) && statement.head == :for
+            # Because we may have update_param calls in between fusable loops
+            # we first remove those
+            # updates = []
+            # is_update_param_call = (node) -> isa(node, Expr) && node.head == :call && node.args[1] == :update_param
+            # while length(new_block) > 0 && is_update_param_call(new_block[end])
+            #     push!(updates, pop!(new_block))
+            # end
             if isa(new_block[end], Expr) && new_block[end].head == :for
                 curr_loop = statement
                 prev_loop = new_block[end]
@@ -48,6 +55,9 @@ function fuse_loops(block::Vector{Any})
                     curr_body = AstWalk(curr_loop.args[2], symbol_replacer, Dict(curr_loopvar => prev_loopvar)).args
                     append!(prev_loop.args[2].args, curr_body)
                     prev_loop.args[2].args = fuse_loops(prev_loop.args[2].args)
+                    # pop!(new_block)
+                    # append!(new_block, updates)
+                    # push!(new_block, prev_loop)
                 elseif is_tiled_loop(prev_loop) && is_tiled_loop(curr_loop) && !LATTE_DISABLE_TILE_FUSION
                     forward_factor = get_tile_fusion_factor_forward(curr_len)
                     backward_factor = get_tile_fusion_factor_backward(prev_len)
@@ -61,6 +71,9 @@ function fuse_loops(block::Vector{Any})
                         end
                         append!(prev_loop.args[2].args, curr_loop.args[2].args)
                         prev_loop.args[2].args = fuse_loops(prev_loop.args[2].args)
+                        # pop!(new_block)
+                        # append!(new_block, updates)
+                        # push!(new_block, prev_loop)
                     elseif curr_end == prev_end * backward_factor
                         if backward_factor > 1
                             unshift!(curr_loop.args[2].args, :(TILE_SIZE *= $backward_factor))
@@ -69,15 +82,21 @@ function fuse_loops(block::Vector{Any})
                         prev_len.args[4] *= get_tile_fusion_factor_backward(curr_len)
                         append!(prev_loop.args[2].args, curr_loop.args[2].args)
                         prev_loop.args[2].args = fuse_loops(prev_loop.args[2].args)
+                        # pop!(new_block)
+                        # append!(new_block, updates)
+                        # push!(new_block, prev_loop)
                     else
+                        # append!(new_block, updates)
                         statement.args[2].args = fuse_loops(statement.args[2].args)
                         push!(new_block, statement)
                     end
                 else
+                    # append!(new_block, updates)
                     statement.args[2].args = fuse_loops(statement.args[2].args)
                     push!(new_block, statement)
                 end
             else
+                # append!(new_block, updates)
                 statement.args[2].args = fuse_loops(statement.args[2].args)
                 push!(new_block, statement)
             end

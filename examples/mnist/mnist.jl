@@ -51,6 +51,6 @@ params = SolverParameters(
     MomPolicy.Fixed(0.9),
     100000,
     .0005,
-    1000)
+    100)
 sgd = SGD(params)
 solve(sgd, net)

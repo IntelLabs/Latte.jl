@@ -36,6 +36,8 @@ void init() {
 
 int init_request() {
     MPI_Request *request = (MPI_Request *) malloc(sizeof(MPI_Request));
+    // We initialize this request because forward pass begins with a 0 update
+    MPI_Ibarrier(MPI_COMM_WORLD, request);
     int id = requests.size();
     requests.push_back(request);
     return id;
