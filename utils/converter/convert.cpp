@@ -123,7 +123,7 @@ int main(int argc, char *argv[]) {
     hid_t label_memspace = H5Screate_simple(2, label_count, NULL);
 
     hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-    H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
+    // H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE);
     herr_t status;
     MPI_OUT << "Beginning conversion" << std::endl;
     float im_to_store[height*width*channels];
