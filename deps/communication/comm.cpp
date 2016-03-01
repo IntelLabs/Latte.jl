@@ -41,7 +41,19 @@ int init_request() {
     return id;
 }
 
-void sync_gradients(float *data, int count, int request_id) {
+uint64_t zero_grads = 0;
+uint64_t all_grads = 0;
+
+void sync_gradients(float *data, float* values, int count, int request_id) {
+//void sync_gradients(float *data, int count, int request_id) {
+    int rank = get_rank();
+    all_grads += count;
+    for(int i=0; i<count; i++)
+        if(data[i]<values[i]/10.0) {
+            zero_grads++;
+            data[i] = 0;
+        }
+
     MPI_Request *request = requests[request_id];
     MPI_Iallreduce(MPI_IN_PLACE, data, count, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD, request);
     // int size;
@@ -51,6 +63,11 @@ void sync_gradients(float *data, int count, int request_id) {
     // for (int i=0; i < count; i++) {
     //     data[i] /= (float) size;
     // }
+}
+
+int print_stat() {
+    printf("rank %d zeros %lld all %lld rate:%lf \n", get_rank(), zero_grads, all_grads, zero_grads/(double)all_grads);
+    return 1;
 }
 
 void wait(int request_id) {

@@ -213,6 +213,7 @@ function solve(solver::Solver, net::Net)
 
         if LATTE_MPI
             update_chunk(solver, net)
+            aa = @eval ccall((:print_stat, $libComm), Cint, ())
         else
             update(solver, net)
         end
