@@ -755,11 +755,9 @@ function init(net::SingleNet)
             add_forward_data_tasks(ensemble, forward_data_tasks, net)
         elseif typeof(ensemble) <: JuliaEnsemble
             add_forward_julia_tasks(ensemble, forward_data_tasks, net)
-        elseif typeof(ensemble) <: NormalizationEnsemble
+        elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
             init_forward(ensemble, net, forward_compute_args, forward_compute_body)
-        elseif typeof(ensemble) <: ConcatEnsemble
-            init_forward(ensemble, net, forward_compute_args, forward_compute_body)
-        elseif typeof(ensemble) <: Ensemble
+        elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             gen_neuron_forward(ensemble, net, forward_compute_body, forward_compute_args)
         else
             throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
@@ -776,11 +774,11 @@ function init(net::SingleNet)
         if typeof(ensemble) <: DataEnsemble || ensemble.phase == Test
             # Don't backprop on data ensembles
             continue
-        elseif typeof(ensemble) in [NormalizationEnsemble, ConcatEnsemble]
+        elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
             init_backward(ensemble, net, backward_compute_args, backward_compute_body)
         elseif typeof(ensemble) <: JuliaEnsemble
-            # Not implemented yet
-        elseif typeof(ensemble) <: Ensemble
+            throw("NotImplementedError")
+        elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             for param in ensemble.params
                 if LATTE_MPI
                     unshift!(backward_compute_body[Train], quote
