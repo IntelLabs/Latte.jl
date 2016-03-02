@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "comm.h"
 #include <vector>
 #include <mpi.h>
+#include <cmath>
 
 std::vector<MPI_Request *> requests;
 void init() {
@@ -49,9 +50,9 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
     int rank = get_rank();
     all_grads += count;
     for(int i=0; i<count; i++)
-        if(data[i]<values[i]/10.0) {
+        if(std::abs(data[i])<std::abs(values[i])/100.0) {
             zero_grads++;
-            data[i] = 0;
+            data[i] = 0.0;
         }
 
     MPI_Request *request = requests[request_id];
