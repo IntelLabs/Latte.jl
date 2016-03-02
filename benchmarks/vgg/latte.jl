@@ -65,6 +65,7 @@ fc7     = InnerProductLayer(:fc7,     net, fc6,   4096)
 fc8     = InnerProductLayer(:fc8,     net, fc7,   1000)
 
 init(net)
+exit()
 
 forward(net)
 backward(net)

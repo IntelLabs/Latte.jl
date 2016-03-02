@@ -181,6 +181,12 @@ function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
     end
 end
 
+function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
+    for t in 1:net.time_steps
+        net.buffers[t][name] = func(Float32, shape...)
+    end
+end
+
 """
 Generates a loopnest with `body` as the body of the inner most loop using
 `vars` as a list of loop variables and `ranges` as a list of ranges for each
@@ -731,7 +737,8 @@ function init(net::SingleNet)
         end
         push!(seen_names, ensemble.name)
         map(init, ensemble)
-        init(ensemble, net)
+        log_info("    Initializing ensemble $(ensemble.name).")
+        @time init(ensemble, net)
     end
     for ensemble in net.ensembles
         init_inputs(ensemble, net)
@@ -798,6 +805,7 @@ function init(net::SingleNet)
     if net.run_where >= 0
         @assert false
     end
+    log_info("Initialization finished.")
 end
 
 # function init(net::RNN)
