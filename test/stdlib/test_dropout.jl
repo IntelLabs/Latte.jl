@@ -33,35 +33,42 @@ data,  data_value   = MemoryDataLayer(net, :data, (227, 227, 3))
 label, label_value = MemoryDataLayer(net, :label, (1,))
 data_value[:]  = rand(Float32, size(data_value)...) * 256
 label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10)
-fc1         = InnerProductLayer(:fc1, net, data, 20)
+fc1 = InnerProductLayer(:fc1, net, data, 20)
 ratio = 0.5f0
-drop        = DropoutLayer(:drop, net, fc1, ratio)
-# loss        = SoftmaxLossLayer(:loss, net, drop, label)
+drop = DropoutLayer(:drop, net, fc1, ratio)
 
 init(net)
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100000,
+    .0005,
+    100)
+sgd = SGD(params)
 
+input = get_buffer(net, :fc1value)
 
-input   = net.buffers[:fc1value]
 facts("Testing Dropout Layer") do
-    randvals = net.buffers[:droprandval]
-    rand!(randvals)
     context("Forward") do
-        forward(net)
+        forward(net; solver=sgd)
+        randvals = get_buffer(net, :droprandval)
+        value = get_buffer(net, :dropvalue)
         to_check = []
         for i in 1:length(randvals)
-            if randvals[i] <= ratio
-                push!(to_check, net.buffers[:dropvalue][i])
+            if randvals[i] < ratio
+                push!(to_check, value[i])
             end
         end
         @fact all(to_check .== 0.0f0) --> true
     end
     context("Backward") do
-        top_diff = net.buffers[:drop∇]
+        top_diff = get_buffer(net, :drop∇)
         rand!(top_diff)
+        randvals = get_buffer(net, :droprandval)
         expected = (top_diff .* (randvals .> ratio)) .* (1.0 / ratio)
         backward(net)
 
-        @fact expected --> roughly(net.buffers[:fc1∇])
+        @fact expected --> roughly(get_buffer(net, :fc1∇))
     end
 end
 
