@@ -48,13 +48,13 @@ facts("Testing Inner Product Layer") do
         bias    = get_buffer(net, :fc2bias)
         rand!(bias)
 
-        forward(net)
+        forward(net; phase=Latte.Test)
 
         expected = weights' * input .+ reshape(bias, prod(size(bias)))
         @fact expected --> roughly(get_buffer(net, :fc2value))
         clear_values(net)
 
-        forward(net)
+        forward(net; phase=Latte.Test)
         expected = weights' * input .+ reshape(bias, prod(size(bias)))
         @fact expected --> roughly(get_buffer(net, :fc2value))
     end

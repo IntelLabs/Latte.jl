@@ -64,10 +64,6 @@ function remove_line_nodes(ast)
     AstWalk(ast, line_node_remover, nothing)
 end
 
-function cartesian_range(shape)
-    product([1:d for d in shape]...)
-end
-
 function Base.contains(symbol::Symbol, value::AbstractString)
     return contains(string(symbol), string(value))
 end

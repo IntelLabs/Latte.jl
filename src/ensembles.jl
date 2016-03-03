@@ -53,7 +53,6 @@ function AbstractString(ensemble::AbstractEnsemble)
     return "$(ensemble.name) $(size(ensemble.neurons))"
 end
 
-
 function init_inputs(ensemble::AbstractEnsemble, net::Net)
     batch_size = net.batch_size
     neuron = ensemble.neurons[1]
@@ -113,6 +112,8 @@ inputs array using ArrayViews and remove the need for a CopyTask
     neuron = ensemble.neurons[1]
     shape = size(ensemble)
     for name in fieldnames(neuron)
+        # log_info("Initializing field $(name) for ensemble $(ensemble.name)")
+        # @time begin
         field = getfield(neuron, name)
         typ = typeof(field)
         key = symbol(ensemble.name,name)
@@ -120,7 +121,7 @@ inputs array using ArrayViews and remove the need for a CopyTask
             # skip
         elseif name in [:value, :∇]
             # :value and :∇ should allocate space for every item in a batch
-            set_buffer(net, key, zeros(typ, shape..., batch_size))
+            init_buffer(net, key, (shape..., batch_size))
         elseif isa(field, Batch)
             arr = Array(typeof(field.init), shape..., batch_size)
             fill!(arr, field.init)
@@ -133,8 +134,7 @@ inputs array using ArrayViews and remove the need for a CopyTask
             first = getfield(ensemble.neurons[ones(Int, length(shape))...], name)
             for d in 1:length(shape)
                 for i in 1:shape[d]
-                    idx = ones(Int, length(shape))
-                    idx[d] = i
+                    idx = [x == d ? i : 1 for x in 1:length(shape)]
                     if first !== getfield(ensemble.neurons[idx...], name)
                         uniform_across_dim[d] = false
                         break
@@ -154,14 +154,15 @@ inputs array using ArrayViews and remove the need for a CopyTask
             end
             elem = getfield(ensemble.neurons[ones(Int, length(shape))...], name)
             buf = Array(eltype(typ), size(elem)..., _shape...)
-            for index in cartesian_range(iter)
+            for index in CartesianRange(CartesianIndex(tuple(ones(Int, length(iter))...)),
+                                        CartesianIndex(tuple(iter...)))
                 _index = []
                 for i in 1:length(shape)
                     if !uniform_across_dim[i]
-                        push!(_index, index[i])
+                        push!(_index, index.I[i])
                     end
                 end
-                @inbounds buf[:, _index...] = getfield(ensemble.neurons[index...], name)
+                @inbounds buf[:, _index...] = getfield(ensemble.neurons[index], name)
             end
             set_buffer(net, key, buf)
         else
@@ -172,6 +173,7 @@ inputs array using ArrayViews and remove the need for a CopyTask
                 set_buffer(net, key, arr, t)
             end
         end
+        # end  # @time begin
     end
 end
 

@@ -58,7 +58,11 @@ void sync_gradients(float *data, int count, int request_id) {
 void wait(int request_id) {
     MPI_Request *request = requests[request_id];
     MPI_Status stat;
+    clock_t start_time = clock();
     MPI_Wait(request, &stat);
+    clock_t end_time = clock();
+    double total_time = ((double) (end_time - start_time)) / CLOCKS_PER_SEC;
+    std::cout << "Parameter " << request_id << " takes " << total_time << " seconds." << std::endl;
 }
 
 float reduce_accuracy(float acc) {

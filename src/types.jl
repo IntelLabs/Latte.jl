@@ -153,3 +153,16 @@ type Ensemble{T <: Neuron, N} <: AbstractEnsemble
 end
 
 abstract JuliaEnsemble <: AbstractEnsemble
+
+type ConcatNeuron <: Neuron
+    value :: Float32
+    ∇     :: Float32
+end
+
+type ConcatEnsemble <: AbstractEnsemble
+    name :: Symbol
+    neurons :: Array{ConcatNeuron}
+    connections :: Vector{Connection}
+    phase :: Phase
+    inputs :: Vector{AbstractEnsemble}
+end
