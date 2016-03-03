@@ -731,18 +731,22 @@ function init(net::SingleNet)
     backward_compute_args = ArgSet()
     seen_names = Set()
     # Initialize ensembles
+    log_info("  Initializing ensembles.")
     for ensemble in net.ensembles
         if ensemble.name in seen_names
             throw("Error: Found duplicate ensemble name: $(ensemble.name)")
         end
         push!(seen_names, ensemble.name)
         map(init, ensemble)
-        log_info("    Initializing ensemble $(ensemble.name).")
-        @time init(ensemble, net)
+        log_info("    ensemble $(ensemble.name).")
+        init(ensemble, net)
     end
     for ensemble in net.ensembles
         init_inputs(ensemble, net)
     end
+    log_info("  Finished initializing ensembles.")
+
+    log_info("  Synthesizing forward functions.")
     # Generate forward tasks
     for ensemble in net.ensembles
         # TODO: Should param initialization be done in ensemble init??
@@ -776,6 +780,7 @@ function init(net::SingleNet)
                         forward_compute_body, forward_compute_args,
                         net.run_where, net.signal; distribute=true)
 
+    log_info("  Synthesizing backward functions.")
     # Backward tasks
     for ensemble in net.ensembles
         if typeof(ensemble) <: DataEnsemble || ensemble.phase == Test
