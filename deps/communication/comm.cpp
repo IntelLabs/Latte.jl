@@ -51,8 +51,8 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
     all_grads += count;
     for(int i=0; i<count; i++)
         if(std::abs(data[i])<std::abs(values[i])/100.0) {
-            zero_grads++;
-            data[i] = 0.0;
+          //  zero_grads++;
+          //  data[i] = 0.0;
         }
 
     MPI_Request *request = requests[request_id];
@@ -67,7 +67,7 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
 }
 
 int print_stat() {
-    printf("rank %d zeros %lld all %lld rate:%lf \n", get_rank(), zero_grads, all_grads, zero_grads/(double)all_grads);
+   // printf("rank %d zeros %lld all %lld rate:%lf \n", get_rank(), zero_grads, all_grads, zero_grads/(double)all_grads);
     return 1;
 }
 

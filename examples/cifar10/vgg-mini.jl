@@ -27,6 +27,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using Latte
 
+srand(1234)
+
 net = Net(32)
 data, label  = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
 
