@@ -28,6 +28,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using Latte
 using FactCheck
 
+#=
 facts("Testing GRU layer") do
     net = Net(8; time_steps=5)
     data, data_value   = MemoryDataLayer(net, :data, (2,))
@@ -67,3 +68,4 @@ facts("Testing GRU layer") do
     end
     backward(net)
 end
+=#
