@@ -1,5 +1,7 @@
 # Latte.jl
 
+[![Join the chat at https://gitter.im/IntelLabs/Latte.jl](https://badges.gitter.im/IntelLabs/Latte.jl.svg)](https://gitter.im/IntelLabs/Latte.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
 
 # Setup
