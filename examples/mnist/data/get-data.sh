@@ -1,9 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 TARGET_DIR="$1"
-cd $TARGET_DIR
-TARGET_DIR=$(pwd)
-cd -
 
 if [[ -z "$TARGET_DIR" ]] ; then
     TARGET_DIR=$(pwd)
