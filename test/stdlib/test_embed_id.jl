@@ -36,17 +36,25 @@ facts("Testing embed_id layer") do
         data_value[1,i] = i
     end
     init(net)
-    forward(net)
+
+    params = SolverParameters(
+        LRPolicy.Inv(0.01, 0.0001, 0.75),
+        MomPolicy.Fixed(0.9),
+        100000,
+        .0005,
+        100)
+    sgd = SGD(params)
+    forward(net; solver=sgd)
     expected = get_buffer(net, :embedweights)
     actual = get_buffer(net, :embedvalue)
     for i in 1:8
-        @fact actual[:, i][:] --> expected[i, :][:]
+        @fact actual[:, i][:] --> roughly(expected[i, :][:])
     end
-    rand!(net.buffers[:embed∇])
+    rand!(get_buffer(net, :embed∇))
     backward(net)
     expected = get_buffer(net, :embed∇)
     actual = get_buffer(net, :embed∇weights)
     for i in 1:8
-        @fact actual[i, :][:] --> expected[:, i][:]
+        @fact actual[i, :][:] --> roughly(expected[:, i][:])
     end
 end

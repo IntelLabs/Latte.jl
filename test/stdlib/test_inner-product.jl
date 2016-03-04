@@ -39,6 +39,13 @@ loss       = SoftmaxLossLayer(:loss, net, fc2, label)
 
 init(net)
 
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100000,
+    .0005,
+    100)
+sgd = SGD(params)
 
 ϵ = 1e-5
 input   = get_buffer(net, :fc1value)
@@ -48,7 +55,7 @@ facts("Testing Inner Product Layer") do
         bias    = get_buffer(net, :fc2bias)
         rand!(bias)
 
-        forward(net; phase=Latte.Test)
+        forward(net; solver=sgd)
 
         expected = weights' * input .+ reshape(bias, prod(size(bias)))
         @fact expected --> roughly(get_buffer(net, :fc2value))

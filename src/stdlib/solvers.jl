@@ -230,7 +230,6 @@ function solve(solver::Solver, net::Net)
         # else
         #     update(solver, net)
         # end
-        update_rand(net)
         clear_values(net)
         if solver.state.iter % 20 == 0
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")

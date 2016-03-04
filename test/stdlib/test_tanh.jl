@@ -50,7 +50,7 @@ facts("Testing Tanh Layer") do
         top_diff = get_buffer(net, :tanh2∇)
         rand!(top_diff)
         ∇tanh(x) = x .* (1.0f0 .- x)
-        expected = ∇tanh(top_diff)
+        expected = ∇tanh(∇tanh(top_diff))
         backward(net)
         @fact expected --> roughly(get_buffer(net, :tanh1∇))
     end

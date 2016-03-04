@@ -40,12 +40,19 @@ loss        = SoftmaxLossLayer(:loss, net, fc1, label)
 
 init(net)
 
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100000,
+    .0005,
+    100)
+sgd = SGD(params)
 
 ϵ = 1e-5
 input   = get_buffer(net, :conv1value)
 facts("Testing ReLU Layer") do
     context("Forward") do
-        forward(net)
+        forward(net; solver=sgd)
 
         expected = map((x) -> x > 0.0f0 ? x : 0.0f0, input)
         @fact expected --> roughly(get_buffer(net, :relu1value))

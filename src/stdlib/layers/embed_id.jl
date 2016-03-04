@@ -48,7 +48,7 @@ function EmbedIDLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble, 
     ∇weights = zeros(Float32, in_size, out_size)
 
     neurons = [EmbedNeuron(view(weights, :, i), view(∇weights, :, i)) for i in 1:out_size]
-    ens = Ensemble(net, name, neurons, [Param(net, name, :weights, 1.0)])
+    ens = Ensemble(net, name, neurons, [Param(name, :weights, 1.0f0, 1.0f0)])
     add_connections(net, input_ensemble, ens, function (i)
         (1:1, )
     end)

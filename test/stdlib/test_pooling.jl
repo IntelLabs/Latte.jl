@@ -117,11 +117,19 @@ facts("Testing MaxPooling Layer") do
 
     init(net)
 
+    params = SolverParameters(
+        LRPolicy.Inv(0.01, 0.0001, 0.75),
+        MomPolicy.Fixed(0.9),
+        100000,
+        .0005,
+        100)
+    sgd = SGD(params)
+
     input    = get_buffer(net, :conv1value)
     mask     = get_buffer(net, :pool1maxidx)
 
     context("Forward") do
-        forward(net)
+        forward(net; solver=sgd)
 
         mask_expected = zeros(mask)
         expected = zeros(get_buffer(net, :pool1value))
@@ -155,10 +163,18 @@ facts("Testing MeanPooling Layer") do
 
     init(net)
 
+    params = SolverParameters(
+        LRPolicy.Inv(0.01, 0.0001, 0.75),
+        MomPolicy.Fixed(0.9),
+        100000,
+        .0005,
+        100)
+    sgd = SGD(params)
+
     input    = get_buffer(net, :conv1value)
 
     context("Forward") do
-        forward(net)
+        forward(net; solver=sgd)
 
         expected = zeros(get_buffer(net, :pool1value))
         pooling_forward(input, [], expected, 2, 2, 0, :mean)

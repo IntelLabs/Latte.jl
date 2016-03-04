@@ -110,9 +110,17 @@ expected = zeros(get_buffer(net, :conv2value))
 ∇filters_expected = zeros(size(∇filters))
 ∇bias_expected    = zeros(size(∇bias))
 
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100000,
+    .0005,
+    100)
+sgd = SGD(params)
+
 facts("Testing Convolution Layer") do
     context("Forward") do
-        forward(net)
+        forward(net; solver=sgd)
         convolution_forward(filters, bias, input, expected, 1, pad, 3)
         # @fact expected --> roughly(net.buffers[:conv2value])
         @fact all(-ϵ .< expected - get_buffer(net, :conv2value) .< ϵ) --> true

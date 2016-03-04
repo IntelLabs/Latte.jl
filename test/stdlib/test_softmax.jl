@@ -38,13 +38,21 @@ softmax     = SoftmaxLossLayer(:softmax, net, fc1, label)
 
 init(net)
 
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100000,
+    .0005,
+    100)
+sgd = SGD(params)
+
 input = get_buffer(net, :fc1value)
 label = get_buffer(net, :labelvalue)
 
 expected_grad = zeros(Float32, size(input))
 
 epsilon = 1e-5
-forward(net)
+forward(net; solver=sgd)
 batch_size = size(input)[end]
 pred = zeros(input)
 expected_loss = 0

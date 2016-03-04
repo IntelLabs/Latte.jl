@@ -750,7 +750,7 @@ function init(net::SingleNet)
         end
         push!(seen_names, ensemble.name)
         map(init, ensemble)
-        log_info("    ensemble $(ensemble.name).")
+        log_info("    $(ensemble.name).")
         init(ensemble, net)
     end
     for ensemble in net.ensembles
@@ -801,7 +801,8 @@ function init(net::SingleNet)
         elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
             init_backward(ensemble, net, backward_compute_args, backward_compute_body)
         elseif typeof(ensemble) <: JuliaEnsemble
-            throw("NotImplementedError")
+            # Skip
+            # throw("NotImplementedError")
         elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             for param in ensemble.params
                 if LATTE_MPI
