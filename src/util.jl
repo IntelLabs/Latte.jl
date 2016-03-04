@@ -93,6 +93,10 @@ function symbol_replacer(node, cbdata, index, top_level, read)
     ASTWALK_RECURSE
 end
 
+function replace_symbols(block::Vector{Any}, mapping::Dict{Symbol, Any})
+    [AstWalk(s, symbol_replacer, mapping) for s in block]
+end
+
 """
 Inline a function with a set of arguments `args`.
 """

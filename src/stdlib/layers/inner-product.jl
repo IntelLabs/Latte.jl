@@ -26,14 +26,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
 export InnerProductLayer
-function InnerProductLayer(name::Symbol, net::Net,
-                           input_ensemble::AbstractEnsemble,
-                           num_outputs::Int; weight_init=xavier, bias_init::Real=0)
+
+function FullyConnectedEnsemble(name::Symbol, net::Net, num_inputs::Int, num_outputs::Int; weight_init=xavier, bias_init=0)
     # Create a 1-D array of `num_outputs` WeightedNeurons
     neurons = Array(WeightedNeuron, num_outputs)
 
-    weights = weight_init(Float32, length(input_ensemble), num_outputs)
-    ∇weights = zeros(Float32, length(input_ensemble), num_outputs)
+    weights = weight_init(Float32, num_inputs, num_outputs)
+    ∇weights = zeros(Float32, num_inputs, num_outputs)
 
     bias = Array(Float32, 1, num_outputs)
     fill!(bias, bias_init)
@@ -46,8 +45,16 @@ function InnerProductLayer(name::Symbol, net::Net,
                                     view(bias, :, i), view(∇bias, :, i))
     end
     # Construct the ensemble
-    ip = Ensemble(net, name, neurons, [Param(name,:weights, 1.0f0, 1.0f0), 
-                                       Param(name,:bias, 2.0f0, 0.0f0)])
+    Ensemble(net, name, neurons, [Param(name,:weights, 1.0f0, 1.0f0), 
+                                  Param(name,:bias, 2.0f0, 0.0f0)])
+end
+
+function InnerProductLayer(name::Symbol, net::Net,
+                           input_ensemble::AbstractEnsemble,
+                           num_outputs::Int; weight_init=xavier, bias_init::Real=0)
+    ip = FullyConnectedEnsemble(name, net, length(input_ensemble),
+                                num_outputs; weight_init=weight_init,
+                                bias_init=bias_init)
 
     # Connect each neuron in input_ensemble to each neuron in ip
     add_connections(net, input_ensemble, ip,

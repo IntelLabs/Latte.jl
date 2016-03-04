@@ -140,16 +140,6 @@ function clear_values(net::Net)
     end
 end
 
-function update_rand(net::Net)
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[t])
-            if contains(string(name), "rand")
-                rand!(net.buffer[t]s[name])
-            end
-        end
-    end
-end
-
 function get_param(net::SingleNet, name::Symbol)
     for param in net.params
         if param.name == name
@@ -247,9 +237,9 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
     N = ndims(value)
     sink_name   = symbol(ensemble.name,:inputs,index)
     source_name = symbol(connection.source.name,:value)
-    if connection.recurrent
-        source_name = symbol(source_name, :prev)
-    end
+    # if connection.recurrent
+    #     source_name = symbol(source_name, :prev)
+    # end
     source      = get_buffer(net, source_name)
 
     # connection.is_dim_fixed is a Bool[], we use the inverse to select non
@@ -524,6 +514,9 @@ end
 
 include("transforms/tree_cleaners.jl")
 
+"""
+FIXME: My, my this function is ugly, clean this up some day...
+"""
 function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                              compute_body::Dict, compute_args::ArgSet,
                              run_where::Int, signal::Array{Cint, 1};
@@ -533,9 +526,27 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
         if length(args) == 0
             continue
         end
-        arg_bufs = [buffers[arg] for arg in args]
+        # BEGIN REPLACE ALIASED ARRAYS
+        # TODO: Abstract this into a function
+        # When two arrays x and y are aliased such that x === y, we replace all
+        # references to y with x to assist the compiler with vectorization
+        filtered_args = []
+        arg_map = Dict{Symbol, Any}()
+        for arg in args
+            index = find((x) -> buffers[x] === buffers[arg], filtered_args)
+            if length(index) == 0
+                push!(filtered_args, arg)
+            else
+                @assert length(index) == 1
+                arg_map[arg] = filtered_args[index[1]]
+            end
+        end
+        compute_body[phase] = replace_symbols(compute_body[phase], arg_map)
+        # END REPLACE ALIASED ARRAYS
+
+        arg_bufs = [buffers[arg] for arg in filtered_args]
         signature = tuple([typeof(buf) for buf in arg_bufs]...)
-        params = [:($arg::$typ) for (arg, typ) in zip(args, signature)]
+        params = [:($arg::$typ) for (arg, typ) in zip(filtered_args, signature)]
         compute_body[phase] = clean_for_loops(compute_body[phase])
         # println(:(function $compute_task($(params...))
         #     $(compute_body[phase]...)
@@ -549,6 +560,7 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
         compute_body[phase] = distribute_batch_loops(compute_body[phase])
         compute_body[phase] = parallelize_batch_tile_loops(compute_body[phase])
         compute_body[phase] = fuse_loops(compute_body[phase])
+
         is_update_param_call = (node) -> isa(node, Expr) && node.head == :call && node.args[1] == :update_param
         to_push = []
         for statement in compute_body[phase]
@@ -569,7 +581,7 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                                                      signal, buffers)
                     proxy_args = arg_bufs
 
-                    push!(tasks[phase], JuliaTask(proxy_func, tuple(args...)))
+                    push!(tasks[phase], JuliaTask(proxy_func, tuple(filtered_args...)))
                 end
                 to_push = []
                 push!(tasks[phase], UpdateTask(eval(statement.args[2])))
@@ -593,7 +605,7 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                                              signal, buffers)
             proxy_args = arg_bufs
 
-            push!(tasks[phase], JuliaTask(proxy_func, tuple(args...)))
+            push!(tasks[phase], JuliaTask(proxy_func, tuple(filtered_args...)))
         end
     end
 end
@@ -808,58 +820,32 @@ function init(net::SingleNet)
     log_info("Initialization finished.")
 end
 
-# function init(net::RNN)
-#     init(net.subnet)
-#     push!(net.buffers, net.subnet.buffers)
-#     # for t = 2:net.time_steps
-#     #     push!(net.buffers, deepcopy(net.subnet.buffers))
-#     #     predicate = (x) -> :connections in fieldnames(x)
-#     #     for ensemble in filter(predicate, net.subnet.ensembles)
-#     #         conn_pred = (x) -> x[2].recurrent
-#     #         for (index, connection) in filter(conn_pred, enumerate(ensemble.connections))
-#     #             target = symbol(connection.source.name,:value)
-#     #             if connection.copy
-#     #                 net.buffers[t][symbol(target, :prev)] = net.buffers[t-1][target]
-#     #             else
-#     #                 inputs = symbol(ensemble.name,:inputs, index)
-#     #                 net.buffers[t][inputs] = reshape(net.buffers[t-1][target],
-#     #                     (connection.size, net.batch_size))
-#     #             end
-#     #         end
-#     #     end
-#     # end
-# end
-
 # Use metaprogramming to generate single and multi versions of forward
 # and backward.
 for direction in [:forward, :backward]
     tasks = symbol(direction,:_tasks)
-    @eval function $direction(net::SingleNet; phase=Train, t=1, solver=nothing)
-        for (index, task) in enumerate(net.$tasks[phase])
-            if isa(task, JuliaTask)
-                args = []
-                for arg in task.args
-                    if isa(arg, Symbol)
-                        push!(args, get_buffer(net, arg, t))
-                    else
-                        push!(args, arg)
+    @eval function $direction(net::SingleNet; phase=Train, solver=nothing)
+        for t = 1:net.time_steps
+            net.curr_time_step = t
+            for (index, task) in enumerate(net.$tasks[phase])
+                if isa(task, JuliaTask)
+                    args = []
+                    for arg in task.args
+                        if isa(arg, Symbol)
+                            push!(args, get_buffer(net, arg, t))
+                        else
+                            push!(args, arg)
+                        end
                     end
+                    task.func(args...)
+                elseif isa(task, UpdateTask)
+                    @assert phase == Train && solver != nothing
+                    update(solver, net, task.param_id)
                 end
-                task.func(args...)
-            elseif isa(task, UpdateTask)
-                @assert phase == Train && solver != nothing
-                update(solver, net, task.param_id)
             end
         end
     end
 end
-
-# function forward(net::RNN)
-#     for t = 1:net.time_steps
-#         net.subnet.buffers = net.buffers[t]
-#         forward(net.subnet)
-#     end
-# end
 
 """
 Add an ensemble to the network `net`

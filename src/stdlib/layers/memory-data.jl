@@ -34,18 +34,27 @@ type MemoryDataEnsemble{N,M} <: DataEnsemble
 end
 
 function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
-    data[:] = ens.value[:]
+    if net.time_steps > 1
+        data[:] = ens.value[[Colon() for _ in ndims(ens)]..., :, net.curr_time_step]
+    else
+        data[:] = ens.value[:]
+    end
 end
 
 function backward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
 end
 
-function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple; time_steps=1)
+function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple)
     data_neurons = Array(DataNeuron, shape...)
     for i in 1:length(data_neurons)
         data_neurons[i] = DataNeuron(0.0)
     end
-    value = Array(Float32, shape..., batch_size(net))
+    shape = [shape...]
+    push!(shape, batch_size(net))
+    if net.time_steps > 1
+        push!(shape, net.time_steps)
+    end
+    value = Array(Float32, shape...)
     ens = MemoryDataEnsemble(name, data_neurons, value)
     add_ensemble(net, ens)
     ens, value

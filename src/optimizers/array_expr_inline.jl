@@ -39,7 +39,7 @@ function array_expr_inliner(node, cbdata, index, top_level, read)
                 node.args = [node.args[1], :(1 + $flattened_idx)]
             else
                 # 1-d indexing
-                @assert length(idxs) == 1
+                @assert length(idxs) == 1 node
             end
         elseif node.head == :call && node.args[1] == :size
             arr = cbdata[node.args[2]]

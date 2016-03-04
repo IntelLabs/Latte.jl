@@ -33,7 +33,7 @@ data,  data_value = MemoryDataLayer(net, :data, (4, 4))
 tanh1             = TanhLayer(:tanh1, net, data)
 tanh2             = TanhLayer(:tanh2, net, tanh1)
 
-data_value[:]     = rand(Float32, size(data_value)...) * 256
+data_value[:]     = rand(Float32, size(data_value)...)
 
 init(net)
 

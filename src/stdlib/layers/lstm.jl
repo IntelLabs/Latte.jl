@@ -36,10 +36,6 @@ function LSTMNeuron()
     LSTMNeuron(Batch(0.0f0), Batch(0.0f0))
 end
 
-@noinline function tanh(x)
-    Base.tanh(x)
-end
-
 sigmoid(x)  = 1.0f0 / (1.0f0 + exp(-x))
 ∇sigmoid(x) = 1.0f0 - x * x
 ∇tanh(x)    = x * (1.0f0 - x)

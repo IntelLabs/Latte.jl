@@ -94,6 +94,8 @@ include("layers/embed_id.jl")
 include("layers/GRU.jl")
 include("layers/transform.jl")
 include("layers/concat.jl")
+include("layers/rnn.jl")
+include("layers/tanh.jl")
 
 # type WeightedEnsemble <: AbstractEnsemble
 #     name         :: Symbol

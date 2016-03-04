@@ -118,13 +118,14 @@ type SingleNet <: Net
     batch_size     :: Int
     train_epoch    :: Int
     test_epoch     :: Int
+    curr_time_step :: Int
     time_steps     :: Int
     SingleNet(batch_size, time_steps=1) = new([],
                 Dict{Symbol, AbstractEnsemble}(),
                 [Dict{Symbol,Array}() for _ in 1:time_steps],
                 TaskSet(),
                 TaskSet(),
-                [], [], -1, Array(Cint, 1), batch_size, 1, 1, time_steps)
+                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps)
 end
 
 Net(batch_size::Int; time_steps=1) = SingleNet(batch_size, time_steps)

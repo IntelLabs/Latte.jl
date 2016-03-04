@@ -224,6 +224,10 @@ function ActivationEnsemble{T,N}(net::Net, name::Symbol, neurons::Array{T,N},
 end
 
 
+function init_inputs(ensemble::ActivationEnsemble, net::Net)
+    # Skip
+end
+
 @inbounds function init(ensemble::ActivationEnsemble, net::Net)
     batch_size = net.batch_size
     neuron = ensemble.neurons[1]
