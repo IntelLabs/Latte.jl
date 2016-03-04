@@ -1,5 +1,6 @@
 language: julia
 
+sudo: required
 dist: trusty
 
 os:
@@ -16,7 +17,11 @@ matrix:
     allow_failures:
         - julia: nightly
 
-script: 
+before_install:
+    - sudo apt-get update
+    - sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-dev
+
+script:
     - julia -e 'Pkg.clone(pwd());'
     - julia -e 'Pkg.build("Latte")'
     - julia --code-coverage=user test/runtests.jl
