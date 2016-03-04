@@ -23,3 +23,11 @@ script:
 
 after_success:
     - julia -e 'cd(Pkg.dir("Latte")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+
+notifications:
+    webhooks:
+        urls:
+            - https://webhooks.gitter.im/e/0dbc11ae0ac8815398b3
+        on_success: change
+        on_failure: always
+        on_start: never
