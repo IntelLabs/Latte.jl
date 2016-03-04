@@ -7,12 +7,23 @@
 Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
 
 # Setup
+
+## Prerequisites
+
+To build Latte, you will need MPI >= 3 and HDF5.  What to install will
+vary by platform and your needs.  On Ubuntu, try:
+
+```shell
+$ sudo apt-get install libhdf5-mpich2-7 libhdf5-mpich2-dev
+```
+
 ## Quick Install
 ```shell
 # Latte currently depends on the master branch of these packages
 $ julia -e 'Pkg.clone("https://github.com/IntelLabs/Latte.jl")'
 $ julia -e 'Pkg.checkout("CompilerTools")'
 $ julia -e 'Pkg.checkout("ParallelAccelerator")'
+$ julia -e 'Pkg.build("Latte")'
 ```
 
 # Examples
