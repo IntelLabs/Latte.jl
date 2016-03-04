@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/IntelLabs/Latte.jl.svg?branch=master)](https://travis-ci.org/IntelLabs/Latte.jl)
 [![Join the chat at https://gitter.im/IntelLabs/Latte.jl](https://badges.gitter.im/IntelLabs/Latte.jl.svg)](https://gitter.im/IntelLabs/Latte.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Coverage Status](https://coveralls.io/repos/github/IntelLabs/Latte.jl/badge.svg?branch=master)](https://coveralls.io/github/IntelLabs/Latte.jl?branch=master)
 
 Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
 
