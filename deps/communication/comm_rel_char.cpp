@@ -98,6 +98,9 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
         data_char_buff[i] = (char)rel_val;
     }
 
+//    printf("sent %d %lf %lf %lf %lf %d %d\n", request_id, data[0], data[count-1], values[0], 
+  //          values[count-1], data_char_buff[0], data_char_buff[count-1]);
+
     MPI_Request *request = requests[request_id];
     MPI_Iallreduce(MPI_IN_PLACE, data_char_buff, count, MPI_CHAR, MPI_SUM, MPI_COMM_WORLD, request);
     // int size;
@@ -119,6 +122,7 @@ void wait(int request_id) {
     int count = count_map[request_id];
     for(int i=0; i<count; i++)
         data[i] = ((float)data_char[i]*values[i])/((float)(1<<6));
+//    printf("received %d %lf %lf\n", request_id, data[0], data[count-1]);
 }
 
 float reduce_accuracy(float acc) {
