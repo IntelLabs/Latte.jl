@@ -14,7 +14,7 @@ To build Latte, you will need MPI >= 3 and HDF5.  What to install will
 vary by platform and your needs.  On Ubuntu, try:
 
 ```shell
-$ sudo apt-get install libhdf5-mpich2-7 libhdf5-mpich2-dev
+$ sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-dev 
 ```
 
 ## Quick Install
