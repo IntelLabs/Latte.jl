@@ -86,6 +86,7 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
 
     if(curr_iter++ < 10000)
     {
+        // printf("id %d count %d\n",request_id,count);
         sync_gradients_old(data, values, count, request_id);
         return;
     }
@@ -114,6 +115,10 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
             // printf("rel_val %f chance %d draw %d\n",rel_val, chance, draw);
             if(draw<chance)
                 rel_val == 1.01f;
+        }
+        if(std::abs(rel_val)>126.0f)
+        {
+            printf("LARGE VALUE %f %d\n", rel_val, request_id);
         }
         data_char_buff[i] = (char)rel_val;
     }
