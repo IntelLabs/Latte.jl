@@ -25,6 +25,8 @@ before_install:
 
 script:
     - julia -e 'Pkg.clone(pwd());'
+    - julia -e 'Pkg.checkout("ParallelAccelerator")'
+    - julia -e 'Pkg.build("ParallelAccelerator")'
     - julia -e 'Pkg.build("Latte")'
     - julia --code-coverage=user test/runtests.jl
 
