@@ -33,7 +33,7 @@ function runtests(testdir)
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     for f in testfiles
         try
-            run(`$exename $(joinpath(testdir, f))`)
+            run(`$exename --code-coverage=user $(joinpath(testdir, f))`)
             push!(summary, ((:green, STDOUT),  "SUCCESS: $f"))
         catch ex
             push!(summary, ((:red, STDERR), "Error: $(joinpath(testdir, f))"))
