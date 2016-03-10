@@ -139,6 +139,7 @@ type Connection
     size          :: Int
     copy          :: Bool
     is_dim_fixed  :: Vector{Bool}
+    is_one_to_one :: Bool
     padding       :: Int
     recurrent     :: Bool
 end

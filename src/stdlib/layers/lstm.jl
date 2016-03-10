@@ -27,71 +27,38 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export LSTMLayer
 
-@neuron type LSTMNeuron
-    state  :: Batch{Float32}
-    ∇state :: Batch{Float32}
-end
-
-function LSTMNeuron()
-    LSTMNeuron(Batch(0.0f0), Batch(0.0f0))
-end
-
-sigmoid(x)  = 1.0f0 / (1.0f0 + exp(-x))
-∇sigmoid(x) = 1.0f0 - x * x
-∇tanh(x)    = x * (1.0f0 - x)
-
-@neuron forward(neuron::LSTMNeuron) do 
-    _a = tanh(neuron.inputs[1][1])
-    _i = sigmoid(neuron.inputs[1][2])
-    _f = sigmoid(neuron.inputs[1][3])
-    _o = sigmoid(neuron.inputs[1][4]) 
-    neuron.state = _a * _i + _f * neuron.state 
-    neuron.value = _o * tanh(neuron.state)
-end
-
-@neuron backward(neuron::LSTMNeuron) do
-    _a = tanh(neuron.inputs[1][1])
-    _i = sigmoid(neuron.inputs[1][2])
-    _f = sigmoid(neuron.inputs[1][3])
-    _o = sigmoid(neuron.inputs[1][4])
-    co = tanh(neuron.state)
-    neuron.∇state = neuron.∇ * _o * ∇tanh(co) + neuron.∇state
-    neuron.∇inputs[1][1] = neuron.∇state * _i * ∇tanh(_a)
-    neuron.∇inputs[1][2] = neuron.∇state * _a * ∇sigmoid(_i)
-    neuron.∇inputs[1][3] = neuron.∇state * neuron.state * ∇sigmoid(_f)
-    neuron.∇inputs[1][4] = neuron.∇ * co * ∇sigmoid(_o)
-    neuron.∇state *= _f
-end
-
-function FCEnsemble(name::Symbol, net::Net, n_inputs::Int, n_outputs::Int)
-    neurons = Array(WeightedNeuron, n_outputs)
-    weights = xavier(Float32, n_inputs, n_outputs)
-    ∇weights = zeros(Float32, n_inputs, n_outputs)
-
-    bias = zeros(Float32, 1, n_outputs)
-    ∇bias = zeros(Float32, 1, n_outputs)
-    for i in 1:n_outputs
-        neurons[i] = WeightedNeuron(view(weights, :, i), view(∇weights, :, i), 
-            view(bias, :, i), view(∇bias, :, i))
-    end
-    Ensemble(net, name, neurons, [Param(net, name, :weights, 1.0), 
-                                  Param(net, name, :bias, 2.0)])
-end
-
-function LSTMLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble, output_dim::Int)
+function LSTMLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble, n_outputs::Int)
     @assert ndims(input_ensemble) == 1
-    neurons = Array(LSTMNeuron, size(input_ensemble)...)
-    n_inputs = length(neurons)
-    for i = 1:n_inputs
-        neurons[i] = LSTMNeuron()
+
+    for ens in [:i, :C_sim, :f, :o]
+        @eval $(symbol(ens, :h)) = FullyConnectedEnsemble($net, length($input_ensemble), $n_outputs)
+        @eval $(symbol(ens, :x)) = InnerProductLayer($net, $input_ensemble, $n_outputs)
     end
 
-    lstm = Ensemble(net, name, neurons, [Param(net, name, :state, 1.0)])
-    add_connections(net, _sum, lstm, function (i)
-        return ((i-1)*4+1:i*4,)
-    end)
-    add_connections(net, lstm, h, function (i)
-        tuple([Colon() for d in size(input_ensemble)]...)
-    end; recurrent=true)
-    lstm
+    # i = σ(ih + ix)
+    i = σ(net, +(net, ih, ix))
+    # C_sim = tanh(C_simh + C_simx)
+    C_sim = tanh(net, +(net, C_simh, C_simx))
+    # f = σ(fh + fx)
+    f = σ(net, +(net, fh, fx))
+
+    # C_t = i * C_sim + f * C_{t-1}
+    f_C = MulEnsemble(net, (n_outputs, ))
+    add_connections(net, f, f_C, (i) -> (i,))
+    C = +(net, *(net, i, C_sim), f_C)
+    add_connections(net, C, f_C, (i) -> (i,); recurrent=true)
+
+    # oC = V * C
+    oC = InnerProductLayer(net, C, n_outputs)
+
+    # o = sigmoid(oh + ox + oC)
+    o = σ(net, +(net, oC, oh, ox))
+
+    # h = o * tanh(C)
+    h = *(net, o, tanh(net, C; copy=true))
+
+    # Connect h back to each gate
+    for ens in [ih, C_simh, fh, oh]
+        add_connections(net, h, ens, (i) -> (1:n_outputs, ); recurrent=true)
+    end
 end

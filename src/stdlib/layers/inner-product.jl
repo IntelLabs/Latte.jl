@@ -49,6 +49,10 @@ function FullyConnectedEnsemble(name::Symbol, net::Net, num_inputs::Int, num_out
                                   Param(name,:bias, 2.0f0, 0.0f0)])
 end
 
+function FullyConnectedEnsemble(net::Net, num_inputs::Int, num_outputs::Int; weight_init=xavier, bias_init=0)
+    FullyConnectedEnsemble(gensym("ensemble"), net, num_inputs, num_outputs; weight_init=weight_init, bias_init=bias_init)
+end
+
 function InnerProductLayer(name::Symbol, net::Net,
                            input_ensemble::AbstractEnsemble,
                            num_outputs::Int; weight_init=xavier, bias_init::Real=0)
@@ -60,4 +64,10 @@ function InnerProductLayer(name::Symbol, net::Net,
     add_connections(net, input_ensemble, ip,
                     (i) -> (tuple([Colon() for d in size(input_ensemble)]... )))
     ip
+end
+
+function InnerProductLayer(net::Net,
+                           input_ensemble::AbstractEnsemble,
+                           num_outputs::Int; weight_init=xavier, bias_init::Real=0)
+    InnerProductLayer(gensym("ensemble"), net, input_ensemble, num_outputs; weight_init=weight_init, bias_init=bias_init)
 end

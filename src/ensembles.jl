@@ -83,6 +83,16 @@ function init_inputs(ensemble::AbstractEnsemble, net::Net)
                     else
                         set_buffer(net, key, reshape(source, (connection.size, batch_size)), t)
                     end
+                elseif connection.is_one_to_one
+                    connection.copy = false
+                    if connection.recurrent && t == 1
+                        set_buffer(net, key, zeros(eltype(typ), size(ensemble)..., batch_size), t)
+                    elseif connection.recurrent && t > 1
+                        source = get_buffer(net, source_target, t - 1)
+                        set_buffer(net, key, source, t)
+                    else
+                        set_buffer(net, key, source, t)
+                    end
                 else
                     _shape = shape
                     if LATTE_DISABLE_TILING

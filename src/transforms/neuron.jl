@@ -84,6 +84,8 @@ function transform_neuron_fn(fn, ensemble)
             result = AstWalk(node.args[1], walker, cbdata)
             str_target = string(result.args[1])
             if endswith(str_target, "inputs")
+                @assert length(node.args[3:end]) == 0
+                index = result.args[2:end]
                 if isa(cbdata.ensemble, ActivationEnsemble)
                     if contains(str_target, "∇")
                         result.args[1] = symbol(cbdata.ensemble.name,:∇)
@@ -91,10 +93,19 @@ function transform_neuron_fn(fn, ensemble)
                         result.args[1] = symbol(cbdata.ensemble.name,:value)
                     end
                 else
-                    result.args[1] = symbol(result.args[1], node.args[2])
+                    conn_index = node.args[2]
+                    result.args[1] = symbol(result.args[1], conn_index)
                 end
                 push!(cbdata.args, result.args[1])
-                node = Expr(:ref, result.args[1], node.args[3:end]..., result.args[2:end]...)
+                node = Expr(:ref, result.args[1], index...)
+            elseif contains(str_target, "inputs")
+                conn_index = parse(Int, split(str_target, "inputs")[end])
+                if cbdata.ensemble.connections[conn_index].is_one_to_one
+                    @assert length(node.args[2:end]) == 1 && node.args[2] == 1
+                    return result
+                else
+                    node = Expr(:ref, result.args[1], node.args[2:end]..., result.args[2:end]...)
+                end
             else
                 node = Expr(:ref, result.args[1], node.args[2:end]..., result.args[2:end]...)
             end

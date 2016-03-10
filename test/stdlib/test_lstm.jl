@@ -28,39 +28,75 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 using Latte
 using FactCheck
 
-#=
 facts("Testing LSTM layer") do
-    net = RNN(8, 5)
-    data, data_value   = MemoryDataLayer(net, :data, (2,))
+    n_time_steps = 5
+    net = Net(2; time_steps=n_time_steps)
+    data, data_value = MemoryDataLayer(net, :data, (8,))
     rand!(data_value)
-    lstm1 = LSTMLayer(:lstm1, net, data)
 
+    lstm = LSTMLayer(:lstm, net, data, length(data))
     init(net)
-    forward(net)
-    for t in 2:2
-        c_prev = get_buffer(net, :lstm1state, t-1)[:,:]
-        input = data_value
-        y_weights = get_buffer(net, :lstm1yweights, t)
-        y = input' * y_weights
-        h_input = get_buffer(net, :lstm1value, t-1)
-        # Ensure recurrent connection is correct
-        @pending h_input --> get_buffer(net, :lstm1hinputs1, t)
-        h_weights = get_buffer(net, :lstm1hweights, t)
-        h = h_input' * h_weights 
-        _sum = y .+ h
-        a = _sum[[1, 5], :]
-        i = _sum[[2, 6], :]
-        f = _sum[[3, 7], :]
-        o = _sum[[4, 8], :]
+    forward(net; phase=Latte.Test)
 
-        sigmoid(x)  = 1.0f0 ./ (1.0f0 .+ exp(-x))
-        ∇sigmoid(x) = 1.0f0 .- x .* x
-        ∇tanh(x)    = x .* (1.0f0 .- x)
-        c_expected = sigmoid(i) .* tanh(a) .+ sigmoid(f) .* c_prev
-        h_expected = sigmoid(o) .* tanh(c_expected)
+    W_ih = net.params[1].value
+    W_ix = net.params[3].value
 
-        @pending c_expected --> roughly(get_buffer(net, :lstm1state, t))
-        @fact h_expected --> roughly(get_buffer(net, :lstm1value, t))
+    W_C_simh = net.params[5].value
+    W_C_simx = net.params[7].value
+
+    W_fh = net.params[9].value
+    W_fx = net.params[11].value
+
+    W_oh = net.params[13].value
+    W_ox = net.params[15].value
+
+    V = net.params[17].value
+
+    h = zeros(Float32, 8, 2)
+    C = zeros(Float32, 8, 2)
+    sigmoid(x)  = 1.0f0 ./ (1.0f0 .+ exp(-x))
+    for t = 1:n_time_steps
+        x = get_buffer(net, :datavalue, t)
+        ih = W_ih' * h
+        ix = W_ix' * x
+        @fact ih --> roughly(get_buffer(net, symbol(net.ensembles[2].name, :value), t))
+        @fact ix --> roughly(get_buffer(net, symbol(net.ensembles[3].name, :value), t))
+
+        C_simh = W_C_simh' * h
+        C_simx = W_C_simx' * x
+        @fact C_simh --> roughly(get_buffer(net, symbol(net.ensembles[4].name, :value), t))
+        @fact C_simx --> roughly(get_buffer(net, symbol(net.ensembles[5].name, :value), t))
+
+        fh = W_fh' * h
+        fx = W_fx' * x
+        @fact fh --> roughly(get_buffer(net, symbol(net.ensembles[6].name, :value), t))
+        @fact fx --> roughly(get_buffer(net, symbol(net.ensembles[7].name, :value), t))
+
+        oh = W_oh' * h
+        ox = W_ox' * x
+        @fact oh --> roughly(get_buffer(net, symbol(net.ensembles[8].name, :value), t))
+        @fact ox --> roughly(get_buffer(net, symbol(net.ensembles[9].name, :value), t))
+
+        i = sigmoid(ih .+ ix)
+        @fact i --> roughly(get_buffer(net, symbol(net.ensembles[11].name, :value), t))
+
+        C_sim = tanh(C_simh .+ C_simx)
+        @fact C_sim --> roughly(get_buffer(net, symbol(net.ensembles[13].name, :value), t))
+
+        f = sigmoid(fh .+ fx)
+        @fact f --> roughly(get_buffer(net, symbol(net.ensembles[15].name, :value), t))
+
+        f_C = f .* C
+        @fact f_C --> roughly(get_buffer(net, symbol(net.ensembles[16].name, :value), t))
+
+        i_C = i .* C_sim
+        @fact i_C --> roughly(get_buffer(net, symbol(net.ensembles[17].name, :value), t))
+
+        C = i_C .+ f_C
+        @fact C --> roughly(get_buffer(net, symbol(net.ensembles[18].name, :value), t))
+        o = sigmoid(V' * C .+ oh .+ ox)
+        h = o .* tanh(C)
+        h_actual = get_buffer(net, symbol(net.ensembles[end].name, :value), t)
+        @fact h_actual --> roughly(h)
     end
 end
-=#

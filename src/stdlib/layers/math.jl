@@ -55,3 +55,53 @@ function AddLayer(name::Symbol, net::Net, input_1::AbstractEnsemble, input_2::Ab
     add_connections(net, input_2, ens, mapping)
     ens
 end
+
+import Base: +, *
+
+function +(net::Net, ens1::AbstractEnsemble, ens2::AbstractEnsemble)
+    AddLayer(gensym("ensemble"), net, ens1, ens2)
+end
+
+function +(net::Net, ens1::AbstractEnsemble, ens...)
+    AddLayer(gensym("ensemble"), net, ens1, +(net, ens...))
+end
+
+
+export MulLayer
+
+@neuron type MulNeuron
+end
+
+@neuron forward(neuron::MulNeuron) do
+    neuron.value = neuron.inputs[1][1] * neuron.inputs[2][1]
+end
+
+@neuron backward(neuron::MulNeuron) do
+    neuron.∇inputs[1][1] = neuron.inputs[2][1] * neuron.∇
+    neuron.∇inputs[2][1] = neuron.inputs[1][1] * neuron.∇
+end
+
+function MulEnsemble(name::Symbol, net::Net, shape)
+    neurons = Array(MulNeuron, shape...)
+    for i in 1:length(neurons)
+        neurons[i] = MulNeuron()
+    end
+    Ensemble(net, name, neurons)
+end
+
+function MulEnsemble(net::Net, shape)
+    MulEnsemble(gensym("ensemble"), net, shape)
+end
+
+function MulLayer(name::Symbol, net::Net, input_1::AbstractEnsemble, input_2::AbstractEnsemble)
+    @assert size(input_1) == size(input_2)
+    ens = MulEnsemble(name, net, size(input_1))
+    mapping = one_to_one(ndims(input_1))
+    add_connections(net, input_1, ens, mapping)
+    add_connections(net, input_2, ens, mapping)
+    ens
+end
+
+function *(net::Net, ens1::AbstractEnsemble, ens2::AbstractEnsemble)
+    MulLayer(gensym("ensemble"), net, ens1, ens2)
+end

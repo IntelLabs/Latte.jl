@@ -901,8 +901,20 @@ function add_connections(net::Net, source::AbstractEnsemble,
             end
         end
     end
+    is_one_to_one = true
+    if !all(is_dim_fixed)
+        for i in CartesianRange(size(sink))
+            if mapping(i.I...) != i.I
+                is_one_to_one = false
+                break
+            end
+        end
+    else
+        is_one_to_one = false
+    end
     push!(sink.connections, Connection(source, mapping, tuple(range_shape...),
-                                       range_size, true, is_dim_fixed, padding, recurrent))
+                                       range_size, true, is_dim_fixed,
+                                       is_one_to_one, padding, recurrent))
 end
 
 function test(net::SingleNet)
