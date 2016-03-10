@@ -31,8 +31,8 @@ using Latte
 facts("Testing Math Layers") do
     context("Sum") do
         net = Net(8)
-        data1, data_value1 = MemoryDataLayer(net, :data1, (227, 227, 3))
-        data2, data_value2 = MemoryDataLayer(net, :data2, (227, 227, 3))
+        data1, data_value1 = MemoryDataLayer(net, :data1, (4, 4, 2))
+        data2, data_value2 = MemoryDataLayer(net, :data2, (4, 4, 2))
         data_value1[:]    = rand(Float32, size(data_value1)...) * 256
         data_value2[:]    = rand(Float32, size(data_value2)...) * 256
         add = AddLayer(:add, net, data1, data2)
