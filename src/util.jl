@@ -1,4 +1,4 @@
-#=
+g=
 Copyright (c) 2015, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
-export set_debug_level, remove_line_nodes, gradient_check
+export set_debug_level, remove_line_nodes
 
 debug_level = parse(Int, get(ENV, "LATTE_DEBUG_LEVEL", "0"))
 
@@ -270,28 +270,6 @@ end
 
 function tanh{T}(arg::T)
     ccall((:tanh, "libm"), T, (T, ), arg)
-end
-
-function gradient_check(f::Function, inputs::Vector{Array}, grad_outputs::Vector{Array}, eps=1e-3)
-    grads = [zeros(x) for x in inputs]
-    for (x, gx) in zip(inputs, grads)
-        flat_x = flatten_view(x)
-        flat_gx = flatten_view(gx)
-        for i in 1:length(flat_x)
-            orig = flat_x[i]
-            flat_x[i] = orig + eps
-            ys1 = [copy(x) for x in f()]
-            flat_x[i] = orig - eps
-            ys2 = [copy(x) for x in f()]
-            flat_x[i] = orig
-
-            for (y1, y2, gy) in zip(ys1, ys2, grad_outputs)
-                dot = float(sum(((y1 - y2) .* gy)[:]))
-                flat_gx[i] += dot / (2 * eps)
-            end
-        end
-    end
-    return grads
 end
 
 macro NotImplemented()
