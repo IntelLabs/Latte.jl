@@ -33,7 +33,7 @@ function create_net()
 
 	data,  data_value   = MemoryDataLayer(net, :data, (24, 24, 3))
 	label, label_value = MemoryDataLayer(net, :label, (1,))
-	data_value[:]  = rand(Float32, size(data_value)...) * 255.0f0
+	data_value[:]  = rand(Float32, size(data_value)...)
 	label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10.0f0)
 
 	conv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)
