@@ -33,6 +33,8 @@ facts("Testing neuron trasnform") do
         net = Net(8)
         neurons = [DataNeuron(0.0) for _ = 1:10, _ = 1:10]
         ens = Ensemble(net, :test_ens, neurons, [])
+        ens2 = Ensemble(net, :test_ens2, neurons, [])
+        add_connections(net, ens2, ens, (i, j) -> (i:i+1, j:j+1); padding=1)
         fn = :(function forward(neuron::DataNeuron)
             for i = 1:length(neuron.inputs[1])
                 neuron.value += neuron.inputs[1][i]
