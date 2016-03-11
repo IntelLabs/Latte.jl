@@ -1,4 +1,4 @@
-#=
+g=
 Copyright (c) 2015, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
@@ -83,37 +83,6 @@ function parallelize_batch_tile_loops(statements)
     new_body
 end
 
-function collect_parallel_loop_private_vars(expr)
-    function private_var_collector(node, cbdata, index, top_level, read)
-        if cbdata[1] != nothing
-            if isa(node, Expr) && node.head == :(=)
-                lhs = node.args[1]
-                if isa(lhs, Symbol)
-                    push!(cbdata[1], lhs)
-                elseif isa(lhs, SymbolNode)
-                    push!(cbdata[1], lhs.name)
-                elseif isa(lhs, GenSym)
-                    push!(cbdata[1], lhs)
-                end
-                return node
-            elseif isa(node, Expr) && node.head == :loophead
-                private_var_collector(node.args[1], cbdata, index, top_level, read)
-                return node
-            end
-        end
-        if isa(node, Expr) && node.head == :parallel_loophead
-            cbdata[1] = node.args[4]
-            return node
-        elseif isa(node, Expr) && node.head == :parallel_loopend
-            cbdata[1] = nothing
-            return node
-        elseif isa(node, Expr) && node.head in [:loopend, :loophead]
-            return node
-        end
-        ASTWALK_RECURSE
-    end
-    AstWalk(expr, private_var_collector, Any[nothing])
-end
 function collect_parallel_loop_private_vars(expr)
     function private_var_collector(node, cbdata, index, top_level, read)
         if cbdata[1] != nothing
