@@ -30,7 +30,7 @@ script:
     - julia --code-coverage=user test/runtests.jl
 
 after_success:
-    - julia bin/converage.jl
+    - julia bin/coverage.jl
 
 notifications:
     webhooks:
