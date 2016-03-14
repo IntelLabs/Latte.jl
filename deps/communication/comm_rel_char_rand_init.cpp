@@ -118,9 +118,13 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
         }
         if(std::abs(rel_val)>126.0f)
         {
-            printf("LARGE VALUE %f %d\n", rel_val, request_id);
+            //printf("LARGE VALUE %f %d\n", rel_val, request_id);
         }
         data_char_buff[i] = (char)rel_val;
+        if(rel_val< -126.9f)
+             data_char_buff[i] = -127;
+        if(rel_val>126.9f)
+             data_char_buff[i] = 127;
     }
 
 //    printf("sent %d %lf %lf %lf %lf %d %d\n", request_id, data[0], data[count-1], values[0], 
