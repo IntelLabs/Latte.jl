@@ -231,7 +231,8 @@ function solve(solver::Solver, net::Net)
         #     update(solver, net)
         # end
         clear_values(net)
-        if solver.state.iter % 20 == 0
+        # if solver.state.iter % 20 == 0
+        if solver.state.iter % 5 == 0
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
         end
         if solver.state.iter % solver.params.test_every == 0

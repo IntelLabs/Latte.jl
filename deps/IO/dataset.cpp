@@ -85,15 +85,14 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     hsize_t space_dims[data_ndim];
     hsize_t space_maxdims[data_ndim];
     H5Sget_simple_extent_dims(space_id, space_dims, space_maxdims);
-    // printf("dataset dimensions: ");
-    // for (int i = 0; i < data_ndim; i++) {
-    //     printf("%lu ", space_dims[i]);
-    // }
-    // printf(" max dims: ");
-    // for (int i = 0; i < data_ndim; i++) {
-    //     printf("%lu ", space_maxdims[i]);
-    // }
-    // printf("\n");
+    debug("dataset dimensions: ");
+    for (int i = 0; i < data_ndim; i++) {
+        debug("  %lu", space_dims[i]);
+    }
+    debug(" max dims: ");
+    for (int i = 0; i < data_ndim; i++) {
+        debug("  %lu", space_maxdims[i]);
+    }
 
     data_shape = new int[data_ndim];
     for (int i = 0; i < data_ndim; i++) {
@@ -119,13 +118,11 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     for (int i = 1; i < data_ndim; i++) {
         data_item_size *= data_shape[i];
     }
-    unsigned long total_size = (num_total_items*data_item_size*sizeof(float));
-    // printf("data_item_size %d\n", data_item_size);
-    // printf("total_size %ul\n", total_size);
-    // printf("num_total_items %d\n", num_total_items);
+    debug("data_item_size %d", data_item_size);
+    debug("num_total_items %d", num_total_items);
 // #define LOCAL_SIZE 40000000000ul
 #define LOCAL_SIZE 2000000000ul
-    if (total_size > LOCAL_SIZE) {
+    if (num_total_items > LOCAL_SIZE / (data_item_size*sizeof(float))) {
         num_local_items = LOCAL_SIZE/(data_item_size*sizeof(float));
         // make it a multiple of batch_size
         num_local_items = (num_local_items/batch_size)*batch_size;
@@ -142,7 +139,7 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     }
     if (shuffle) std::random_shuffle(chunks, chunks + n_chunks);
 
-    // printf("num_local_items %d\n", num_local_items);
+    debug("num_local_items %d", num_local_items);
     batch_idxs = new int[num_local_items];
     for (int i = 0; i < num_local_items; i++) batch_idxs[i] = i;
     data_buffer = new float[num_local_items*data_item_size];
@@ -181,15 +178,14 @@ void Dataset::fetch_next_chunk(bool force) {
         // start[0] = chunk_idx;
         start[0] = chunks[chunk_idx];
         debug("Fetching chunk %d", start[0]);
-        // printf("chunk_idx: %d\n", chunk_idx);
-        // printf("num_local_items: %d\n", num_local_items);
-        // printf("count: ");
+        debug("chunk_idx: %d", chunk_idx);
+        debug("num_local_items: %d", num_local_items);
+        debug("count: ");
         for (int i = 1; i < data_ndim; i++) {
             count[i] = data_shape[i];
-            // printf("%d ", data_shape[i]);
+            debug("  %d", data_shape[i]);
             start[i] = 0;
         }
-        // printf("\n");
         /* create a file dataspace independently */
         hid_t my_dataspace = H5Dget_space(data_dataset_id);
         assert(my_dataspace != -1);

@@ -33,14 +33,15 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <mpi.h>
+// #include <mpi.h>
 #include "hdf5.h"
 
-#define MPI_OUT std::cout << "Worker " << MPI::COMM_WORLD.Get_rank() << ": "
+// #define MPI_OUT std::cout << "Worker " << MPI::COMM_WORLD.Get_rank() << ": "
+#define MPI_OUT std::cout << "Worker " << 0 << ": "
 
 hid_t create_hdf5_file(std::string file_name) {
     hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-    H5Pset_fapl_mpio(plist_id, MPI::COMM_WORLD, MPI::INFO_NULL);
+    // H5Pset_fapl_mpio(plist_id, MPI::COMM_WORLD, MPI::INFO_NULL);
 
     std::string hdf5_file_name(file_name);
     MPI_OUT << "Creating HDF5 File:" << hdf5_file_name << std::endl;
@@ -63,9 +64,11 @@ void read_metadata(std::string metadata_file,
 }
 
 int main(int argc, char *argv[]) {
-    MPI::Init(argc, argv);
-    int mpi_rank = MPI::COMM_WORLD.Get_rank();
-    int mpi_size = MPI::COMM_WORLD.Get_size();
+    // MPI::Init(argc, argv);
+    // int mpi_rank = MPI::COMM_WORLD.Get_rank();
+    int mpi_rank = 0;
+    // int mpi_size = MPI::COMM_WORLD.Get_size();
+    int mpi_size = 1;
 
     if (argc < 3) {
     std::cout << "Error: Usage - convert $size $target_file_name $metadata_file $(mean_file_name, optional)" << std::endl;
@@ -109,7 +112,7 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < lines.size(); i++) shuffled_indexes[i] = i;
         std::random_shuffle(shuffled_indexes, shuffled_indexes + lines.size());
     } 
-    MPI_Bcast(shuffled_indexes, lines.size(), MPI_FLOAT, 0, MPI_COMM_WORLD);
+    // MPI_Bcast(shuffled_indexes, lines.size(), MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     int chunk_size = lines.size() / mpi_size + 1;
     hsize_t start = mpi_rank * chunk_size;
@@ -178,10 +181,11 @@ int main(int argc, char *argv[]) {
     H5Fclose(file_id);
     if (compute_mean) {
         MPI_OUT << "Computing Mean" <<  std::endl;
-        float global_mean[channels * height * width];
-        MPI_Reduce(mean, global_mean, channels*height*width, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
-        int rank;
-        MPI_Comm_rank( MPI_COMM_WORLD, &rank );
+        // float global_mean[channels * height * width];
+        // MPI_Reduce(mean, global_mean, channels*height*width, MPI_FLOAT, MPI_SUM, 0, MPI_COMM_WORLD);
+        float* global_mean = mean;
+        int rank = 0;
+        // MPI_Comm_rank( MPI_COMM_WORLD, &rank );
         if (rank == 0) {
             for (int i=0; i < channels*height*width; i++) {
                 global_mean[i] /= lines.size();
@@ -201,6 +205,6 @@ int main(int argc, char *argv[]) {
         H5Fclose(mean_file);
     }
     MPI_OUT << "Finalizing" <<  std::endl;
-    MPI::Finalize();
+    // MPI::Finalize();
     return 0;
 }
