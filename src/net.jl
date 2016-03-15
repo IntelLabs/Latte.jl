@@ -753,7 +753,7 @@ function init(net::SingleNet)
         if ensemble.name in seen_names
             throw("Error: Found duplicate ensemble name: $(ensemble.name)")
         end
-        if ensemble.net_subgroup != get_net_subrank(net) + 1
+        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
             continue  # skip
         end
         push!(seen_names, ensemble.name)
@@ -763,7 +763,7 @@ function init(net::SingleNet)
         init(ensemble, net)
     end
     for (index, ensemble) in enumerate(net.ensembles)
-        if ensemble.net_subgroup != get_net_subrank(net) + 1
+        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
             for connection in ensemble.connections
                 if connection.source.net_subgroup == get_net_subrank(net) + 1
                     push!(net.ensemble_send_list[connection.source.name], 
@@ -779,7 +779,7 @@ function init(net::SingleNet)
     log_info("  Synthesizing forward functions.")
     # Generate forward tasks
     for ensemble in net.ensembles
-        if ensemble.net_subgroup != get_net_subrank(net) + 1
+        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
             continue  # skip
         end
         # TODO: Should param initialization be done in ensemble init??
@@ -853,7 +853,7 @@ function init(net::SingleNet)
     log_info("  Synthesizing backward functions.")
     # Backward tasks
     for ensemble in net.ensembles
-        if ensemble.net_subgroup != get_net_subrank(net) + 1 || 
+        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1 || 
                 typeof(ensemble) <: DataEnsemble || 
                 ensemble.phase == Test
             continue  # skip

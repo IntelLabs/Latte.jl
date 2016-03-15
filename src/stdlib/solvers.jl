@@ -222,7 +222,7 @@ function solve(solver::Solver, net::Net)
         # end
         clear_values(net)
         # if solver.state.iter % 20 == 0
-        if solver.state.iter % 20 == 0 && get_net_subrank(net) + 1 == net.num_subgroups
+        if solver.state.iter % 20 == 0 && ((LATTE_MPI && get_net_subrank(net) + 1 == net.num_subgroups) || !LATTE_MPI)
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
         end
         if solver.state.iter % solver.params.test_every == 0
