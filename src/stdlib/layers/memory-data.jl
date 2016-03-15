@@ -28,9 +28,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export MemoryDataLayer
 
 type MemoryDataEnsemble{N,M} <: DataEnsemble
-    name       :: Symbol
-    neurons    :: Array{DataNeuron,N}
-    value      :: Array{Float32, M}  # M != N because of batch dimension
+    name         :: Symbol
+    neurons      :: Array{DataNeuron,N}
+    value        :: Array{Float32, M}  # M != N because of batch dimension
+    net_subgroup :: Cint
 end
 
 function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
