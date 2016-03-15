@@ -34,6 +34,10 @@ type MemoryDataEnsemble{N,M} <: DataEnsemble
     net_subgroup :: Cint
 end
 
+function MemoryDataEnsemble{N, M}(name::Symbol, neurons::Array{DataNeuron,N}, value::Array{Float32, M})
+    MemoryDataEnsemble{N,M}(name, neurons, value, convert(Cint, 1))
+end
+
 function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
     if net.time_steps > 1
         data[:] = ens.value[[Colon() for _ in ndims(ens)]..., :, net.curr_time_step]
@@ -56,7 +60,7 @@ function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple)
         push!(shape, net.time_steps)
     end
     value = Array(Float32, shape...)
-    ens = MemoryDataEnsemble(name, data_neurons, value, 1)
+    ens = MemoryDataEnsemble(name, data_neurons, value)
     add_ensemble(net, ens)
     ens, value
 end
