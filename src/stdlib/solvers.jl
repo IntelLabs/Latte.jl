@@ -194,16 +194,6 @@ end
 
 function solve(solver::Solver, net::Net)
     init(net)
-    try
-        get_buffer(net, :accuracyvalue)
-    catch KeyError
-        error("Net must contain an accuracy layer")
-    end
-    try
-        get_buffer(net, :lossvalue)
-    catch KeyError
-        error("Net must contain a loss layer")
-    end
 
     solver.state.learning_rate = get_learning_rate(solver.params.lr_policy,
                                                    solver.state)
@@ -219,7 +209,7 @@ function solve(solver::Solver, net::Net)
         clear_∇(net)
         backward(net)
 
-        solver.state.obj_val = get_buffer(net, :lossvalue)[1]
+        solver.state.obj_val = get_loss(net)
         solver.state.learning_rate = get_learning_rate(solver.params.lr_policy, solver.state)
         solver.state.momentum = get_momentum(solver.params.mom_policy, solver.state)
         # clip_gradients(solver, net)
@@ -232,16 +222,18 @@ function solve(solver::Solver, net::Net)
         # end
         clear_values(net)
         # if solver.state.iter % 20 == 0
-        if solver.state.iter % 5 == 0
+        if solver.state.iter % 20 == 0 && get_net_subrank(net) + 1 == net.num_subgroups
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
         end
         if solver.state.iter % solver.params.test_every == 0
             log_info("Iter $(solver.state.iter) - Testing... (Current train epoch: $(net.train_epoch))")
             acc = test(net)
             if LATTE_MPI
-                total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
-                if total_acc >= 0.0f0
-                    log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
+                if get_net_subrank(net) + 1 == net.num_subgroups
+                    total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
+                    if total_acc >= 0.0f0
+                        log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
+                    end
                 end
             else
                 log_info("Iter $(solver.state.iter) - Test Result: $acc%")

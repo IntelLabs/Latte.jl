@@ -1,4 +1,4 @@
-/*
+#=
 Copyright (c) 2015, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
@@ -23,24 +23,43 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+=#
 
-#include <stdlib.h>
-#include <ctime>
-#include <iostream>
-#include <vector>
-#include <assert.h>
+using Latte
 
-extern "C" {
-    void init();
-    int init_request();
-    void sync_gradients(float* data, int count, int request_id);
-    void wait(int request_id);
-    float reduce_accuracy(float acc);
-    int get_rank();
-    void initialize_communicators(int num_subgroups);
-    void broadcast_intra(float* value, int length, int root);
-    void broadcast_inter(float* value, int length, int root);
-    void recv_intra(float* data, int length, int tag, int source);
-    void send_intra(float* data, int length, int tag, int dest);
-}
+net = Net(100)
+data, label = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
+conv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)
+relu1    = ReLULayer(:relu1, net, conv1)
+pool1    = MaxPoolingLayer(:pool1, net, relu1, 2, 2, 0)
+conv2    = ConvolutionLayer(:conv2, net, pool1, 50, 5, 1, 1)
+relu2    = ReLULayer(:relu2, net, conv2)
+pool2    = MaxPoolingLayer(:pool2, net, relu2, 2, 2, 0)
+conv3    = ConvolutionLayer(:conv3, net, pool1, 50, 3, 1, 1)
+relu3    = ReLULayer(:relu3, net, conv3)
+pool3    = MaxPoolingLayer(:pool3, net, relu3, 2, 2, 0)
+fc4      = InnerProductLayer(:fc4, net, pool3, 512)
+relu4    = ReLULayer(:relu4, net, fc4)
+fc5      = InnerProductLayer(:fc5, net, relu4, 512)
+relu5    = ReLULayer(:relu5, net, fc5)
+fc6      = InnerProductLayer(:fc6, net, relu5, 10)
+loss     = SoftmaxLossLayer(:loss, net, fc6, label)
+accuracy = AccuracyLayer(:accuracy, net, fc6, label)
+
+params = SolverParameters(
+    LRPolicy.Inv(0.01, 0.0001, 0.75),
+    MomPolicy.Fixed(0.9),
+    100,
+    .0005,
+    100)
+sgd = SGD(params)
+
+net.num_subgroups = 2
+half = floor(Int, length(net.ensembles) / 2) + 2
+for ens in net.ensembles[1:half]
+    ens.net_subgroup = 1
+end
+for ens in net.ensembles[half+1:end]
+    ens.net_subgroup = 2
+end
+solve(sgd, net)

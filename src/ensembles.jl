@@ -44,7 +44,7 @@ end
 function Ensemble{T,N}(net::Net, name::Symbol, neurons::Array{T,N},
                        params::Vector=Param[]; phase::Phase=TrainTest)
     ens = Ensemble{T,N}(name, neurons, [], [:value, :∇, :inputs, :∇inputs],
-                        Dict(), params, phase)
+                        Dict(), params, phase, 1)
     add_ensemble(net, ens)
     ens
 end
@@ -66,6 +66,9 @@ function init_inputs(ensemble::AbstractEnsemble, net::Net)
             for (source_index, connection) in enumerate(ensemble.connections)
                 key = symbol(ensemble.name,name,source_index)
                 source_target = symbol(connection.source.name, target)
+                if connection.source.net_subgroup != ensemble.net_subgroup
+                    set_buffer(net, source_target, zeros(Float32, size(connection.source)..., batch_size))
+                end
                 source = get(net.buffers[t],
                              source_target,
                              nothing)
@@ -220,13 +223,14 @@ type ActivationEnsemble{T <: Neuron, N} <: AbstractEnsemble
     arg_dim_info :: Dict{Symbol, Vector{Bool}}
     params       :: Vector{Param}
     phase        :: Phase
+    net_subgroup :: Cint
 end
 
 function ActivationEnsemble{T,N}(net::Net, name::Symbol, neurons::Array{T,N},
                                  input_ensemble::AbstractEnsemble; phase::Phase=TrainTest)
     params = Param[]
     ens = ActivationEnsemble{T,N}(name, neurons, [], 
-        [:value, :∇, :inputs, :∇inputs], Dict(), params, phase)
+        [:value, :∇, :inputs, :∇inputs], Dict(), params, phase, 1)
     add_ensemble(net, ens)
     mapping = one_to_one(ndims(input_ensemble))
     add_connections(net, input_ensemble, ens, mapping)
@@ -235,7 +239,11 @@ end
 
 
 function init_inputs(ensemble::ActivationEnsemble, net::Net)
-    # Skip
+    for conn in ensemble.connections
+        # Activation ensembles occur in place so they should be
+        # in the same subgroup as its input
+        @assert conn.source.net_subgroup == ensemble.net_subgroup
+    end
 end
 
 @inbounds function init(ensemble::ActivationEnsemble, net::Net)
@@ -283,4 +291,10 @@ macro output(ensemble_type, fn)
 end
 
 function init_inputs(ensemble::NormalizationEnsemble, net::Net)
+    for connection in ensemble.connections
+        if connection.source.net_subgroup != ensemble.net_subgroup
+            key = symbol(connection.source.name, :value)
+            set_buffer(net, key, zeros(Float32, size(connection.source)..., net.batch_size))
+        end
+    end
 end

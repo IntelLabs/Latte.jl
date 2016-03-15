@@ -28,12 +28,19 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export HDF5DataLayer
 
 type HDF5DataEnsemble <: DataEnsemble
-    name        :: Symbol
-    neurons     :: Array{DataNeuron}
-    train_id    :: Cint
-    test_id     :: Cint
-    train_epoch :: Int
-    test_epoch  :: Int
+    name         :: Symbol
+    neurons      :: Array{DataNeuron}
+    train_id     :: Cint
+    test_id      :: Cint
+    train_epoch  :: Int
+    test_epoch   :: Int
+    net_subgroup :: Cint
+    connections  :: Vector{Connection}
+    phase        :: Phase
+end
+
+function HDF5DataEnsemble(name::Symbol, neurons::Array{DataNeuron}, train_id::Cint, test_id::Cint)
+    HDF5DataEnsemble(name, neurons, train_id, test_id, 1, 1, 1, Connection[], TrainTest)
 end
 
 @eval function HDF5DataEnsemble(net::Net, train_id::Cint, test_id::Cint, target::Symbol)
@@ -50,7 +57,7 @@ end
     for i = 1:length(neurons)
         neurons[i] = DataNeuron(0.0f0)
     end
-    ens = HDF5DataEnsemble(target, neurons, train_id, test_id, 1, 1)
+    ens = HDF5DataEnsemble(target, neurons, train_id, test_id)
     add_ensemble(net, ens)
     ens
 end

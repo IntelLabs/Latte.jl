@@ -233,13 +233,11 @@ to an input buffer for `ensemble`
 """
 function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
                                connection::Connection, index::Int)
+    block = []
     value = get_buffer(net, ensemble, :value)
     N = ndims(value)
     sink_name   = symbol(ensemble.name,:inputs,index)
     source_name = symbol(connection.source.name,:value)
-    # if connection.recurrent
-    #     source_name = symbol(source_name, :prev)
-    # end
     source      = get_buffer(net, source_name)
 
     # connection.is_dim_fixed is a Bool[], we use the inverse to select non
@@ -274,7 +272,8 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
     end
     vars   = [symbol(:_neuron_index_,i) for i in non_fixed_indices]
     ranges = [:(1:$(size(value,i)))     for i in non_fixed_indices]
-    gen_loop_nest(copy_block, vars, ranges)
+    push!(block, gen_loop_nest(copy_block, vars, ranges))
+    block
 end
 
 function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
@@ -296,7 +295,7 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
         if connection.copy
             source_name = symbol(connection.source.name,:value)
             push!(args, source_name)
-            push!(body, gen_copy_block_inputs(net, ensemble, connection,
+            append!(body, gen_copy_block_inputs(net, ensemble, connection,
                 index))
         end
     end
@@ -352,6 +351,7 @@ end
 
 function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
                                 connection::Connection, index::Int)
+    body = []
     ∇ = get_buffer(net, ensemble, :∇)
     N = ndims(∇)
     sink_name   = symbol(ensemble.name, :∇inputs, index)
@@ -392,11 +392,16 @@ function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
     end
     vars   = [symbol(:_neuron_index_,i) for i in non_fixed_indices]
     ranges = [:(1:$(size(∇,i)))     for i in non_fixed_indices]
-    return gen_loop_nest(copy_block, vars, ranges)
+    push!(body, gen_loop_nest(copy_block, vars, ranges))
+
+    body
 end
 
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
                              compute_body, compute_args::Set)
+    if !(ensemble.phase in [Train, TrainTest])
+        return
+    end
     backward_tasks = net.backward_tasks
 
     neuron_backward = get_backward(ensemble)
@@ -437,12 +442,11 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
         end
     end
     for (index, connection) in enumerate(ensemble.connections)
-        if isa(connection.source, DataEnsemble) || !connection.copy
-            continue
+        if !isa(connection.source, DataEnsemble) && connection.copy
+            source_name = symbol(connection.source.name, :∇)
+            push!(args, source_name)
+            append!(body, gen_copy_block_∇inputs(net, ensemble, connection, index))
         end
-        source_name = symbol(connection.source.name, :∇)
-        push!(args, source_name)
-        push!(body, gen_copy_block_∇inputs(net, ensemble, connection, index))
     end
     defn = optimize(arg_bufs, tile_fusion_factors, :(function $fn($(params...))
         $(body...)
@@ -454,10 +458,8 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
             break
         end
     end
-    if ensemble.phase in [Train, TrainTest]
-        prepend!(compute_body, body)
-        union!(compute_args, args)
-    end
+    prepend!(compute_body, body)
+    union!(compute_args, args)
 end
 
 function generate_c_function(func::Function, signature::Tuple,
@@ -742,18 +744,34 @@ function init(net::SingleNet)
     backward_compute_body = Dict{Phase, Vector}(Train => [], Test => [])
     backward_compute_args = ArgSet()
     seen_names = Set()
+    if LATTE_MPI
+        initialize_communicators(net)
+    end
     # Initialize ensembles
     log_info("  Initializing ensembles.")
     for ensemble in net.ensembles
         if ensemble.name in seen_names
             throw("Error: Found duplicate ensemble name: $(ensemble.name)")
         end
+        if ensemble.net_subgroup != get_net_subrank(net) + 1
+            continue  # skip
+        end
         push!(seen_names, ensemble.name)
+        net.ensemble_send_list[ensemble.name] = Tuple{Int, Int}[]
         map(init, ensemble)
         log_info("    $(ensemble.name).")
         init(ensemble, net)
     end
-    for ensemble in net.ensembles
+    for (index, ensemble) in enumerate(net.ensembles)
+        if ensemble.net_subgroup != get_net_subrank(net) + 1
+            for connection in ensemble.connections
+                if connection.source.net_subgroup == get_net_subrank(net) + 1
+                    push!(net.ensemble_send_list[connection.source.name], 
+                          (ensemble.net_subgroup, index))
+                end
+            end
+            continue  # skip
+        end
         init_inputs(ensemble, net)
     end
     log_info("  Finished initializing ensembles.")
@@ -761,6 +779,9 @@ function init(net::SingleNet)
     log_info("  Synthesizing forward functions.")
     # Generate forward tasks
     for ensemble in net.ensembles
+        if ensemble.net_subgroup != get_net_subrank(net) + 1
+            continue  # skip
+        end
         # TODO: Should param initialization be done in ensemble init??
         if :params in fieldnames(ensemble)
             for param in ensemble.params
@@ -770,6 +791,25 @@ function init(net::SingleNet)
                 set_buffer(net, param.hist_name, param.hist)
                 if LATTE_MPI
                     param.request = @eval ccall((:init_request, $libComm), Cint, ())
+                end
+            end
+        end
+
+        for connection in ensemble.connections
+            if connection.source.net_subgroup != ensemble.net_subgroup
+                key = symbol(connection.source.name, :value)
+                source_subgroup = connection.source.net_subgroup - 1  # -1 for zero based indexing with MPI ranks
+                tag = find(x -> x == ensemble, net.ensembles)[1]
+                expr = :(ccall((:recv_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint, Cint), pointer($key), length($key), $tag, $source_subgroup))
+                if ensemble.phase in [Train, TrainTest] &&
+                        connection.source.phase in [Train, TrainTest]
+                    push!(forward_compute_body[Train], expr)
+                    push!(forward_compute_args[Train], key)
+                end
+                if ensemble.phase in [Test, TrainTest] &&
+                        connection.source.phase in [Train, TrainTest]
+                    push!(forward_compute_body[Test], expr)
+                    push!(forward_compute_args[Test], key)
                 end
             end
         end
@@ -785,6 +825,24 @@ function init(net::SingleNet)
         else
             throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
         end
+        for (target, tag) in net.ensemble_send_list[ensemble.name]
+            target = target - 1 # 0-based indexing for MPI
+            target_phase = net.ensembles[tag].phase
+            target_buf = symbol(ensemble.name, :value)
+            expr = :(ccall((:send_intra, $libComm), Void, 
+                           (Ptr{Float32}, Cint, Cint, Cint), 
+                           pointer($target_buf), length($target_buf), $tag, $target))
+            if ensemble.phase in [Train, TrainTest] &&
+                    target_phase in [Train, TrainTest]
+                push!(forward_compute_body[Train], expr)
+                push!(forward_compute_args[Train], target_buf)
+            end
+            if ensemble.phase in [Test, TrainTest] &&
+                    target_phase in [Test, TrainTest]
+                push!(forward_compute_body[Test], expr)
+                push!(forward_compute_args[Test], target_buf)
+            end
+        end
     end
     append!(net.forward_tasks, forward_data_tasks)
 
@@ -795,10 +853,26 @@ function init(net::SingleNet)
     log_info("  Synthesizing backward functions.")
     # Backward tasks
     for ensemble in net.ensembles
-        if typeof(ensemble) <: DataEnsemble || ensemble.phase == Test
-            # Don't backprop on data ensembles
-            continue
-        elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
+        if ensemble.net_subgroup != get_net_subrank(net) + 1 || 
+                typeof(ensemble) <: DataEnsemble || 
+                ensemble.phase == Test
+            continue  # skip
+        end
+        for (target, tag) in net.ensemble_send_list[ensemble.name]
+            target_phase = net.ensembles[tag].phase
+            if !(target_phase in [Train, TrainTest])
+                continue
+            end
+            target = target - 1 # 0-based indexing for MPI
+            target_buf = symbol(ensemble.name, :∇)
+            tag += length(net.ensembles)
+            expr = :(ccall((:recv_intra, $libComm), Void, 
+                           (Ptr{Float32}, Cint, Cint, Cint), 
+                           pointer($target_buf), length($target_buf), $tag, $target))
+            push!(backward_compute_body[Train], expr)
+            push!(backward_compute_args[Train], target_buf)
+        end
+        if isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
             init_backward(ensemble, net, backward_compute_args, backward_compute_body)
         elseif typeof(ensemble) <: JuliaEnsemble
             # Skip
@@ -807,7 +881,11 @@ function init(net::SingleNet)
             for param in ensemble.params
                 if LATTE_MPI
                     unshift!(backward_compute_body[Train], quote
-                        ccall((:sync_gradients, $libComm), Void, (Ptr{Float32}, Cint, Cint), pointer($(param.gradient_name)), $(length(param.gradient)), $(param.request));
+                        ccall((:sync_gradients, $libComm), Void, 
+                              (Ptr{Float32}, Cint, Cint), 
+                              pointer($(param.gradient_name)),
+                              $(length(param.gradient)), 
+                              $(param.request))
                     end)
                 end
                 push!(net.params, param)
@@ -815,6 +893,22 @@ function init(net::SingleNet)
             gen_neuron_backward(ensemble, net, backward_compute_body[Train], backward_compute_args[Train])
         else
             throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
+        end
+        for connection in ensemble.connections
+            if :label == connection.source.name
+                # Skip
+                continue
+            end
+            if connection.source.net_subgroup != ensemble.net_subgroup
+                key = symbol(connection.source.name, :∇)
+                source_subgroup = connection.source.net_subgroup - 1  # 0-based indexing for MPI
+                tag = find(x -> x == ensemble, net.ensembles)[1] + length(net.ensembles)
+                push!(backward_compute_args[Train], key)
+                push!(backward_compute_body[Train],
+                    :(ccall((:send_intra, $libComm), Void, 
+                            (Ptr{Float32}, Cint, Cint, Cint), 
+                            pointer($key), length($key), $tag, $source_subgroup)))
+            end
         end
     end
 
@@ -924,8 +1018,20 @@ function test(net::SingleNet)
     while net.test_epoch == curr_epoch
         forward(net, phase=Test)
         num_batches += 1.0f0
-        accuracy += get_buffer(net, :accuracyvalue)[1]
+        if haskey(net.buffers[1], :accuracyvalue)
+            accuracy += get_buffer(net, :accuracyvalue)[1]
+        end
         clear_values(net)
+        if LATTE_MPI
+            stop = Float32[0.0f0]
+            if net.test_epoch != curr_epoch
+                stop[1] = 1.0f0
+            end
+            @eval ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), $stop, 1, 0)  # TODO: Assumes rank 0 has data layer, can we enforce this to be true?
+            if stop[1] > 0.0f0
+                break
+            end
+        end
     end
     accuracy / num_batches * 100.0f0
 end
@@ -967,4 +1073,18 @@ function load_snapshot(net::Net, file::AbstractString)
             end
         end
     end
+end
+
+function get_loss(net::Net)
+    if LATTE_MPI
+        if haskey(net.buffers[1], :lossvalue)
+            loss = get_buffer(net, :lossvalue)[1]
+            sync_intra_loss(net, loss)
+        else
+            loss = sync_intra_loss(net, 0.0f0)
+        end
+    else
+        loss = net_buffer(net, :lossvalue)[1]
+    end
+    loss
 end

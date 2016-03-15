@@ -106,26 +106,28 @@ function Base.union!(first::ArgSet, second::ArgSet)
 end
 
 type SingleNet <: Net
-    ensembles      :: Vector{AbstractEnsemble}
-    ensembles_map  :: Dict{Symbol, AbstractEnsemble}
-    buffers        :: Vector{Dict{Symbol, Array}}
-    forward_tasks  :: TaskSet
-    backward_tasks :: TaskSet
-    update_tasks   :: Vector{LatteTask}
-    params         :: Vector{Param}
-    run_where      :: Int
-    signal         :: Array{Cint, 1}
-    batch_size     :: Int
-    train_epoch    :: Int
-    test_epoch     :: Int
-    curr_time_step :: Int
-    time_steps     :: Int
+    ensembles          :: Vector{AbstractEnsemble}
+    ensembles_map      :: Dict{Symbol, AbstractEnsemble}
+    buffers            :: Vector{Dict{Symbol, Array}}
+    forward_tasks      :: TaskSet
+    backward_tasks     :: TaskSet
+    update_tasks       :: Vector{LatteTask}
+    params             :: Vector{Param}
+    run_where          :: Int
+    signal             :: Array{Cint, 1}
+    batch_size         :: Int
+    train_epoch        :: Int
+    test_epoch         :: Int
+    curr_time_step     :: Int
+    time_steps         :: Int
+    num_subgroups      :: Int
+    ensemble_send_list :: Dict{Symbol, Vector{Tuple{Int, Int}}}
     SingleNet(batch_size, time_steps=1) = new([],
                 Dict{Symbol, AbstractEnsemble}(),
                 [Dict{Symbol,Array}() for _ in 1:time_steps],
                 TaskSet(),
                 TaskSet(),
-                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps)
+                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps, 1, Dict{Symbol, Vector{Int}}())
 end
 
 Net(batch_size::Int; time_steps=1) = SingleNet(batch_size, time_steps)
@@ -152,6 +154,7 @@ type Ensemble{T <: Neuron, N} <: AbstractEnsemble
     arg_dim_info :: Dict{Symbol, Vector{Bool}}
     params       :: Vector
     phase        :: Phase
+    net_subgroup :: Cint
 end
 
 abstract JuliaEnsemble <: AbstractEnsemble

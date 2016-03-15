@@ -33,15 +33,16 @@ type SoftmaxLossNeuron <: Neuron
 end
 
 type SoftmaxLossEnsemble <: NormalizationEnsemble
-    name        :: Symbol
-    neurons     :: Vector{SoftmaxLossNeuron}
-    connections :: Vector{Connection}
-    num_inputs  :: Int
-    phase       :: Phase
+    name         :: Symbol
+    neurons      :: Vector{SoftmaxLossNeuron}
+    connections  :: Vector{Connection}
+    num_inputs   :: Int
+    phase        :: Phase
+    net_subgroup :: Cint
 end
 
 function SoftmaxLossEnsemble(name::Symbol, num_inputs::Int)
-    SoftmaxLossEnsemble(name, [], [], num_inputs, Train)
+    SoftmaxLossEnsemble(name, [], [], num_inputs, Train, 1)
 end
 
 function init(ensemble::SoftmaxLossEnsemble, net::Net)

@@ -26,7 +26,25 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
 @eval function broadcast_initial_params(net::Net)
+    log_info("Broadcasting initial parameters")
     for param in net.params
-        ccall((:broadcast, $libComm), Void, (Ptr{Float32}, Cint), param.value, length(param.value))
+        ccall((:broadcast_inter, $libComm), Void, (Ptr{Float32}, Cint, Cint), param.value, length(param.value), 0)
     end
+    log_info("Done")
+end
+
+@eval function get_net_subrank(net::Net)
+    rank = ccall((:get_rank, $libComm), Cint, ())
+    rank % net.num_subgroups
+end
+
+@eval function initialize_communicators(net::Net)
+    ccall((:initialize_communicators, $libComm), Void, (Cint,), net.num_subgroups)
+end
+
+@eval function sync_intra_loss(net::Net, loss::Float32)
+    loss_val = Array(Float32, 1)
+    loss_val[1] = loss
+    ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), loss_val, 1, net.num_subgroups - 1)
+    loss_val[1]
 end

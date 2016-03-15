@@ -33,14 +33,15 @@ type AccuracyNeuron <: Neuron
 end
 
 type AccuracyEnsemble <: NormalizationEnsemble
-    name        :: Symbol
-    neurons     :: Vector{AccuracyNeuron}
-    connections :: Vector{Connection}
-    phase       :: Phase
+    name         :: Symbol
+    neurons      :: Vector{AccuracyNeuron}
+    connections  :: Vector{Connection}
+    phase        :: Phase
+    net_subgroup :: Cint
 end
 
 function AccuracyEnsemble(net::Net, name::Symbol)
-    ens = AccuracyEnsemble(name, [], [], Test)
+    ens = AccuracyEnsemble(name, [], [], Test, 1)
     add_ensemble(net, ens)
     ens
 end
