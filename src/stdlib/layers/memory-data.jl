@@ -56,7 +56,7 @@ function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple)
         push!(shape, net.time_steps)
     end
     value = Array(Float32, shape...)
-    ens = MemoryDataEnsemble(name, data_neurons, value)
+    ens = MemoryDataEnsemble(name, data_neurons, value, 1)
     add_ensemble(net, ens)
     ens, value
 end
