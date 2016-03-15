@@ -31,11 +31,12 @@ type MemoryDataEnsemble{N,M} <: DataEnsemble
     name         :: Symbol
     neurons      :: Array{DataNeuron,N}
     value        :: Array{Float32, M}  # M != N because of batch dimension
+    connections  :: Vector{Connection}
     net_subgroup :: Cint
 end
 
 function MemoryDataEnsemble{N, M}(name::Symbol, neurons::Array{DataNeuron,N}, value::Array{Float32, M})
-    MemoryDataEnsemble{N,M}(name, neurons, value, convert(Cint, 1))
+    MemoryDataEnsemble{N,M}(name, neurons, value, Connection[], convert(Cint, 1))
 end
 
 function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
