@@ -46,7 +46,7 @@ pool2   = MaxPoolingLayer(  :pool2,   net, relu2_2, 2,   2, 0)
 
 conv3_1 = ConvolutionLayer( :conv3_1, net, pool2,   256, 3, 1, 1)
 relu3_1 = ReLULayer(        :relu3_1, net, conv3_1)
-drop3_1 = DropoutLayer(     :drop1_1, net, relu3_1, .4f0)
+drop3_1 = DropoutLayer(     :drop3_1, net, relu3_1, .4f0)
 conv3_2 = ConvolutionLayer( :conv3_2, net, drop3_1, 256, 3, 1, 1)
 relu3_2 = ReLULayer(        :relu3_2, net, conv3_2)
 drop3_2 = DropoutLayer(     :drop3_2, net, relu3_2, .4f0)
