@@ -2,7 +2,7 @@
 TARGET_DIR="$1"
 
 if [[ -z "$TARGET_DIR" ]] ; then
-    TARGET_DIR=dirname "$0"
+    TARGET_DIR=$(pwd)
 fi
 
 ARCHIVE=cifar-10-binary.tar.gz
