@@ -109,6 +109,11 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
     for(int i=0; i<count; i++)
     {
 
+        if(data[i]==0) {
+            zero_grads++;
+            continue;
+        }
+
         if(std::abs(data[i])<std::abs(values[i])/(1<<2))
         {
             large_grads++;
@@ -133,7 +138,18 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
             // sign + 7 bits
             volatile char res = (ddata & 0x7F) | (sign<<7);
             //printf("res %X\n",res); 
-            
+            // if no bit could be represented
+            if(!(res&0x7F)) {
+                zero_grads++;
+                int mask = ( (1<<(17+val_exp-dat_exp-2)) -1) &0xFFFFFF; 
+                printf("remains mask %X\n", mask);
+                int remains = idata & mask;
+                printf("remains %X\n", remains);
+                int draw = rand() & mask;
+                printf("draw %X\n", draw);
+                if(draw<remains)
+                    res |= 1;
+            }
             
             // move sign to last bit
             int sign_o = ((int)res & 0x80) << 24; 
@@ -147,7 +163,7 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
             if(std::abs(data[i])-std::abs(out)>std::abs(values[i])/4)
             {
                 printf("Error! data %f out %f\n", data[i], out);
-                assert(false);
+                // assert(false);
             }
 
             data[i] = out;
@@ -185,7 +201,7 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
     }
     if(curr_iter%10000==0)
     {
-        printf("large ration: %lf large: %lld all: %lld\n", large_grads/(double)all_grads, large_grads, all_grads);
+        printf("large ration: %lf large: %lld all: %lld zeros %lld zero ratio: %lf\n", large_grads/(double)all_grads, large_grads, all_grads, zero_grads, zero_grads/(double)all_grads);
     }
     sync_gradients_old(data, values, count, request_id);
     return;
