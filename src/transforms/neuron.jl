@@ -101,9 +101,11 @@ function transform_neuron_fn(fn, ensemble)
             elseif contains(str_target, "inputs")
                 conn_index = parse(Int, split(str_target, "inputs")[end])
                 if cbdata.ensemble.connections[conn_index].is_one_to_one
+                    # FIXME: Needs tiling enabled check
                     @assert length(node.args[2:end]) == 1 && node.args[2] == 1
-                    result.args[1] = symbol(cbdata.ensemble.connections[conn_index].source.name, :value)
-                    push!(cbdata.args, result.args[1])
+                    if result.args[end] != :NOTILE
+                        push!(result.args, :NOTILE)
+                    end
                     return result
                 else
                     node = Expr(:ref, result.args[1], node.args[2:end]..., result.args[2:end]...)

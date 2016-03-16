@@ -49,12 +49,14 @@ end
 
 function update_tile_var(node, cbdata, index, top_level, read)
     if isa(node, Expr) && node.head == :ref && contains(string(node.args[1]), "inputs")
-        for i in 2:length(node.args)-1
-            if node.args[i] == cbdata
-                node.args[i] = :(($(node.args[i]) - 1) % TILE_SIZE + 1)
+        if node.args[end] != :NOTILE
+            for i in 2:length(node.args)-1
+                if node.args[i] == cbdata
+                    node.args[i] = :(($(node.args[i]) - 1) % TILE_SIZE + 1)
+                end
             end
+            node.args[end] = :(_omp_get_thread_num() + 1)
         end
-        node.args[end] = :(_omp_get_thread_num() + 1)
         # println(node)
         # throw("err")
         return node
@@ -131,6 +133,9 @@ function tile_size_inliner(node, cbdata, index, top_level, read)
             node = unpack_tiled_loop(node)
             node.args[2] = AstWalk(node.args[2], tile_size_inliner, cbdata)
             node.args[1] = AstWalk(node.args[1], tile_size_inliner, cbdata)
+            return node
+        elseif node.head == :ref && node.args[end] == :NOTILE
+            pop!(node.args)
             return node
         end
     elseif isa(node, Symbol) && node == :TILE_SIZE
