@@ -70,3 +70,5 @@ facts("Testing neuron trasnform") do
         ))
     end
 end
+
+FactCheck.exitstatus()

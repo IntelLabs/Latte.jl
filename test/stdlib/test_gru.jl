@@ -68,4 +68,6 @@ facts("Testing GRU layer") do
     end
     backward(net)
 end
+
+FactCheck.exitstatus()
 =#

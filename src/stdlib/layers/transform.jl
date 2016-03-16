@@ -37,6 +37,7 @@ type TransformEnsemble <: JuliaEnsemble
     scale         :: Float32
     connections   :: Vector{Connection}
     phase         :: Phase
+    net_subgroup  :: Cint
 end
 
 function TransformLayer(net::Net, name::Symbol,
@@ -64,7 +65,7 @@ function TransformLayer(net::Net, name::Symbol,
     for i = 1:length(neurons)
         neurons[i] = DataNeuron(0.0f0)
     end
-    ens = TransformEnsemble(net, name, neurons, mean, random_mirror, scale, [], TrainTest)
+    ens = TransformEnsemble(net, name, neurons, mean, random_mirror, scale, [], TrainTest convert(Cint, 1))
     add_ensemble(net, ens)
     add_connections(net, input_ensemble, ens, (i, j, k) -> (i:i, j:j, k:k))
     ens

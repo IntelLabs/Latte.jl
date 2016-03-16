@@ -43,3 +43,5 @@ facts("Testing Math Layers") do
         @fact actual --> roughly(expected)
     end
 end
+
+FactCheck.exitstatus()

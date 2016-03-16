@@ -100,3 +100,5 @@ facts("Testing LSTM layer") do
         @fact h_actual --> roughly(h)
     end
 end
+
+FactCheck.exitstatus()

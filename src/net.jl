@@ -1084,7 +1084,7 @@ function get_loss(net::Net)
             loss = sync_intra_loss(net, 0.0f0)
         end
     else
-        loss = net_buffer(net, :lossvalue)[1]
+        loss = get_buffer(net, :lossvalue)[1]
     end
     loss
 end

@@ -58,3 +58,5 @@ facts("Testing embed_id layer") do
         @fact actual[i, :][:] --> roughly(expected[:, i][:])
     end
 end
+
+FactCheck.exitstatus()

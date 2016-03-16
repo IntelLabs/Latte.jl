@@ -67,3 +67,5 @@ facts("Testing HDF5 Layer") do
     rm("$_file.txt")
     rm("$_file.hdf5")
 end
+
+FactCheck.exitstatus()
