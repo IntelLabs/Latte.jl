@@ -113,34 +113,52 @@ void sync_gradients(float *data, float* values, int count, int request_id) {
         {
             large_grads++;
 
+            //printf("data %f value %f\n",data[i], values[i]);
+            //printf("data %X value %X\n",*(int*)&(data[i]), *(int*)&(values[i]));
+
             int val_exp;
             frexp(values[i],&val_exp);
-
             int dat_exp;
             frexp(data[i],&dat_exp);
-            // normalize to val*2^-2
-            float ddata = ldexp(data[i], val_exp-dat_exp-2);
-            char sign = signbit(ddata);
-            // get top 7 bits out of 23
-            unsigned int idata =(*(unsigned int*)&ddata)>>16;
+            //printf("data_exp %d value_ex %d\n", dat_exp, val_exp);
+
+            // set IEEE754 implicit bit
+            int idata = (*(unsigned int*)&(data[i])) | 0x800000;
+            //
+            // normalize to 2^(val_exp-2)
+            // 24 bits (with implicit) - 17 = 7 bits needed
+            int ddata = (idata&0xFFFFFF)>>(17+val_exp-dat_exp-2);
+            char sign = std::signbit(data[i]);
+            //printf("sign %d\n", sign);
             // sign + 7 bits
-            volatile char res = (idata & 0xEF) | (sign<<7);
-
+            volatile char res = (ddata & 0x7F) | (sign<<7);
+            //printf("res %X\n",res); 
+            
+            
             // move sign to last bit
-            int sign_o = (res & 0x80) << 24;
-            char res2 = res & 0xEF;
-            int iout = ((int)res2)<<16;
-            int vout = ( *((int*)&values[i]) & 0x7F800000 ) | sign_o;
-            vout += iout;
-            float out = ldexp(*(float*)&vout, dat_exp-val_exp+2);
+            int sign_o = ((int)res & 0x80) << 24; 
+            char res2 = res & 0x7F;
+            float out = (float)res2;
+            //printf("raw out %f\n",out); 
+            out = ldexp(out,-6+val_exp-1-2);
+            out = sign_o? -out : out;
+            //printf("out %f\n",out);
 
+            if(std::abs(data[i])-std::abs(out)>std::abs(values[i])/4)
+            {
+                printf("Error! data %f out %f\n", data[i], out);
+                assert(false);
+            }
+
+            data[i] = out;
+            
         }
-/*
+        /*
 
-        float rel_val = (data[i]/(double)values[i])*((double)(1<<12));
-        
-        if(std::abs(rel_val)<1.0f)
-        {
+           float rel_val = (data[i]/(double)values[i])*((double)(1<<12));
+
+           if(std::abs(rel_val)<1.0f)
+           {
             int chance = std::abs(rel_val)*1000;
             int draw = rand()%1000;
             // printf("rel_val %f chance %d draw %d\n",rel_val, chance, draw);
