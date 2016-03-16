@@ -29,11 +29,12 @@ using FactCheck
 using Latte
 
 net = Net(8)
-data,  data_value   = MemoryDataLayer(net, :data, (227, 227, 3))
+data,  data_value   = MemoryDataLayer(net, :data, (20, ))
 label, label_value = MemoryDataLayer(net, :label, (1,))
 data_value[:]  = rand(Float32, size(data_value)...) * 256
 label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10)
 fc1 = InnerProductLayer(:fc1, net, data, 20)
+relu1    = ReLULayer(:relu1, net, fc1)
 ratio = 0.5f0
 drop = DropoutLayer(:drop, net, fc1, ratio)
 
@@ -52,24 +53,25 @@ facts("Testing Dropout Layer") do
     context("Forward") do
         forward(net; solver=sgd)
         randvals = get_buffer(net, :droprandval)
+        weights = get_buffer(net, :fc1weights)
+        expected = weights' * data_value
+        expected = (expected .> 0.0f0) .* expected
+        expected = (randvals .> ratio) .* expected .* (1.0 / ratio)
         value = get_buffer(net, :dropvalue)
-        to_check = []
-        for i in 1:length(randvals)
-            if randvals[i] < ratio
-                push!(to_check, value[i])
-            end
-        end
-        @fact all(to_check .== 0.0f0) --> true
+        @fact value --> roughly(expected)
     end
     context("Backward") do
         top_diff = get_buffer(net, :drop∇)
         rand!(top_diff)
         randvals = get_buffer(net, :droprandval)
         expected = (top_diff .* (randvals .> ratio)) .* (1.0 / ratio)
+
+        value = get_buffer(net, :fc1value)
+        expected = (value .> 0.0f0) .* expected
         backward(net)
 
         @fact expected --> roughly(get_buffer(net, :fc1∇))
     end
 end
 
-FactCheck.exitstatus()
+FactCheck.exitstatus() 

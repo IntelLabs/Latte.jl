@@ -10,7 +10,7 @@ end
 ∇tanh(x) = x * (1.0f0 - x)
 
 @neuron backward(neuron::TanhNeuron) do
-    neuron.∇inputs[1] = ∇tanh(neuron.∇)
+    neuron.∇inputs[1] = ∇tanh(neuron.value) * neuron.∇
 end
 
 function TanhLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble; copy=false)
@@ -45,7 +45,7 @@ end
 end
 
 @neuron backward(neuron::SigmoidNeuron) do
-    neuron.∇inputs[1] = ∇sigmoid(neuron.∇)
+    neuron.∇inputs[1] = ∇sigmoid(neuron.value) * neuron.∇
 end
 
 function SigmoidLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble)
