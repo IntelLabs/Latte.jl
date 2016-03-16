@@ -28,11 +28,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 export DropoutLayer
 
 @neuron type DropoutNeuron
-    ratio   :: Shared{Float32}
+    ratio   :: Float32
     randval :: Batch{Float32}
 end
 
-DropoutNeuron(ratio::Float32) = DropoutNeuron(Shared(ratio), Batch(0.0f0))
+DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, Batch(0.0f0))
 
 # FIXME: CGen does not support rand()
 ccall((:srand48, "libc"), Void, (Clong,), ccall((:time, "libc"), Clong, (Ptr{Void},), C_NULL))
@@ -42,18 +42,16 @@ end
 
 @neuron forward(neuron::DropoutNeuron) do
     neuron.randval = float_rand()
-    ratio = .5f0
-    if neuron.randval > ratio
-        neuron.value = neuron.inputs[1] * (1.0f0 / ratio)
+    if neuron.randval > neuron.ratio
+        neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
     else
         neuron.value = 0.0
     end
 end
 
 @neuron backward(neuron::DropoutNeuron) do
-    ratio = .5f0
-    if neuron.randval > ratio
-        neuron.∇inputs[1] = neuron.∇ * (1.0f0 / ratio)
+    if neuron.randval > neuron.ratio
+        neuron.∇inputs[1] = neuron.∇ * (1.0f0 / neuron.ratio)
     else
         neuron.∇inputs[1] = 0.0
     end

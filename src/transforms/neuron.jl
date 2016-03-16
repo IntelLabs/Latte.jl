@@ -67,6 +67,7 @@ function transform_neuron_fn(fn, ensemble)
             name = symbol(cbdata.ensemble.name,name)
             idx = Any[symbol(:_neuron_index_,i) for i in 1:N]
             str_name = string(name)
+            println(name)
             # if contains(str_name, "∇")
             #     result = split(str_name, "∇")
             #     if !(result[2] == "" || contains(result[2], "inputs"))

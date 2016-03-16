@@ -275,9 +275,12 @@ end
             set_buffer(net, key, arr)
             push!(ensemble.batch_fields, name)
         elseif isa(field, Shared)
-            # Skip
-        else
             throw("Not implemented error")
+        else
+            arr = map((elem) -> getfield(elem, name), ensemble.neurons)
+            for t = 1:net.time_steps
+                set_buffer(net, key, arr, t)
+            end
         end
     end
 end
