@@ -35,8 +35,9 @@ end
 DropoutNeuron(ratio::Float32) = DropoutNeuron(Shared(ratio), Batch(0.0f0))
 
 # FIXME: CGen does not support rand()
+ccall((:srand48, "libc"), Void, (Clong,), ccall((:time, "libc"), Clong, (Ptr{Void},), C_NULL))
 function float_rand()
-    val = ccall((:drand48, "stdlib"), Cdouble, ())
+    val = ccall((:drand48, "libc"), Cdouble, ())
 end
 
 @neuron forward(neuron::DropoutNeuron) do
