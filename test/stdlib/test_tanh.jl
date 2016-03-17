@@ -29,9 +29,9 @@ using FactCheck
 using Latte
 
 net = Net(8)
-data,  data_value = MemoryDataLayer(net, :data, (4, 4))
-tanh1             = TanhLayer(:tanh1, net, data)
-tanh2             = TanhLayer(:tanh2, net, tanh1)
+data,  data_value = MemoryDataLayer(net, :data, (20,))
+fc1               = InnerProductLayer(:fc1, net, data, 10)
+tanh1             = TanhLayer(:tanh1, net, fc1)
 
 data_value[:]     = rand(Float32, size(data_value)...)
 
@@ -40,19 +40,20 @@ init(net)
 
 ϵ = 1e-5
 facts("Testing Tanh Layer") do
+    fc1_expected = get_buffer(net, :fc1weights)' * data_value
     context("Forward") do
         forward(net; phase=Latte.Test)
 
-        expected = tanh(tanh(data_value))
+        expected = tanh(fc1_expected)
         @fact expected --> roughly(get_buffer(net, :tanh1value))
     end
     context("Backward") do
-        top_diff = get_buffer(net, :tanh2∇)
+        top_diff = get_buffer(net, :tanh1∇)
         rand!(top_diff)
         ∇tanh(x) = x .* (1.0f0 .- x)
-        expected = ∇tanh(∇tanh(top_diff))
+        expected = ∇tanh(tanh(fc1_expected)) .* top_diff
         backward(net)
-        @fact expected --> roughly(get_buffer(net, :tanh1∇))
+        @fact expected --> roughly(get_buffer(net, :fc1∇))
     end
 end
 
