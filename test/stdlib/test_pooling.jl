@@ -105,50 +105,53 @@ function pooling_backward(gradient, mask, diff, kernel, stride, pad, _type)
 end
 
 facts("Testing MaxPooling Layer") do
-    net = Net(8)
-    data,  data_value   = MemoryDataLayer(net, :data, (227, 227, 3))
-    label, label_value = MemoryDataLayer(net, :label, (1,))
-    data_value[:]  = rand(Float32, size(data_value)...) * 256
-    label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10)
-    conv1        = ConvolutionLayer(:conv1, net, data, 2, 3, 1, 1)
-    pool1        = MaxPoolingLayer(:pool1, net, conv1, 2, 2, 0)
-    fc1          = InnerProductLayer(:fc1, net, pool1, 10)
-    loss         = SoftmaxLossLayer(:loss, net, fc1, label)
+    for (h, w) in [(24, 24), (2, 2)]
+        net = Net(8)
+        data,  data_value   = MemoryDataLayer(net, :data, (w, h, 3))
+        label, label_value = MemoryDataLayer(net, :label, (1,))
+        data_value[:]  = rand(Float32, size(data_value)...) * 256
+        label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10)
+        conv1        = ConvolutionLayer(:conv1, net, data, 2, 3, 1, 1)
+        pool1        = MaxPoolingLayer(:pool1, net, conv1, 2, 2, 0)
+        fc1          = InnerProductLayer(:fc1, net, pool1, 10)
+        loss         = SoftmaxLossLayer(:loss, net, fc1, label)
 
-    init(net)
+        init(net)
 
-    params = SolverParameters(
-        LRPolicy.Inv(0.01, 0.0001, 0.75),
-        MomPolicy.Fixed(0.9),
-        100000,
-        .0005,
-        100)
-    sgd = SGD(params)
+        params = SolverParameters(
+            LRPolicy.Inv(0.01, 0.0001, 0.75),
+            MomPolicy.Fixed(0.9),
+            100000,
+            .0005,
+            100)
+        sgd = SGD(params)
 
-    input    = get_buffer(net, :conv1value)
-    mask     = get_buffer(net, :pool1maxidx)
+        input    = get_buffer(net, :conv1value)
+        mask     = get_buffer(net, :pool1maxidx)
 
-    context("Forward") do
-        forward(net; solver=sgd)
+        context("Forward input shape=($h x $w)") do
+            forward(net; solver=sgd)
 
-        mask_expected = zeros(mask)
-        expected = zeros(get_buffer(net, :pool1value))
-        pooling_forward(input, mask_expected, expected, 2, 2, 0, :max)
-        @fact expected --> roughly(get_buffer(net, :pool1value))
-        @fact mask_expected --> mask
-    end
+            mask_expected = zeros(mask)
+            expected = zeros(get_buffer(net, :pool1value))
+            pooling_forward(input, mask_expected, expected, 2, 2, 0, :max)
+            @fact expected --> roughly(get_buffer(net, :pool1value))
+            @fact mask_expected --> mask
+        end
 
-    context("Backward") do
-        top_diff = get_buffer(net, :pool1∇)
+        context("Backward input shape=($h x $w)") do
+            top_diff = get_buffer(net, :pool1∇)
 
-        ∇input = get_buffer(net, :conv1∇)
-        ∇input_expected = deepcopy(∇input)
+            ∇input = get_buffer(net, :conv1∇)
+            ∇input_expected = deepcopy(∇input)
 
-        backward(net)
-        pooling_backward(∇input_expected, mask, top_diff, 2, 2, 0, :max)
-        @fact ∇input   --> roughly(∇input_expected)
+            backward(net)
+            pooling_backward(∇input_expected, mask, top_diff, 2, 2, 0, :max)
+            @fact ∇input   --> roughly(∇input_expected)
+        end
     end
 end
+exit(1)
 
 facts("Testing MeanPooling Layer") do
     net = Net(8)

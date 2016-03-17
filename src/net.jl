@@ -246,7 +246,8 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
 
     sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
 
-    mapping_inlined = inline(connection.mapping, [symbol(:_neuron_index_,d) for d in 1:N-1])
+    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
+    mapping_inlined = inline(connection.mapping, mapping_args)
     src_idx = get_src_idx(mapping_inlined)
     body = Expr(:block)
     idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
@@ -270,8 +271,9 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
         count = 1
         $for_block
     end
-    vars   = [symbol(:_neuron_index_,i) for i in non_fixed_indices]
-    ranges = [:(1:$(size(value,i)))     for i in non_fixed_indices]
+    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
+    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(value,i))) for i in 1:N-1]
+    push!(ranges, :(1:$(size(value,N))))
     push!(block, gen_loop_nest(copy_block, vars, ranges))
     block
 end
@@ -359,7 +361,7 @@ function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
     source      = get_buffer(net, connection.source, :∇)
     non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
     sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
-    mapping_args = [connection.is_dim_fixed[d] ? 1 : symbol(:_neuron_index_,d) for d in 1:N-1]
+    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
 
     mapping_inlined = inline(connection.mapping, mapping_args)
     src_idx = get_src_idx(mapping_inlined)
@@ -390,8 +392,9 @@ function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
         count = 1
         $for_block
     end
-    vars   = [symbol(:_neuron_index_,i) for i in non_fixed_indices]
-    ranges = [:(1:$(size(∇,i)))     for i in non_fixed_indices]
+    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
+    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(∇,i))) for i in 1:N-1]
+    push!(ranges, :(1:$(size(∇,N))))
     push!(body, gen_loop_nest(copy_block, vars, ranges))
 
     body
@@ -1035,22 +1038,6 @@ function test(net::SingleNet)
     end
     accuracy / num_batches * 100.0f0
 end
-
-# import Base.show
-# function Base.show(io::IO, net::Net)
-#     println(io, "Net")
-#     println(io, "Ensembles")
-#     println(io, "---------")
-#     for ensemble in net.ensembles
-#         println(io, "    ", AbstractString(ensemble))
-#     end
-#     println(io, " ")
-#     println(io, "Forward Tasks")
-#     println(io, "-------------")
-#     for task in net.forward_tasks
-#         println(io, "    ", task.func)
-#     end
-# end
 
 export save_snapshot, load_snapshot
 
