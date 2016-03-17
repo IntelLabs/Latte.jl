@@ -151,7 +151,6 @@ facts("Testing MaxPooling Layer") do
         end
     end
 end
-exit(1)
 
 facts("Testing MeanPooling Layer") do
     net = Net(8)
