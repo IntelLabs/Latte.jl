@@ -11,7 +11,7 @@ title: Latte.jl
 description: > # this means to ignore newlines until "baseurl:"
     A high-performance domain specific language for deep neural networks.
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://latte.jl.github.io" # the base hostname & protocol for your site
+url: "http://intellabs.github.io/Latte.jl" # the base hostname & protocol for your site
 
 # Build settings
 markdown: kramdown
