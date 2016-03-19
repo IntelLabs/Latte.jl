@@ -10,7 +10,7 @@ title: Latte.jl
 # email: your-email@domain.com
 description: > # this means to ignore newlines until "baseurl:"
     A high-performance domain specific language for deep neural networks.
-baseurl: "" # the subpath of your site, e.g. /blog
+baseurl: "/Latte.jl" # the subpath of your site, e.g. /blog
 url: "http://intellabs.github.io/Latte.jl" # the base hostname & protocol for your site
 
 # Build settings
