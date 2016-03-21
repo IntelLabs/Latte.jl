@@ -38,6 +38,10 @@ end
     rank % net.num_subgroups
 end
 
+@eval function get_rank()
+    ccall((:get_rank, $libComm), Cint, ())
+end
+
 @eval function initialize_communicators(net::Net)
     ccall((:initialize_communicators, $libComm), Void, (Cint,), net.num_subgroups)
 end

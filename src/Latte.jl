@@ -46,8 +46,13 @@ libComm = "$latte_library_path/libLatteComm$libsuffix"
 
 type LatteException <: Exception end
 
-LATTE_MPI = false
 
+LATTE_BATCH_DROPOUT = false
+if haskey(ENV, "LATTE_BATCH_DROPOUT")
+    LATTE_BATCH_DROPOUT = true
+end
+
+LATTE_MPI = false
 if haskey(ENV, "LATTE_MPI")
     LATTE_MPI = true
 

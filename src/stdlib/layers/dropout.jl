@@ -29,10 +29,10 @@ export DropoutLayer
 
 @neuron type DropoutNeuron
     ratio   :: Float32
-    randval :: Batch{Float32}
+    randval :: Float32
 end
 
-DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, Batch(0.0f0))
+DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, 0.0f0)
 
 # FIXME: CGen does not support rand()
 ccall((:srand48, "libc"), Void, (Clong,), ccall((:time, "libc"), Clong, (Ptr{Void},), C_NULL))
@@ -40,12 +40,22 @@ function float_rand()
     val = ccall((:drand48, "libc"), Cdouble, ())
 end
 
-@neuron forward(neuron::DropoutNeuron) do
-    neuron.randval = float_rand()
-    if neuron.randval > neuron.ratio
-        neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
-    else
-        neuron.value = 0.0
+if LATTE_BATCH_DROPOUT
+    @neuron forward(neuron::DropoutNeuron) do
+        neuron.randval = float_rand()
+        if neuron.randval > neuron.ratio
+            neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
+        else
+            neuron.value = 0.0
+        end
+    end
+else
+    @neuron forward(neuron::DropoutNeuron) do
+        if neuron.randval > neuron.ratio
+            neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
+        else
+            neuron.value = 0.0
+        end
     end
 end
 
