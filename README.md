@@ -20,15 +20,16 @@ $ sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-dev
 ```
 
 ## Quick Install
-```shell
+```julia
 # Latte currently depends on the master branch of these packages
-$ julia -e 'Pkg.clone("https://github.com/IntelLabs/Latte.jl")'
-$ julia -e 'Pkg.checkout("CompilerTools")'
-$ julia -e 'Pkg.checkout("ParallelAccelerator")'
-$ # To build with MPI enabled, uncomment these lines
-$ # ENV["LATTE_BUILD_MPI"] = 1
-$ # ENV["CXX"] = "mpiicpc"  # Replace with your mpi compiler wrapper
-$ julia -e 'Pkg.build("Latte")'
+julia> Pkg.clone("https://github.com/IntelLabs/Latte.jl")
+julia> Pkg.checkout("CompilerTools")
+julia> Pkg.checkout("ParallelAccelerator")
+julia> # To build with MPI enabled, uncomment these lines
+julia> # ENV["LATTE_BUILD_MPI"] = 1
+julia> # ENV["CXX"] = "mpiicpc"  # Replace with your mpi compiler wrapper
+julia> Pkg.build("Latte")
+
 ```
 
 # Examples
