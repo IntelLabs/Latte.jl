@@ -326,7 +326,13 @@ end
 """
 Defines @expr only if LATTE_MPI is enabled
 """
-macro latte_mpi(expr)
-    LATTE_MPI ? esc(expr) : nothing
+macro latte_mpi(args...)
+    if length(args) == 2
+        LATTE_MPI ? esc(args[1]) : args[2]
+    elseif length(args) == 1
+        LATTE_MPI ? esc(args[1]) : nothing
+    else
+        @assert false
+    end
 end
 

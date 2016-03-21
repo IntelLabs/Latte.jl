@@ -496,7 +496,9 @@ function generate_c_function(func::Function, signature::Tuple,
             varinfo[2] = CGen.RawArray{eltype(varinfo[2]), ndims(varinfo[2])}
         end
     end
-    s = CGen.from_root_entry(ast, function_name_string)
+    s = ""
+    @latte_mpi(s *= "#include \"comm.h\"\n")
+    s *= CGen.from_root_entry(ast, function_name_string)
     proxy_name = string("_", function_name_string, "_j2c_proxy")
     proxy_sym = symbol(proxy_name)
     j2c_name = string("_", function_name_string, "_unaliased_")
@@ -504,16 +506,15 @@ function generate_c_function(func::Function, signature::Tuple,
     if run_where >= 0
         @assert false
     end
-    if LATTE_MPI
-        s = "#include \"comm.h\"\n" * s
-        outfile_name = CGen.writec(s)
-        CGen.compile(outfile_name; flags=["-I$latte_library_path/communication"])
-        dyn_lib = CGen.link(outfile_name; flags=["-L$latte_library_path", "-lLatteComm"])
-    else
-        outfile_name = CGen.writec(s)
-        CGen.compile(outfile_name)
-        dyn_lib = CGen.link(outfile_name)
-    end
+    outfile_name = CGen.writec(s)
+    cflags = []
+    @latte_mpi push!(cflags, "-I$latte_library_path/communication")
+    CGen.compile(outfile_name; flags=cflags)
+
+    lflags = []
+    @latte_mpi push!(lflags, "-L$latte_library_path")
+    @latte_mpi push!(lflags, "-lLatteComm")
+    dyn_lib = CGen.link(outfile_name; flags=lflags)
 
     proxy_params = [:($arg::$typ) for (arg, typ) in zip(args, signature)]
     sig_types = [:(Ptr{$(eltype(typ))}) for typ in signature]
@@ -757,18 +758,17 @@ function init(net::SingleNet)
     backward_compute_body = Dict{Phase, Vector}(Train => [], Test => [])
     backward_compute_args = ArgSet()
     seen_names = Set()
-    if LATTE_MPI
-        initialize_communicators(net)
-    end
+    @latte_mpi initialize_communicators(net)
     # Initialize ensembles
     log_info("  Initializing ensembles.")
     for ensemble in net.ensembles
         if ensemble.name in seen_names
             throw("Error: Found duplicate ensemble name: $(ensemble.name)")
         end
-        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
+        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
             continue  # skip
         end
+        )
         push!(seen_names, ensemble.name)
         net.ensemble_send_list[ensemble.name] = Tuple{Int, Int}[]
         map(init, ensemble)
@@ -776,15 +776,16 @@ function init(net::SingleNet)
         init(ensemble, net)
     end
     for (index, ensemble) in enumerate(net.ensembles)
-        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
-            for connection in ensemble.connections
-                if connection.source.net_subgroup == get_net_subrank(net) + 1
-                    push!(net.ensemble_send_list[connection.source.name], 
-                          (ensemble.net_subgroup, index))
+        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
+                for connection in ensemble.connections
+                    if connection.source.net_subgroup == get_net_subrank(net) + 1
+                        push!(net.ensemble_send_list[connection.source.name], 
+                              (ensemble.net_subgroup, index))
+                    end
                 end
+                continue  # skip
             end
-            continue  # skip
-        end
+        )
         init_inputs(ensemble, net)
     end
     log_info("  Finished initializing ensembles.")
@@ -792,9 +793,9 @@ function init(net::SingleNet)
     log_info("  Synthesizing forward functions.")
     # Generate forward tasks
     for ensemble in net.ensembles
-        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1
+        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
             continue  # skip
-        end
+        end)
         # TODO: Should param initialization be done in ensemble init??
         if :params in fieldnames(ensemble)
             for param in ensemble.params
@@ -802,9 +803,7 @@ function init(net::SingleNet)
                 param.gradient = get_buffer(net, param.gradient_name)
                 param.hist = zeros(param.value)
                 set_buffer(net, param.hist_name, param.hist)
-                if LATTE_MPI
-                    param.request = @eval ccall((:init_request, $libComm), Cint, ())
-                end
+                @latte_mpi param.request = @eval ccall((:init_request, $libComm), Cint, ())
             end
         end
 
@@ -866,9 +865,10 @@ function init(net::SingleNet)
     log_info("  Synthesizing backward functions.")
     # Backward tasks
     for ensemble in net.ensembles
-        if LATTE_MPI && ensemble.net_subgroup != get_net_subrank(net) + 1 || 
-                typeof(ensemble) <: DataEnsemble || 
-                ensemble.phase == Test
+        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
+            continue
+        end)
+        if typeof(ensemble) <: DataEnsemble || ensemble.phase == Test
             continue  # skip
         end
         for (target, tag) in net.ensemble_send_list[ensemble.name]
@@ -892,7 +892,7 @@ function init(net::SingleNet)
             # throw("NotImplementedError")
         elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             for param in ensemble.params
-                if LATTE_MPI
+                @latte_mpi(
                     unshift!(backward_compute_body[Train], quote
                         ccall((:sync_gradients, $libComm), Void, 
                               (Ptr{Float32}, Cint, Cint), 
@@ -900,7 +900,7 @@ function init(net::SingleNet)
                               $(length(param.gradient)), 
                               $(param.request))
                     end)
-                end
+                )
                 push!(net.params, param)
             end
             gen_neuron_backward(ensemble, net, backward_compute_body[Train], backward_compute_args[Train])
@@ -1035,7 +1035,7 @@ function test(net::SingleNet)
             accuracy += get_buffer(net, :accuracyvalue)[1]
         end
         clear_values(net)
-        if LATTE_MPI
+        @latte_mpi(begin
             stop = Float32[0.0f0]
             if net.test_epoch != curr_epoch
                 stop[1] = 1.0f0
@@ -1045,6 +1045,7 @@ function test(net::SingleNet)
                 break
             end
         end
+        )
     end
     accuracy / num_batches * 100.0f0
 end
@@ -1073,15 +1074,15 @@ function load_snapshot(net::Net, file::AbstractString)
 end
 
 function get_loss(net::Net)
-    if LATTE_MPI
+    @latte_mpi(
         if haskey(net.buffers[1], :lossvalue)
             loss = get_buffer(net, :lossvalue)[1]
             sync_intra_loss(net, loss)
         else
             loss = sync_intra_loss(net, 0.0f0)
         end
-    else
+    , begin
         loss = get_buffer(net, :lossvalue)[1]
-    end
+    end)
     loss
 end

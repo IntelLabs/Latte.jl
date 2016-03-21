@@ -139,19 +139,11 @@ function update(sgd::SGD, net::Net)
     end
 end
 
-if LATTE_MPI
-    function update(sgd::SGD, param::Param)
-        @eval ccall((:wait, $libComm), Void, (Cint,), $(param.request))
-        l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
-        sgd_update(sgd.state.learning_rate * param.learning_rate,
-                   sgd.state.momentum, param.value, param.gradient, param.hist)
-    end
-else
-    function update(sgd::SGD, param::Param)
-        l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
-        sgd_update(sgd.state.learning_rate * param.learning_rate,
-                   sgd.state.momentum, param.value, param.gradient, param.hist)
-    end
+function update(sgd::SGD, param::Param)
+    @latte_mpi(@eval(ccall((:wait, $libComm), Void, (Cint,), $(param.request))))
+    l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
+    sgd_update(sgd.state.learning_rate * param.learning_rate,
+               sgd.state.momentum, param.value, param.gradient, param.hist)
 end
 
 function sgd_update{T}(learning_rate::Float32, momentum::Float32,
@@ -206,12 +198,22 @@ function solve(solver::Solver, net::Net)
                                                    solver.state)
     solver.state.momentum = get_momentum(solver.params.mom_policy,
                                          solver.state)
-    if LATTE_MPI
-        broadcast_initial_params(net)
+    @latte_mpi broadcast_initial_params(net)
+
+    @latte_mpi(if get_rank() == 0
+        mkdir("$(string(now()))")
+        accuracy_log = open("$(string(now()))/accuracy.csv", "w")
+        loss_log = open("$(string(now()))/loss.csv", "w")
+        atexit(() -> close(accuracy_log))
+        atexit(() -> close(loss_log))
     end
-    mkdir("$(string(now()))")
-    accuracy_log = open("$(string(now()))/accuracy.csv", "w")
-    loss_log = open("$(string(now()))/loss.csv", "w")
+    , begin
+        mkdir("$(string(now()))")
+        accuracy_log = open("$(string(now()))/accuracy.csv", "w")
+        loss_log = open("$(string(now()))/loss.csv", "w")
+        atexit(() -> close(accuracy_log))
+        atexit(() -> close(loss_log))
+    end)
     log_info("Entering solve loop")
     while solver.state.iter < solver.params.max_itr
         if LATTE_BATCH_DROPOUT
@@ -234,30 +236,30 @@ function solve(solver::Solver, net::Net)
         #     update(solver, net)
         # end
         clear_values(net)
-        # if solver.state.iter % 20 == 0
-        if solver.state.iter % 20 == 0 && ((LATTE_MPI && get_net_subrank(net) + 1 == net.num_subgroups) || !LATTE_MPI)
-            log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
-            if !LATTE_MPI || get_rank() == 0
+        if solver.state.iter % 20 == 0
+            @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
+                log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
+                if get_rank() == 0
+                    write(loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
+                end
+            end , begin
+                log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
                 write(loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
-            end
+            end)
         end
         if solver.state.iter % solver.params.test_every == 0
             log_info("Iter $(solver.state.iter) - Testing... (Current train epoch: $(net.train_epoch))")
             acc = test(net)
-            if LATTE_MPI
-                if get_net_subrank(net) + 1 == net.num_subgroups
-                    total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
-                    if total_acc >= 0.0f0
-                        log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
-                        write(accuracy_log, "$(solver.state.iter),$total_acc\n")
-                    end
+            @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
+                total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
+                if total_acc >= 0.0f0
+                    log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
+                    write(accuracy_log, "$(solver.state.iter),$total_acc\n")
                 end
-            else
+            end, begin
                 write(accuracy_log, "$(solver.state.iter),$acc\n")
                 log_info("Iter $(solver.state.iter) - Test Result: $acc%")
-            end
+            end)
         end
     end
-    close(accuracy_log)
-    close(loss_log)
 end
