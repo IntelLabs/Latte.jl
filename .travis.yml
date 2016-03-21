@@ -26,7 +26,7 @@ before_install:
 script:
     - julia -e 'Pkg.clone(pwd());'
     - julia -e 'Pkg.checkout("ParallelAccelerator")'
-    - OPENBLAS_LIB=libopenblas.so julia -e 'Pkg.build("Latte")'
+    - CXX=mpic++ LATTE_BUILD_MPI=1 OPENBLAS_LIB=libopenblas.so julia -e 'Pkg.build("Latte")'
     - julia --code-coverage=user test/runtests.jl
 
 after_success:
