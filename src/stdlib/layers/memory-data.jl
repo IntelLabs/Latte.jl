@@ -32,11 +32,12 @@ type MemoryDataEnsemble{N,M} <: DataEnsemble
     neurons      :: Array{DataNeuron,N}
     value        :: Array{Float32, M}  # M != N because of batch dimension
     connections  :: Vector{Connection}
+    phase        :: Phase
     net_subgroup :: Cint
 end
 
-function MemoryDataEnsemble{N, M}(name::Symbol, neurons::Array{DataNeuron,N}, value::Array{Float32, M})
-    MemoryDataEnsemble{N,M}(name, neurons, value, Connection[], convert(Cint, 1))
+function MemoryDataEnsemble{N, M}(name::Symbol, neurons::Array{DataNeuron,N}, value::Array{Float32, M}, phase::Phase)
+    MemoryDataEnsemble{N,M}(name, neurons, value, Connection[], phase, convert(Cint, 1))
 end
 
 function forward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
@@ -50,7 +51,7 @@ end
 function backward{N}(ens::MemoryDataEnsemble, data::Array{Float32,N}, net::Net, phase::Phase)
 end
 
-function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple)
+function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple; phase=TrainTest)
     data_neurons = Array(DataNeuron, shape...)
     for i in 1:length(data_neurons)
         data_neurons[i] = DataNeuron(0.0)
@@ -61,7 +62,7 @@ function MemoryDataLayer(net::Net, name::Symbol, shape::Tuple)
         push!(shape, net.time_steps)
     end
     value = Array(Float32, shape...)
-    ens = MemoryDataEnsemble(name, data_neurons, value)
+    ens = MemoryDataEnsemble(name, data_neurons, value, phase)
     add_ensemble(net, ens)
     ens, value
 end
