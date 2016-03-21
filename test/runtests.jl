@@ -26,14 +26,18 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
 summary = []
-function runtests(testdir)
+function runtests(testdir; mpi=false)
     istest(f) = endswith(f, ".jl") && f != "runtests.jl"
     testfiles = sort(filter(istest, readdir(testdir)))
     nfail = 0
     exename = joinpath(JULIA_HOME, Base.julia_exename())
     for f in testfiles
         try
-            run(`$exename --code-coverage=user $(joinpath(testdir, f))`)
+            if mpi
+                run(`mpirun -np 2 $exename --code-coverage=user $(joinpath(testdir, f))`)
+            else
+                run(`$exename --code-coverage=user $(joinpath(testdir, f))`)
+            end
             push!(summary, ((:green, STDOUT),  "SUCCESS: $f"))
         catch ex
             push!(summary, ((:red, STDERR), "Error: $(joinpath(testdir, f))"))
@@ -48,6 +52,8 @@ testdir = dirname(@__FILE__)
 nfail += runtests(testdir)
 nfail += runtests(joinpath(testdir, "stdlib"))
 nfail += runtests(joinpath(testdir, "transforms"))
+ENV["LATTE_MPI"]="1"
+nfail += runtests(joinpath(testdir, "mpi"); mpi=true)
 for message in summary
     Base.with_output_color(message[1]...) do io
         println(io, message[2])
