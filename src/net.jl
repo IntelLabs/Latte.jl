@@ -140,6 +140,16 @@ function clear_values(net::Net)
     end
 end
 
+function rand_values(net::Net)
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[t])
+            if contains(string(name), "randval")
+                rand!(net.buffers[t][name])
+            end
+        end
+    end
+end
+
 function get_param(net::SingleNet, name::Symbol)
     for param in net.params
         if param.name == name

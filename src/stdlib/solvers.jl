@@ -209,8 +209,14 @@ function solve(solver::Solver, net::Net)
     if LATTE_MPI
         broadcast_initial_params(net)
     end
+    mkdir("$(string(now()))")
+    accuracy_log = open("$(string(now()))/accuracy.csv", "w")
+    loss_log = open("$(string(now()))/loss.csv", "w")
     log_info("Entering solve loop")
     while solver.state.iter < solver.params.max_itr
+        if LATTE_BATCH_DROPOUT
+            rand_values(net)
+        end
         solver.state.iter += 1
         forward(net; solver=solver)
         clear_∇(net)
@@ -231,6 +237,9 @@ function solve(solver::Solver, net::Net)
         # if solver.state.iter % 20 == 0
         if solver.state.iter % 20 == 0 && ((LATTE_MPI && get_net_subrank(net) + 1 == net.num_subgroups) || !LATTE_MPI)
             log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
+            if !LATTE_MPI || get_rank() == 0
+                write(loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
+            end
         end
         if solver.state.iter % solver.params.test_every == 0
             log_info("Iter $(solver.state.iter) - Testing... (Current train epoch: $(net.train_epoch))")
@@ -240,11 +249,15 @@ function solve(solver::Solver, net::Net)
                     total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
                     if total_acc >= 0.0f0
                         log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
+                        write(accuracy_log, "$(solver.state.iter),$total_acc\n")
                     end
                 end
             else
+                write(accuracy_log, "$(solver.state.iter),$acc\n")
                 log_info("Iter $(solver.state.iter) - Test Result: $acc%")
             end
         end
     end
+    close(accuracy_log)
+    close(loss_log)
 end
