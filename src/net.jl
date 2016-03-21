@@ -1074,15 +1074,12 @@ function load_snapshot(net::Net, file::AbstractString)
 end
 
 function get_loss(net::Net)
-    @latte_mpi(
-        if haskey(net.buffers[1], :lossvalue)
-            loss = get_buffer(net, :lossvalue)[1]
-            sync_intra_loss(net, loss)
-        else
-            loss = sync_intra_loss(net, 0.0f0)
-        end
-    , begin
+    @latte_mpi(if haskey(net.buffers[1], :lossvalue)
         loss = get_buffer(net, :lossvalue)[1]
-    end)
-    loss
+        sync_intra_loss(net, loss)
+        return loss
+    else
+        return sync_intra_loss(net, 0.0f0)
+    end, 
+    return get_buffer(net, :lossvalue)[1])
 end

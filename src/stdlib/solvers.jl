@@ -34,6 +34,9 @@ type SolverState
     obj_val :: Float32
     learning_rate :: Float32
     momentum :: Float32
+    accuracy_log :: IOStream
+    loss_log :: IOStream
+    SolverState(iter::Int, obj_val::Float32, learning_rate::Float32, momentum::Float32) = new(iter, obj_val, learning_rate, momentum)
 end
 
 abstract LearningRatePolicy
@@ -119,7 +122,7 @@ end
 type SGD <: Solver
     params :: SolverParameters
     state  :: SolverState
-    SGD(params::SolverParameters) = new(params, SolverState(0, 0.0, 0.0, 0.0))
+    SGD(params::SolverParameters) = new(params, SolverState(0, 0.0f0, 0.0f0, 0.0f0))
 end
 
 function update(solver::Solver, net::Net, param_id::UInt64)
@@ -202,17 +205,17 @@ function solve(solver::Solver, net::Net)
 
     @latte_mpi(if get_rank() == 0
         mkdir("$(string(now()))")
-        accuracy_log = open("$(string(now()))/accuracy.csv", "w")
-        loss_log = open("$(string(now()))/loss.csv", "w")
-        atexit(() -> close(accuracy_log))
-        atexit(() -> close(loss_log))
+        solver.state.accuracy_log = open("$(string(now()))/accuracy.csv", "w")
+        solver.state.loss_log = open("$(string(now()))/loss.csv", "w")
+        atexit(() -> close(solver.state.accuracy_log))
+        atexit(() -> close(solver.state.loss_log))
     end
     , begin
         mkdir("$(string(now()))")
-        accuracy_log = open("$(string(now()))/accuracy.csv", "w")
-        loss_log = open("$(string(now()))/loss.csv", "w")
-        atexit(() -> close(accuracy_log))
-        atexit(() -> close(loss_log))
+        solver.state.accuracy_log = open("$(string(now()))/accuracy.csv", "w")
+        solver.state.loss_log = open("$(string(now()))/loss.csv", "w")
+        atexit(() -> close(solver.state.accuracy_log))
+        atexit(() -> close(solver.state.loss_log))
     end)
     log_info("Entering solve loop")
     while solver.state.iter < solver.params.max_itr
@@ -240,11 +243,11 @@ function solve(solver::Solver, net::Net)
             @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
                 log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
                 if get_rank() == 0
-                    write(loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
+                    write(solver.state.loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
                 end
-            end , begin
+            end, begin
                 log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
-                write(loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
+                write(solver.state.loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
             end)
         end
         if solver.state.iter % solver.params.test_every == 0
@@ -254,10 +257,10 @@ function solve(solver::Solver, net::Net)
                 total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
                 if total_acc >= 0.0f0
                     log_info("Iter $(solver.state.iter) - Test Result: $total_acc%")
-                    write(accuracy_log, "$(solver.state.iter),$total_acc\n")
+                    write(solver.state.accuracy_log, "$(solver.state.iter),$total_acc\n")
                 end
             end, begin
-                write(accuracy_log, "$(solver.state.iter),$acc\n")
+                write(solver.state.accuracy_log, "$(solver.state.iter),$acc\n")
                 log_info("Iter $(solver.state.iter) - Test Result: $acc%")
             end)
         end
