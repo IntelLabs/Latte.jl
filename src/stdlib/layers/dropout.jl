@@ -42,6 +42,7 @@ end
 
 if LATTE_BATCH_DROPOUT
     @neuron forward(neuron::DropoutNeuron) do
+        neuron.randval = float_rand()
         if neuron.randval > neuron.ratio
             neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
         else
@@ -50,7 +51,6 @@ if LATTE_BATCH_DROPOUT
     end
 else
     @neuron forward(neuron::DropoutNeuron) do
-        neuron.randval = float_rand()
         if neuron.randval > neuron.ratio
             neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
         else
