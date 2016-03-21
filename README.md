@@ -25,6 +25,9 @@ $ sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-dev
 $ julia -e 'Pkg.clone("https://github.com/IntelLabs/Latte.jl")'
 $ julia -e 'Pkg.checkout("CompilerTools")'
 $ julia -e 'Pkg.checkout("ParallelAccelerator")'
+$ # To build with MPI enabled, uncomment these lines
+$ # ENV["LATTE_BUILD_MPI"] = 1
+$ # ENV["CXX"] = "mpiicpc"  # Replace with your mpi compiler wrapper
 $ julia -e 'Pkg.build("Latte")'
 ```
 

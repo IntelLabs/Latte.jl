@@ -1,9 +1,13 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (LatteIO)
-option(LATTE_MPI "Include MPI support when building the Latte runtime" OFF)
-if(LATTE_MPI)
+execute_process(
+    COMMAND ${CMAKE_CXX_COMPILER} -v OUTPUT_VARIABLE CXX_VERSION)
+if (NOT (CXX_VERSION MATCHES "MPI"))
+    message("${PROJECT_NAME} not building with MPI. To do so, set CXX=<mpi compiler>")
+else()
+    message("${PROJECT_NAME} building with MPI")
     add_definitions(-DLATTE_BUILD_MPI)
-endif(LATTE_MPI)
+endif()
 
 if(DEBUG)
     add_definitions(-DDEBUG)
@@ -14,13 +18,15 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 
 FIND_PACKAGE( OpenMP REQUIRED)
 
-find_package(MPI)
-
-if(LATTE_MPI)
+if(CXX_VERSION MATCHES "MPI")
     if(${HDF5_IS_PARALLEL})
         include_directories( ${MPI_INCLUDE_PATH})
     else()
-        message( FATAL_ERROR "HDF5 must be compiled with --enable-parallel to use Latte with MPI" )
+        message( FATAL_ERROR "HDF5 must be compiled WITH --enable-parallel when building Latte WITH MPI" )
+    endif()
+else()
+    if(${HDF5_IS_PARALLEL})
+        message( FATAL_ERROR "HDF5 must be compiled WITHOUT --enable-parallel when building Latte WITHOUT MPI" )
     endif()
 endif()
 
@@ -29,7 +35,3 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 add_library(LatteIO SHARED io.cpp io.h dataset.cpp dataset.h)
 target_link_libraries(LatteIO ${HDF5_LIBRARIES})
-
-if(${HDF5_IS_PARALLEL})
-    target_link_libraries(LatteIO ${MPI_C_LIBRARIES})
-endif()
