@@ -19,7 +19,7 @@ matrix:
 
 before_install:
     - sudo apt-get update
-    - sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-dev -y
+    - sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-mpich-dev -y
     - sudo apt-get install libopenblas-dev -y
 
 
