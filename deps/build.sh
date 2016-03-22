@@ -18,5 +18,5 @@ else
     cd build
     cmake ..
     make
-    mv libLatteComm.so .././
+    mv libLatteComm.so ../../
 fi
