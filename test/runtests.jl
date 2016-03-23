@@ -52,8 +52,8 @@ testdir = dirname(@__FILE__)
 nfail += runtests(testdir)
 nfail += runtests(joinpath(testdir, "stdlib"))
 nfail += runtests(joinpath(testdir, "transforms"))
-ENV["LATTE_MPI"]="1"
-nfail += runtests(joinpath(testdir, "mpi"); mpi=true)
+# ENV["LATTE_MPI"]="1"
+# nfail += runtests(joinpath(testdir, "mpi"); mpi=true)
 for message in summary
     Base.with_output_color(message[1]...) do io
         println(io, message[2])
