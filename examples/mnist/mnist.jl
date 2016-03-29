@@ -47,10 +47,10 @@ loss     = SoftmaxLossLayer(:loss, net, fc6, label)
 accuracy = AccuracyLayer(:accuracy, net, fc6, label)
 
 params = SolverParameters(
-    LRPolicy.Inv(0.01, 0.0001, 0.75),
-    MomPolicy.Fixed(0.9),
-    100000,
-    .0005,
-    100)
+    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),
+    mom_policy   = MomPolicy.Fixed(0.9),
+    max_epoch    = 50,
+    regu_coef    = .0005,
+    snapshot_dir = "no_dropout")
 sgd = SGD(params)
 solve(sgd, net)
