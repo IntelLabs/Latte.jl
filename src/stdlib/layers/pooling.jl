@@ -57,10 +57,16 @@ end
 end
 
 function MaxPoolingLayer(name::Symbol, net::Net, input_ensemble::AbstractEnsemble,
-                         kernel::Int, stride::Int, pad::Int)
+                         kernel::Int, stride::Int, pad::Int; ceil_mode=false)
     width, height, channels = size(input_ensemble)
-    width_out = div((width - kernel + 2 * pad), stride) + 1
-    height_out = div((height - kernel + 2 * pad), stride) + 1
+    if ceil_mode
+        # Round up
+        div_op = cld
+    else
+        div_op = fld
+    end
+    width_out = div_op((width - kernel + 2 * pad), stride) + 1
+    height_out = div_op((height - kernel + 2 * pad), stride) + 1
     neurons =
         [MaxNeuron() for _ = 1:width_out, _ = 1:height_out, _ = 1:channels]
 

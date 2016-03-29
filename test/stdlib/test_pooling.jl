@@ -119,11 +119,10 @@ facts("Testing MaxPooling Layer") do
         init(net)
 
         params = SolverParameters(
-            LRPolicy.Inv(0.01, 0.0001, 0.75),
-            MomPolicy.Fixed(0.9),
-            100000,
-            .0005,
-            100)
+            lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
+            mom_policy   = MomPolicy.Fixed(0.9),
+            max_epoch    = 300,
+            regu_coef    = .0005)
         sgd = SGD(params)
 
         input    = get_buffer(net, :conv1value)
@@ -166,11 +165,10 @@ facts("Testing MeanPooling Layer") do
     init(net)
 
     params = SolverParameters(
-        LRPolicy.Inv(0.01, 0.0001, 0.75),
-        MomPolicy.Fixed(0.9),
-        100000,
-        .0005,
-        100)
+        lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
+        mom_policy   = MomPolicy.Fixed(0.9),
+        max_epoch    = 300,
+        regu_coef    = .0005)
     sgd = SGD(params)
 
     input    = get_buffer(net, :conv1value)

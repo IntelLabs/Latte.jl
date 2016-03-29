@@ -31,10 +31,7 @@ using FactCheck
 function create_net()
 	net = Net(100)
 
-	data,  data_value   = MemoryDataLayer(net, :data, (24, 24, 3))
-	label, label_value = MemoryDataLayer(net, :label, (1,))
-	data_value[:]  = rand(Float32, size(data_value)...)
-	label_value[:] = map(floor, rand(Float32, size(label_value)...) * 10.0f0)
+    data, label = HDF5DataLayer(net, "train.txt", "test.txt")
 
 	conv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)
 	relu1    = ReLULayer(:relu1, net, conv1)
@@ -56,30 +53,31 @@ function create_net()
 	net
 end
 facts("Testing saving and loading snapshots") do
+    mkdir("snapshot_test")
+    cp("../examples/mnist/data/get-data.sh", joinpath("snapshot_test", "get-data.sh"))
+    cp("../examples/mnist/data/convert.jl", joinpath("snapshot_test", "convert.jl"))
+    cd("snapshot_test")
+    run(`bash get-data.sh`)
 	net = create_net()
 
-	params = SolverParameters(
-	    LRPolicy.Inv(0.01, 0.0001, 0.75),
-	    MomPolicy.Fixed(0.9),
-	    20,
-	    .0005,
-	    1000)
+    params = SolverParameters(
+        lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
+        mom_policy   = MomPolicy.Fixed(0.9),
+        max_epoch    = 1,
+        regu_coef    = .0005)
 	sgd = SGD(params)
 	solve(sgd, net)
 
-	mkdir("snapshots")
-
-	save_snapshot(net, "snapshots/snapshot-1.jld")
+	save_snapshot(net, "snapshot-1.jld")
 
 	net2 = create_net()
 
 	init(net2)
 
-	load_snapshot(net2, "snapshots/snapshot-1.jld")
+	load_snapshot(net2, "snapshot-1.jld")
 
 	for (param1, param2) in zip(net.params, net2.params)
 		@fact param1.value --> param2.value
 	end
 
-	rm("snapshots"; recursive=true)
 end

@@ -27,12 +27,22 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export DropoutLayer
 
-@neuron type DropoutNeuron
-    ratio   :: Float32
-    randval :: Float32
+if LATTE_BATCH_DROPOUT
+    @neuron type DropoutNeuron
+        ratio   :: Float32
+        randval :: Float32
+        scale   :: Float32
+    end
+    DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, 0.0f0, 1.0f0 / (1.0f0 - ratio))
+else
+    @neuron type DropoutNeuron
+        ratio   :: Float32
+        randval :: Batch{Float32}
+        scale   :: Float32
+    end
+    DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, Batch(0.0f0), 1.0f0 / (1.0f0 - ratio))
 end
 
-DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, 0.0f0)
 
 # FIXME: CGen does not support rand()
 ccall((:srand48, "libc"), Void, (Clong,), ccall((:time, "libc"), Clong, (Ptr{Void},), C_NULL))
@@ -40,28 +50,28 @@ function float_rand()
     val = ccall((:drand48, "libc"), Cdouble, ())
 end
 
-if LATTE_BATCH_DROPOUT
+# if LATTE_BATCH_DROPOUT
     @neuron forward(neuron::DropoutNeuron) do
-        neuron.randval = float_rand()
         if neuron.randval > neuron.ratio
-            neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
+            neuron.value = neuron.inputs[1] * neuron.scale
         else
             neuron.value = 0.0
         end
     end
-else
-    @neuron forward(neuron::DropoutNeuron) do
-        if neuron.randval > neuron.ratio
-            neuron.value = neuron.inputs[1] * (1.0f0 / neuron.ratio)
-        else
-            neuron.value = 0.0
-        end
-    end
-end
+# else
+#     @neuron forward(neuron::DropoutNeuron) do
+#         neuron.randval = float_rand()
+#         if neuron.randval > neuron.ratio
+#             neuron.value = neuron.inputs[1] / (1.0f0 - neuron.ratio)
+#         else
+#             neuron.value = 0.0
+#         end
+#     end
+# end
 
 @neuron backward(neuron::DropoutNeuron) do
     if neuron.randval > neuron.ratio
-        neuron.∇inputs[1] = neuron.∇ * (1.0f0 / neuron.ratio)
+        neuron.∇inputs[1] = neuron.∇ * neuron.scale
     else
         neuron.∇inputs[1] = 0.0
     end
