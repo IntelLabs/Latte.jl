@@ -221,11 +221,11 @@ function solve(solver::Solver, net::Net)
     @latte_mpi broadcast_initial_params(net)
 
     @latte_mpi(if get_rank() == 0
-        try
-            mkdir("$(solver.params.snapshot_dir)")
-        catch SystemError
-            error("LATTE_ERROR: Snapshot directory already exists.")
+        if isdir(solver.params.snapshot_dir)
+            log_info("Snapshot directory exists, overwriting.")
+            rm(solver.params.snapshot_dir; recursive=true)
         end
+        mkdir(solver.params.snapshot_dir)
         solver.state.accuracy_log = open("$(solver.params.snapshot_dir)/accuracy.csv", "w")
         solver.state.loss_log = open("$(solver.params.snapshot_dir)/loss.csv", "w")
         atexit(() -> cleanup(solver))
