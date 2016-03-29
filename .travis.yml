@@ -27,7 +27,9 @@ script:
     - julia -e 'Pkg.clone(pwd());'
     - julia -e 'Pkg.checkout("ParallelAccelerator")'
     - CXX=mpic++ LATTE_BUILD_MPI=1 OPENBLAS_LIB=libopenblas.so julia -e 'Pkg.build("Latte")'
-    - julia --code-coverage=user test/runtests.jl
+    - cd test
+    - julia --code-coverage=user runtests.jl
+    - cd ..
 
 after_success:
     - julia bin/coverage.jl
