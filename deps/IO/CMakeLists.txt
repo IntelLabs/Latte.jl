@@ -1,8 +1,17 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (LatteIO)
-execute_process(
-    COMMAND ${CMAKE_CXX_COMPILER} -v OUTPUT_VARIABLE CXX_VERSION)
-if (NOT (CXX_VERSION MATCHES "MPI"))
+set(BUILD_MPI OFF)
+
+if (DEFINED ENV{NERSC_HOST})
+    set(BUILD_MPI ON)
+else()
+    execute_process(
+        COMMAND ${CMAKE_CXX_COMPILER} -v OUTPUT_VARIABLE CXX_VERSION)
+    if (CXX_VERSION MATCHES "MPI")
+        set(BUILD_MPI ON)
+    endif()
+endif()
+if (NOT BUILD_MPI)
     message("${PROJECT_NAME} not building with MPI. To do so, set CXX=<mpi compiler>")
 else()
     message("${PROJECT_NAME} building with MPI")
@@ -18,7 +27,7 @@ include_directories( ${HDF5_INCLUDE_DIRS} )
 
 FIND_PACKAGE( OpenMP REQUIRED)
 
-if(CXX_VERSION MATCHES "MPI")
+if(BUILD_MPI)
     if(${HDF5_IS_PARALLEL})
         include_directories( ${MPI_INCLUDE_PATH})
     else()
