@@ -772,7 +772,7 @@ function init(net::SingleNet)
         push!(seen_names, ensemble.name)
         net.ensemble_send_list[ensemble.name] = Tuple{Int, Int}[]
         map(init, ensemble)
-        log_info("    $(ensemble.name).")
+        log_info("    $(ensemble.name) size=$(size(ensemble))")
         init(ensemble, net)
     end
     for (index, ensemble) in enumerate(net.ensembles)
