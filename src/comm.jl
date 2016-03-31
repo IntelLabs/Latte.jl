@@ -38,6 +38,11 @@ end
     rank % net.num_subgroups
 end
 
+@eval function get_inter_rank(net::Net)
+    rank = ccall((:get_rank, $libComm), Cint, ())
+    div(rank, net.num_subgroups)
+end
+
 @eval function get_rank()
     ccall((:get_rank, $libComm), Cint, ())
 end
@@ -51,4 +56,18 @@ end
     loss_val[1] = loss
     ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), loss_val, 1, net.num_subgroups - 1)
     loss_val[1]
+end
+
+@eval function sync_intra_train_epoch(net::Net)
+    epoch = Array(Float32, 1)
+    epoch[1] = net.train_epoch
+    ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), epoch, 1, 0)
+    net.train_epoch = epoch[1]
+end
+
+@eval function sync_intra_test_epoch(net::Net)
+    epoch = Array(Float32, 1)
+    epoch[1] = net.test_epoch
+    ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), epoch, 1, 0)
+    net.test_epoch = epoch[1]
 end

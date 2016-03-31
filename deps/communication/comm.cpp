@@ -26,11 +26,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "comm.h"
-#include <mpi.h>
 
 std::vector<MPI_Request *> requests;
 MPI_Comm *Inter_net_communicator;
 MPI_Comm *Intra_net_communicator;
+
 void init() {
     MPI_Init(NULL, NULL);
 }
@@ -113,4 +113,8 @@ void recv_intra(float* data, int length, int tag, int source) {
 void send_intra(float* data, int length, int tag, int dest) {
     // std::cout << "Sending " << length << " floats with tag " << tag << " to " << dest << std::endl;
     MPI_Send(data, length, MPI_FLOAT, dest, tag, *Intra_net_communicator);
+}
+
+MPI_Comm get_inter_net_comm() {
+    return *Inter_net_communicator;
 }

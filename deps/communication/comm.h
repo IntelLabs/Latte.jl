@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <vector>
 #include <assert.h>
+#include <mpi.h>
 
 extern "C" {
     void init();
@@ -43,4 +44,5 @@ extern "C" {
     void broadcast_inter(float* value, int length, int root);
     void recv_intra(float* data, int length, int tag, int source);
     void send_intra(float* data, int length, int tag, int dest);
+    MPI_Comm get_inter_net_comm();
 }

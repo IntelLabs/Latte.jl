@@ -220,7 +220,7 @@ function solve(solver::Solver, net::Net)
                                          solver.state)
     @latte_mpi broadcast_initial_params(net)
 
-    @latte_mpi(if get_rank() == 0
+    @latte_mpi(if get_inter_rank(net) == 0 && get_net_subrank(net) + 1 == net.num_subgroups
         if isdir(solver.params.snapshot_dir)
             log_info("Snapshot directory exists, overwriting.")
             rm(solver.params.snapshot_dir; recursive=true)
@@ -231,11 +231,11 @@ function solve(solver::Solver, net::Net)
         atexit(() -> cleanup(solver))
     end
     , begin
-        try
-            mkdir("$(solver.params.snapshot_dir)")
-        catch SystemError
-            error("LATTE_ERROR: Snapshot directory already exists.")
+        if isdir(solver.params.snapshot_dir)
+            log_info("Snapshot directory exists, overwriting.")
+            rm(solver.params.snapshot_dir; recursive=true)
         end
+        mkdir(solver.params.snapshot_dir)
         solver.state.accuracy_log = open("$(solver.params.snapshot_dir)/accuracy.csv", "w")
         solver.state.loss_log = open("$(solver.params.snapshot_dir)/loss.csv", "w")
     end)
@@ -272,7 +272,7 @@ function solve(solver::Solver, net::Net)
         if solver.state.iter % 20 == 0
             @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
                 log_info("Iter $(solver.state.iter) - Loss: $(solver.state.obj_val)")
-                if get_rank() == 0
+                if get_inter_rank(net) == 0 && get_net_subrank(net) + 1 == net.num_subgroups
                     write(solver.state.loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
                 end
             end, begin
@@ -280,13 +280,14 @@ function solve(solver::Solver, net::Net)
                 write(solver.state.loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
             end)
         end
+        @latte_mpi sync_intra_train_epoch(net)
         # if solver.state.iter % solver.params.test_every == 0
         if curr_train_epoch != net.train_epoch
             log_info("Epoch $(curr_train_epoch) - Testing...")
             acc = test(net)
             @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
                 total_acc = @eval ccall((:reduce_accuracy, $libComm), Cfloat, (Cfloat,), $acc)
-                if total_acc >= 0.0f0
+                if total_acc >= 0.0f0 && get_inter_rank(net) == 0
                     log_info("Epoch $(curr_train_epoch) - Test Result: $total_acc%")
                     write(solver.state.accuracy_log, "$(curr_train_epoch),$total_acc\n")
                 end

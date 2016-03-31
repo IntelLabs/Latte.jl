@@ -44,3 +44,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
 add_library(LatteIO SHARED io.cpp io.h dataset.cpp dataset.h)
 target_link_libraries(LatteIO ${HDF5_LIBRARIES})
+if(BUILD_MPI)
+    cmake_policy(SET CMP0015 NEW)
+    target_link_libraries(LatteIO ../libLatteComm)
+endif()

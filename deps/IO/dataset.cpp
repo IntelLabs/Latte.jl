@@ -26,12 +26,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "dataset.h"
+#include "../communication/comm.h"
 
 Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use_mpi, bool divide_by_rank) {
 #ifdef LATTE_BUILD_MPI
     int rank;
     if (_use_mpi) {
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_rank(get_inter_net_comm(), &rank);
         debug("Rank %d : Initializing dataset %s (shuffle=%d, use_mpi=%d).", rank, data_file_name, _shuffle, _use_mpi);
     }
 #else
@@ -52,7 +53,7 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
         debug("Rank %d : Setting up parallel access to dataset %s.", rank, data_file_name);
 #ifdef LATTE_BUILD_MPI
         /* set Parallel access with communicator */
-        ret = H5Pset_fapl_mpio(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL);
+        ret = H5Pset_fapl_mpio(plist_id, get_inter_net_comm(), MPI_INFO_NULL);
         assert(ret != -1);
 #else
         std::cerr << "Error: To use Latte in MPI mode, please rebuild IO library with -DLATTE_MPI=ON" << std::endl;
@@ -103,7 +104,7 @@ Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use
     if (use_mpi) { // && divide_by_rank) {
 #ifdef LATTE_BUILD_MPI
         int size;
-        MPI_Comm_size(MPI_COMM_WORLD, &size);
+        MPI_Comm_size(get_inter_net_comm(), &size);
         int chunk_size = num_total_items / size + 1;
         chunk_start = rank * chunk_size;
         chunk_end = std::min(chunk_start+chunk_size, num_total_items);
