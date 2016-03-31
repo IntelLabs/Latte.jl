@@ -108,7 +108,8 @@ end
 type SingleNet <: Net
     ensembles          :: Vector{AbstractEnsemble}
     ensembles_map      :: Dict{Symbol, AbstractEnsemble}
-    buffers            :: Vector{Dict{Symbol, Array}}
+    buffers            :: Tuple{Vector{Dict{Symbol, Array}},Vector{Dict{Symbol, Array}}}
+    curr_buffer_set    :: Int
     forward_tasks      :: TaskSet
     backward_tasks     :: TaskSet
     update_tasks       :: Vector{LatteTask}
@@ -122,15 +123,22 @@ type SingleNet <: Net
     time_steps         :: Int
     num_subgroups      :: Int
     ensemble_send_list :: Dict{Symbol, Vector{Tuple{Int, Int}}}
-    SingleNet(batch_size, time_steps=1) = new([],
+    SingleNet(batch_size, time_steps=1, num_subgroups=1) = new([],
                 Dict{Symbol, AbstractEnsemble}(),
-                [Dict{Symbol,Array}() for _ in 1:time_steps],
+                tuple([Dict{Symbol,Array}() for _ in 1:time_steps],
+                      [Dict{Symbol,Array}() for _ in 1:time_steps]),
+                1,
                 TaskSet(),
                 TaskSet(),
-                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps, 1, Dict{Symbol, Vector{Int}}())
+                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps, num_subgroups,
+                Dict{Symbol, Vector{Int}}())
 end
 
-Net(batch_size::Int; time_steps=1) = SingleNet(batch_size, time_steps)
+function Net(batch_size::Int; time_steps=1, num_subgroups=1)
+    net = SingleNet(batch_size, time_steps, num_subgroups)
+    @latte_mpi initialize_communicators(net)
+    net
+end
 
 batch_size(net::SingleNet) = net.batch_size
 

@@ -121,30 +121,33 @@ end
 include("transforms/neuron.jl")
 
 function clear_∇(net::Net)
+    i = net.curr_buffer_set
     for t in 1:net.time_steps
-        for name in keys(net.buffers[t])
+        for name in keys(net.buffers[i][t])
             if contains(string(name), "∇")
-                fill!(net.buffers[t][name], 0.0)
+                fill!(net.buffers[i][t][name], 0.0)
             end
         end
     end
 end
 
 function clear_values(net::Net)
+    i = net.curr_buffer_set
     for t in 1:net.time_steps
-        for name in keys(net.buffers[t])
+        for name in keys(net.buffers[i][t])
             if contains(string(name), "value")
-                fill!(net.buffers[t][name], 0.0)
+                fill!(net.buffers[i][t][name], 0.0)
             end
         end
     end
 end
 
 function rand_values(net::Net)
+    i = net.curr_buffer_set
     for t in 1:net.time_steps
-        for name in keys(net.buffers[t])
+        for name in keys(net.buffers[i][t])
             if contains(string(name), "randval")
-                rand!(net.buffers[t][name])
+                rand!(net.buffers[i][t][name])
             end
         end
     end
@@ -160,30 +163,34 @@ function get_param(net::SingleNet, name::Symbol)
 end
 
 function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
-    return net.buffers[1][symbol(ens.name, name)]
+    return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
 end
 
 function get_buffer(net::SingleNet, name::Symbol, t::Int=1)
-    return net.buffers[t][name]
+    return net.buffers[net.curr_buffer_set][t][name]
 end
 
 function set_buffer(net::SingleNet, name::Symbol, arr::Array, t::Int)
-    net.buffers[t][name] = arr
+    net.buffers[1][t][name] = arr
+    net.buffers[2][t][name] = arr
 end
 
 function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
     for t in 1:net.time_steps
         if _copy
-            net.buffers[t][name] = copy(arr)
+            net.buffers[1][t][name] = copy(arr)
+            net.buffers[2][t][name] = copy(arr)
         else
-            net.buffers[t][name] = arr
+            net.buffers[1][t][name] = arr
+            net.buffers[2][t][name] = arr
         end
     end
 end
 
 function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
     for t in 1:net.time_steps
-        net.buffers[t][name] = func(Float32, shape...)
+        net.buffers[1][t][name] = func(Float32, shape...)
+        net.buffers[2][t][name] = func(Float32, shape...)
     end
 end
 
@@ -509,6 +516,7 @@ function generate_c_function(func::Function, signature::Tuple,
     outfile_name = CGen.writec(s)
     cflags = []
     @latte_mpi push!(cflags, "-I$latte_library_path/communication")
+    @latte_mpi ENV["CGEN_COMPILER"] = "mpiicpc"
     CGen.compile(outfile_name; flags=cflags)
 
     lflags = []
@@ -758,7 +766,6 @@ function init(net::SingleNet)
     backward_compute_body = Dict{Phase, Vector}(Train => [], Test => [])
     backward_compute_args = ArgSet()
     seen_names = Set()
-    @latte_mpi initialize_communicators(net)
     # Initialize ensembles
     log_info("  Initializing ensembles.")
     for ensemble in net.ensembles
@@ -858,7 +865,7 @@ function init(net::SingleNet)
     end
     append!(net.forward_tasks, forward_data_tasks)
 
-    push_compute_tasks!(forward_tasks, net.buffers[1],
+    push_compute_tasks!(forward_tasks, net.buffers[1][1],
                         forward_compute_body, forward_compute_args,
                         net.run_where, net.signal; distribute=true)
 
@@ -925,7 +932,7 @@ function init(net::SingleNet)
         end
     end
 
-    push_compute_tasks!(backward_tasks, net.buffers[1], backward_compute_body,
+    push_compute_tasks!(backward_tasks, net.buffers[1][1], backward_compute_body,
                         backward_compute_args, net.run_where, net.signal)
     if net.run_where >= 0
         @assert false
@@ -1031,21 +1038,11 @@ function test(net::SingleNet)
     while net.test_epoch == curr_epoch
         forward(net, phase=Test)
         num_batches += 1.0f0
-        if haskey(net.buffers[1], :accuracyvalue)
+        if haskey(net.buffers[net.curr_buffer_set][1], :accuracyvalue)
             accuracy += get_buffer(net, :accuracyvalue)[1]
         end
         clear_values(net)
-        @latte_mpi(begin
-            stop = Float32[0.0f0]
-            if net.test_epoch != curr_epoch
-                stop[1] = 1.0f0
-            end
-            @eval ccall((:broadcast_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint), $stop, 1, 0)  # TODO: Assumes rank 0 has data layer, can we enforce this to be true?
-            if stop[1] > 0.0f0
-                break
-            end
-        end
-        )
+        @latte_mpi sync_intra_test_epoch(net)
     end
     accuracy / num_batches * 100.0f0
 end
@@ -1074,7 +1071,7 @@ function load_snapshot(net::Net, file::AbstractString)
 end
 
 function get_loss(net::Net)
-    @latte_mpi(if haskey(net.buffers[1], :lossvalue)
+    @latte_mpi(if haskey(net.buffers[net.curr_buffer_set][1], :lossvalue)
         loss = get_buffer(net, :lossvalue)[1]
         sync_intra_loss(net, loss)
         return loss

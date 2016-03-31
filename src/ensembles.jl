@@ -69,7 +69,7 @@ function init_inputs(ensemble::AbstractEnsemble, net::Net)
                 if connection.source.net_subgroup != ensemble.net_subgroup
                     set_buffer(net, source_target, zeros(Float32, size(connection.source)..., batch_size))
                 end
-                source = get(net.buffers[t],
+                source = get(net.buffers[1][t],
                              source_target,
                              nothing)
                 if source == nothing

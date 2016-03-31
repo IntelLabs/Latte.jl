@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using Latte
 
-net = Net(100)
+net = Net(100; num_subgroups=2)
 data, label = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
 conv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)
 relu1    = ReLULayer(:relu1, net, conv1)
@@ -47,14 +47,12 @@ loss     = SoftmaxLossLayer(:loss, net, fc6, label)
 accuracy = AccuracyLayer(:accuracy, net, fc6, label)
 
 params = SolverParameters(
-    LRPolicy.Inv(0.01, 0.0001, 0.75),
-    MomPolicy.Fixed(0.9),
-    100,
-    .0005,
-    100)
+    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),
+    mom_policy   = MomPolicy.Fixed(0.9),
+    max_epoch    = 50,
+    regu_coef    = .0005)
 sgd = SGD(params)
 
-net.num_subgroups = 2
 half = floor(Int, length(net.ensembles) / 2) + 2
 for ens in net.ensembles[1:half]
     ens.net_subgroup = 1
