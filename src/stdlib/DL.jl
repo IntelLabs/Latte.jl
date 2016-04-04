@@ -96,6 +96,7 @@ include("layers/transform.jl")
 include("layers/concat.jl")
 include("layers/rnn.jl")
 include("layers/tanh.jl")
+include("layers/reshape.jl")
 
 # type WeightedEnsemble <: AbstractEnsemble
 #     name         :: Symbol

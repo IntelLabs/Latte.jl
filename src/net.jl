@@ -652,6 +652,12 @@ function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::N
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
+function init_forward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+end
+
+function init_backward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+end
+
 function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
     asts = []
     output_name = symbol(ensemble.name, :value)
@@ -845,7 +851,7 @@ function init(net::SingleNet)
             add_forward_data_tasks(ensemble, forward_data_tasks, net)
         elseif typeof(ensemble) <: JuliaEnsemble
             add_forward_julia_tasks(ensemble, forward_data_tasks, net)
-        elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
+        elseif isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble, ReshapeEnsemble})
             init_forward(ensemble, net, forward_compute_args, forward_compute_body)
         elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             gen_neuron_forward(ensemble, net, forward_compute_body, forward_compute_args)
@@ -900,7 +906,7 @@ function init(net::SingleNet)
             push!(backward_compute_body[Train], expr)
             push!(backward_compute_args[Train], target_buf)
         end
-        if isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble})
+        if isa(ensemble, Union{NormalizationEnsemble, ConcatEnsemble, ReshapeEnsemble})
             init_backward(ensemble, net, backward_compute_args, backward_compute_body)
         elseif typeof(ensemble) <: JuliaEnsemble
             # Skip
