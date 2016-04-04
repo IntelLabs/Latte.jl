@@ -179,3 +179,18 @@ type ConcatEnsemble <: AbstractEnsemble
     phase :: Phase
     inputs :: Vector{AbstractEnsemble}
 end
+
+type ReshapeNeuron <: Neuron
+    value :: Float32
+    ∇     :: Float32
+end
+
+type ReshapeEnsemble <: AbstractEnsemble
+    name :: Symbol
+    neurons :: Array{ReshapeNeuron}
+    connections :: Vector{Connection}
+    phase :: Phase
+    net_subgroup :: Cint
+    input :: AbstractEnsemble
+    shape :: Tuple
+end

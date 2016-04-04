@@ -53,6 +53,10 @@ type Step <: LearningRatePolicy
     stepsize :: Int
 end
 
+function Step(;base_lr=0.01f0, gamma=0.1f0, stepsize=100000)
+    Step(base_lr, gamma, stepsize)
+end
+
 # base_lr * gamma ^ iter
 type Exp <: LearningRatePolicy
     base_lr :: Float32
