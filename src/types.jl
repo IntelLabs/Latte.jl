@@ -178,4 +178,5 @@ type ConcatEnsemble <: AbstractEnsemble
     connections :: Vector{Connection}
     phase :: Phase
     inputs :: Vector{AbstractEnsemble}
+    inner_size :: Int
 end

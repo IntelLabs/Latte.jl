@@ -29,7 +29,7 @@ using Latte
 using HDF5
 
 if length(ARGS) >= 1
-    batch_size = ARGS[1]
+    batch_size = parse(Int, ARGS[1])
 else
     batch_size = 64
 end
@@ -75,10 +75,9 @@ loss     = SoftmaxLossLayer(:loss, net, fc8, label)
 accuracy = AccuracyLayer(:accuracy, net, fc8, label)
 
 params = SolverParameters(
-    LRPolicy.Step(.01, .1, 100000),
-    MomPolicy.Fixed(0.9),
-    450000,
-    .0005,
-    10000)
+    lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
+    mom_policy   = MomPolicy.Fixed(0.9),
+    max_epoch    = 300,
+    regu_coef    = .0005)
 sgd = SGD(params)
 solve(sgd, net)

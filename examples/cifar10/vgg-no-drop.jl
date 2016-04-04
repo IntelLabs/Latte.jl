@@ -26,7 +26,7 @@
 
 using Latte
 
-net = Net(64)
+net = Net(128)
 data, label  = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
 
 conv1_1 = ConvolutionLayer( :conv1_1, net, data,    64,  3, 1, 1)

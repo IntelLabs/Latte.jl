@@ -39,10 +39,12 @@ facts("Testing Concat Layer") do
         forward(net; phase=Latte.Test)
         fc1value = get_buffer(net, :fc1value)
         fc2value = get_buffer(net, :fc2value)
-        expected = zeros(Float32, size(fc1value)[1:end-1]..., 2, size(fc1value)[end])
+        inner_size = [size(fc1value)[1:end-1]...]
+        inner_size[end] *= 2
+        expected = zeros(Float32, inner_size..., size(fc1value)[end])
         for n = 1:8
-            expected[:, 1, n] = fc1value[:, n]
-            expected[:, 2, n] = fc2value[:, n]
+            expected[1:20, n] = fc1value[:, n]
+            expected[21:40, n] = fc2value[:, n]
         end
         @fact get_buffer(net, :concat1value) --> expected
     end
@@ -53,8 +55,8 @@ facts("Testing Concat Layer") do
         fc2∇ = get_buffer(net, :fc2∇)
         backward(net)
         for n = 1:8
-            @fact fc1∇[:, n] --> concat∇[:, 1, n]
-            @fact fc2∇[:, n] --> concat∇[:, 2, n]
+            @fact fc1∇[:, n] --> concat∇[1:20, n]
+            @fact fc2∇[:, n] --> concat∇[21:40, n]
         end
     end
 end

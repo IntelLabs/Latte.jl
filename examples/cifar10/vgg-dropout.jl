@@ -26,7 +26,13 @@
 
 using Latte
 
-net = Net(64)
+if length(ARGS) >= 1
+    batch_size = parse(Int, ARGS[1])
+else
+    batch_size = 128
+end
+
+net = Net(batch_size)
 data, label  = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
 
 conv1_1 = ConvolutionLayer( :conv1_1, net, data,    64,  3, 1, 1)

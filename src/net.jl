@@ -670,9 +670,13 @@ function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, 
         # Add batch loop
         push!(loopvars, gensym("loopvar"))
         push!(loopranges, :(1:$(net.batch_size)))
+        index_vars = Any[loopvars[1:end-1]...]
+        if index > 1
+            index_vars[end] = :($(index_vars[end]) + $((index - 1) * ensemble.inner_size))
+        end
 
         push!(asts, gen_loop_nest(
-            :($output_name[$(loopvars[1:end-1]...), $index, $(loopvars[end])] = 
+            :($output_name[$(index_vars...), $(loopvars[end])] = 
                 $input_name[$(loopvars...)]), 
             loopvars, loopranges))
     end
@@ -697,10 +701,14 @@ function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
         # Add batch loop
         push!(loopvars, gensym("loopvar"))
         push!(loopranges, :(1:$(net.batch_size)))
+        index_vars = Any[loopvars[1:end-1]...]
+        if index > 1
+            index_vars[end] = :($(index_vars[end]) + $((index - 1) * ensemble.inner_size))
+        end
 
         push!(asts, gen_loop_nest(
             :($input_name[$(loopvars...)] = 
-              $output_name[$(loopvars[1:end-1]...), $index, $(loopvars[end])]),
+              $output_name[$(index_vars...), $(loopvars[end])]),
             loopvars, loopranges))
     end
     append!(compute_body[Train], asts)

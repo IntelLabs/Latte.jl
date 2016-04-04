@@ -81,14 +81,14 @@ end
     else
         id = ens.test_id
     end
-    if ens.name == :data
-        _shape = ccall((:get_next_batch, $libIO), Void, (Cint,), id)
-    end
     epoch = ccall((:get_epoch, $libIO), Cint, (Cint,), id)
     if phase == Train
         net.train_epoch = epoch
     else
         net.test_epoch = epoch
+    end
+    if ens.name == :data
+        _shape = ccall((:get_next_batch, $libIO), Void, (Cint,), id)
     end
 end
 

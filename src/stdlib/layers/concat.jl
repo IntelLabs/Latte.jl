@@ -28,12 +28,15 @@
 export ConcatLayer
 
 function ConcatEnsemble(name::Symbol, inputs::Vector)
-    shape = (size(inputs[1])..., length(inputs))
+    # shape = (size(inputs[1])..., length(inputs))
+    shape = [size(inputs[1])...]
+    inner_size = prod(shape)
+    shape[end] *= length(inputs)
     neurons = Array(ConcatNeuron, shape...)
     for i in 1:length(neurons)
         neurons[i] = ConcatNeuron(0.0, 0.0)
     end
-    ConcatEnsemble(name, neurons, [], TrainTest, inputs) 
+    ConcatEnsemble(name, neurons, [], TrainTest, inputs, inner_size)
 end
 
 function init(ensemble::ConcatEnsemble, net::Net)

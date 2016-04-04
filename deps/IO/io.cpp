@@ -97,7 +97,7 @@ void get_next_batch(int dset_id) {
 
 int get_epoch(int dset_id) {
     assert(dset_id < datasets.size());
-    return datasets[dset_id]->epoch;
+    return datasets[dset_id]->epoch + 1;  // 1-based indexing
 }
 
 
