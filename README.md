@@ -19,6 +19,9 @@ your needs.  On Ubuntu, try:
 $ sudo apt-get install hdf5-tools libhdf5-dev 
 ```
 
+Latte currently depends on [Intel
+MKL](https://software.intel.com/en-us/intel-mkl).
+
 ## Quick Install
 ```julia
 # Latte currently depends on the master branch of these packages
