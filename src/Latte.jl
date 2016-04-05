@@ -41,8 +41,8 @@ pkg_root = joinpath(dirname(@__FILE__), "..")
 latte_library_path = "$pkg_root/deps"
 latte_include_path = "$pkg_root/deps/include"
 libsuffix = @osx ? ".dylib" : ".so"
-libIO = "$latte_library_path/libLatteIO$libsuffix"
-libComm = "$latte_library_path/libLatteComm$libsuffix"
+libIO = "$latte_library_path/build/libLatteIO$libsuffix"
+libComm = "$latte_library_path/build/libLatteComm$libsuffix"
 
 type LatteException <: Exception end
 
