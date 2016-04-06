@@ -45,15 +45,7 @@ $ cd ..
 $ julia vgg-mini.jl
 ```
 
-## Docs
-
-    {docs}
-    Latte.Net
-    Latte.Ensemble
-    Latte.Connection
-    Latte.Param
-
-    Latte.TaskSet
-    Latte.JuliaTask
-    Latte.UpdateTask
-    Latte.Batch
+## Library Outline
+    {contents}
+    Pages = ["lib/internals.md"]
+    Depth = 2
