@@ -9,4 +9,30 @@
     </url>
     
 
+    
+        
+    <url>
+     <loc>None/man/setup/</loc>
+     <lastmod>2016-04-06</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>None/man/examples/</loc>
+     <lastmod>2016-04-06</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
+    
+        
+    <url>
+     <loc>None/lib/internals/</loc>
+     <lastmod>2016-04-06</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
 </urlset>

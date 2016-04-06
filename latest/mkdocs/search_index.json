@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline", 
+            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nInternals", 
             "title": "Home"
         }, 
         {
@@ -17,8 +17,58 @@
         }, 
         {
             "location": "/#library-outline", 
-            "text": "", 
+            "text": "Internals", 
             "title": "Library Outline"
+        }, 
+        {
+            "location": "/man/setup/", 
+            "text": "Setup\n\n\n\n\nPrerequisites\n\n\nTo build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:\n\n\n$ sudo apt-get install hdf5-tools libhdf5-dev cmake\n\n\n\n\n\nLatte currently depends on \nIntel MKL\n and the \nIntel C++ Compiler (icpc)\n.\n\n\n\n\nQuick Install\n\n\n# Latte currently depends on the master branch of these packages\n\n\njulia\n \nPkg\n.\nclone\n(\nhttps://github.com/IntelLabs/Latte.jl\n)\n\n\njulia\n \nPkg\n.\ncheckout\n(\nCompilerTools\n)\n\n\njulia\n \nPkg\n.\ncheckout\n(\nParallelAccelerator\n)\n\n\njulia\n \n# To build with MPI enabled, uncomment these lines\n\n\njulia\n \n# ENV[\nLATTE_BUILD_MPI\n] = 1\n\n\njulia\n \n# ENV[\nCXX\n] = \nmpiicpc\n  # Replace with your mpi compiler wrapper\n\n\njulia\n \nPkg\n.\nbuild\n(\nLatte\n)", 
+            "title": "Setup"
+        }, 
+        {
+            "location": "/man/setup/#setup", 
+            "text": "", 
+            "title": "Setup"
+        }, 
+        {
+            "location": "/man/setup/#prerequisites", 
+            "text": "To build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:  $ sudo apt-get install hdf5-tools libhdf5-dev cmake  Latte currently depends on  Intel MKL  and the  Intel C++ Compiler (icpc) .", 
+            "title": "Prerequisites"
+        }, 
+        {
+            "location": "/man/setup/#quick-install", 
+            "text": "# Latte currently depends on the master branch of these packages  julia   Pkg . clone ( https://github.com/IntelLabs/Latte.jl )  julia   Pkg . checkout ( CompilerTools )  julia   Pkg . checkout ( ParallelAccelerator )  julia   # To build with MPI enabled, uncomment these lines  julia   # ENV[ LATTE_BUILD_MPI ] = 1  julia   # ENV[ CXX ] =  mpiicpc   # Replace with your mpi compiler wrapper  julia   Pkg . build ( Latte )", 
+            "title": "Quick Install"
+        }, 
+        {
+            "location": "/man/examples/", 
+            "text": "Examples\n\n\n\n\nMNIST\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia mnist.jl\n\n\n\n\n\n\n\ncifar10\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia vgg-mini.jl", 
+            "title": "Examples"
+        }, 
+        {
+            "location": "/man/examples/#examples", 
+            "text": "", 
+            "title": "Examples"
+        }, 
+        {
+            "location": "/man/examples/#mnist", 
+            "text": "$  cd  ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$  cd  ..\n$ julia mnist.jl", 
+            "title": "MNIST"
+        }, 
+        {
+            "location": "/man/examples/#cifar10", 
+            "text": "$  cd  ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$  cd  ..\n$ julia vgg-mini.jl", 
+            "title": "cifar10"
+        }, 
+        {
+            "location": "/lib/internals/", 
+            "text": "Internals\n\n\n#\n\n\nLatte.Net\n \n \nType\n.\n\n\n\n\n Fields \n\n\n\n\nensembles\n          \u2013 a vector containing each \nEnsemble\n in the network.\n\n\nensembles_map\n      \u2013 a mapping between ensemble names in the network to the                           instance stored in \nensembles\n\n\nbuffers\n            \u2013 the internal buffers used by the network\n\n\ncurr_buffer_set\n    \u2013 the current buffer set (used for double buffering)\n\n\nforward_tasks\n      \u2013 a set of tasks for performing forward propogation of the network\n\n\nbackward_tasks\n     \u2013 a set of tasks for performing back propogation of the network\n\n\nupdate_tasks\n       \u2013 a set of tasks for performing parameter updates\n\n\nparams\n             \u2013 a vector of \nParam\n instances corresponding to network parameters\n\n\nrun_where\n          \u2013 DEPRECATED\n\n\nsignal\n             \u2013 DEPRECATED\n\n\nbatch_size\n         \u2013 the batch size of the network                            TODO: support different batch sizes for train/test\n\n\ntrain_epoch\n        \u2013 number of epochs completed for training\n\n\ntest_epoch\n         \u2013 number of epochs completed for testing\n\n\ncurr_time_step\n     \u2013 the current time step (for RNNs)\n\n\ntime_steps\n         \u2013 total number of time steps to unroll (for RNNs)\n\n\nnum_subgroups\n      \u2013 number of partitions in network (for model parallelism)\n\n\nensemble_send_list\n \u2013 a mapping between ensembles and a list of subgroups to send                           values to, used internally when synthesizing code for                           model parallelism\n\n\n\n\n#\n\n\nLatte.Ensemble\n \n \nType\n.\n\n\n\n\nAn ensemble\n\n\n Fields \n\n\n\n\nname         \u2013 name of the ensemble\n\n\nneurons      \u2013 an array of neurons of type \nT\n\n\nconnections  \u2013 a list of \nEnsemble\ns connected to this ensemble\n\n\nbatch_fields \u2013 a vector of \nBatch\n fields for \nT\n (used internally)\n\n\narg_dim_info \u2013 \n\n\nparams       \u2013 a vector of \nParam\ns associated with the ensemble\n\n\nphase        \u2013 phase(s) in which this ensemble is active\n\n\nnet_subgroup \u2013 the net subgroup the ensemble is a member of (use for model parallelism)\n\n\n\n\n#\n\n\nLatte.Connection\n \n \nType\n.\n\n\n\n\nA connection between two ensembles.\n\n\n Fields \n\n\n\n\nsource        \u2013 the source \nEnsemble\n\n\nmapping       \u2013 a mapping function to a range of neurons in \nsource\n\n\nshape         \u2013 shape of the connected neurons returned by \nmapping\n\n\nsize          \u2013 length of the connected neurons returned by \nmapping\n\n\ncopy          \u2013 whether the connection requires input values to be copied\n\n\nis_dim_fixed  \u2013 vector of booleans that are true if the connection is fixed along a dimension\n\n\nis_one_to_one \u2013 whether the connection is one to one\n\n\npadding       \u2013 amount of padding used for the connection\n\n\nrecurrent     \u2013 whether the connection is recurrent\n\n\n\n\n#\n\n\nLatte.Param\n \n \nType\n.\n\n\n\n\nA parameter in a \nNet\n (learned during training)\n\n\n Fields \n\n\n\n\nname\n          \u2013 the name of the parameter\n\n\ngradient_name\n \u2013 the name of the gradient (should be \u2207\nname\n)\n\n\nhist_name\n     \u2013 the name of the history buffer (should be \nname\nhist)\n\n\nlearning_rate   \u2013 local learning rate for the parameter\n\n\nregu_coef       \u2013 local regularization coefficient\n\n\nclip_gradients  \u2013 NOT IMPLEMENTED, gradient clipping parameter\n\n\nvalue           \u2013 buffer containing the value of the parameter\n\n\ngradient        \u2013 buffer containing the gradient of the parameter\n\n\nhist            \u2013 buffer containing the history of the parameter\n\n\nrequest         \u2013 request id, used for MPI data parallelism\n\n\n\n\n#\n\n\nLatte.TaskSet\n \n \nType\n.\n\n\n\n\nA container for tasks for multiple \nPhase\ns\n\n\n Fields \n\n\n\n\ntasks \u2013 a dictionary containing a \nVector\n of tasks for each \nPhase\n\n\n\n\n#\n\n\nLatte.JuliaTask\n \n \nType\n.\n\n\n\n\nA task that calls \nfunc\n with \nargs...\n\n\n#\n\n\nLatte.UpdateTask\n \n \nType\n.\n\n\n\n\nA task that updates parameter \nparam_id\n\n\n#\n\n\nLatte.Batch\n \n \nType\n.\n\n\n\n\nUsed in neuron definitions to mark a field to be unique per batch item", 
+            "title": "Internals"
+        }, 
+        {
+            "location": "/lib/internals/#internals", 
+            "text": "#  Latte.Net     Type .    Fields    ensembles           \u2013 a vector containing each  Ensemble  in the network.  ensembles_map       \u2013 a mapping between ensemble names in the network to the                           instance stored in  ensembles  buffers             \u2013 the internal buffers used by the network  curr_buffer_set     \u2013 the current buffer set (used for double buffering)  forward_tasks       \u2013 a set of tasks for performing forward propogation of the network  backward_tasks      \u2013 a set of tasks for performing back propogation of the network  update_tasks        \u2013 a set of tasks for performing parameter updates  params              \u2013 a vector of  Param  instances corresponding to network parameters  run_where           \u2013 DEPRECATED  signal              \u2013 DEPRECATED  batch_size          \u2013 the batch size of the network                            TODO: support different batch sizes for train/test  train_epoch         \u2013 number of epochs completed for training  test_epoch          \u2013 number of epochs completed for testing  curr_time_step      \u2013 the current time step (for RNNs)  time_steps          \u2013 total number of time steps to unroll (for RNNs)  num_subgroups       \u2013 number of partitions in network (for model parallelism)  ensemble_send_list  \u2013 a mapping between ensembles and a list of subgroups to send                           values to, used internally when synthesizing code for                           model parallelism   #  Latte.Ensemble     Type .   An ensemble   Fields    name         \u2013 name of the ensemble  neurons      \u2013 an array of neurons of type  T  connections  \u2013 a list of  Ensemble s connected to this ensemble  batch_fields \u2013 a vector of  Batch  fields for  T  (used internally)  arg_dim_info \u2013   params       \u2013 a vector of  Param s associated with the ensemble  phase        \u2013 phase(s) in which this ensemble is active  net_subgroup \u2013 the net subgroup the ensemble is a member of (use for model parallelism)   #  Latte.Connection     Type .   A connection between two ensembles.   Fields    source        \u2013 the source  Ensemble  mapping       \u2013 a mapping function to a range of neurons in  source  shape         \u2013 shape of the connected neurons returned by  mapping  size          \u2013 length of the connected neurons returned by  mapping  copy          \u2013 whether the connection requires input values to be copied  is_dim_fixed  \u2013 vector of booleans that are true if the connection is fixed along a dimension  is_one_to_one \u2013 whether the connection is one to one  padding       \u2013 amount of padding used for the connection  recurrent     \u2013 whether the connection is recurrent   #  Latte.Param     Type .   A parameter in a  Net  (learned during training)   Fields    name           \u2013 the name of the parameter  gradient_name  \u2013 the name of the gradient (should be \u2207 name )  hist_name      \u2013 the name of the history buffer (should be  name hist)  learning_rate   \u2013 local learning rate for the parameter  regu_coef       \u2013 local regularization coefficient  clip_gradients  \u2013 NOT IMPLEMENTED, gradient clipping parameter  value           \u2013 buffer containing the value of the parameter  gradient        \u2013 buffer containing the gradient of the parameter  hist            \u2013 buffer containing the history of the parameter  request         \u2013 request id, used for MPI data parallelism   #  Latte.TaskSet     Type .   A container for tasks for multiple  Phase s   Fields    tasks \u2013 a dictionary containing a  Vector  of tasks for each  Phase   #  Latte.JuliaTask     Type .   A task that calls  func  with  args...  #  Latte.UpdateTask     Type .   A task that updates parameter  param_id  #  Latte.Batch     Type .   Used in neuron definitions to mark a field to be unique per batch item", 
+            "title": "Internals"
         }
     ]
 }
