@@ -7,8 +7,8 @@ theme: material
 
 extra:
     palette:
-        primary: 'indigo'
-        accent: 'blue'
+        primary: 'blue'
+        accent: 'light blue'
 
 extra_css:
     - assets/Documenter.css
