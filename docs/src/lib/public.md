@@ -1,5 +1,17 @@
 # Public
 
+## Contents
+
+    {contents}
+    Pages = ["public.md"]
+
+## Index
+
+    {index}
+    Pages = ["public.md"]
+
+## API
+
     {docs}
     Latte.Net
     Latte.Ensemble
