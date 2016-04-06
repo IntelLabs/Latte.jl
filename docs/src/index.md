@@ -44,13 +44,16 @@ $ ./get-data.sh
 $ cd ..
 $ julia vgg-mini.jl
 ```
-    
+
+## Docs
+
     {docs}
-    Net
-    Ensemble
-    Connection
-    Param
-    TaskSet
-    JuliaTask
-    UpdateTask
-    Batch
+    Latte.Net
+    Latte.Ensemble
+    Latte.Connection
+    Latte.Param
+
+    Latte.TaskSet
+    Latte.JuliaTask
+    Latte.UpdateTask
+    Latte.Batch

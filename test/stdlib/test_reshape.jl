@@ -31,7 +31,7 @@ net = Net(8)
 data, data_value = MemoryDataLayer(net, :data, (10,))
 rand!(data_value)
 fc1 = InnerProductLayer(:fc1, net, data, 20)
-reshape = ReshapeLayer(:reshape, net, fc1, (10, 2))
+_reshape = ReshapeLayer(:reshape, net, fc1, (10, 2))
 
 init(net)
 facts("Testing Reshape Layer") do
