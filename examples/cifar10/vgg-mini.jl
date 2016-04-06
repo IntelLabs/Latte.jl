@@ -25,7 +25,6 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
-ENV["LATTE_BATCH_DROPOUT"] = "1"
 using Latte
 
 if length(ARGS) >= 1
@@ -77,6 +76,6 @@ params = SolverParameters(
     mom_policy   = MomPolicy.Fixed(0.9),
     max_epoch    = 300,
     regu_coef    = .0005,
-    snapshot_dir = "batch_dropout")
+    snapshot_dir = "vgg-mini-results")
 sgd = SGD(params)
 solve(sgd, net)
