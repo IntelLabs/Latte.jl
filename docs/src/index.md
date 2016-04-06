@@ -2,6 +2,8 @@
     
     {docs}
     Net
+    Ensemble
+    Connection
     Param
     TaskSet
     JuliaTask

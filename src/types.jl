@@ -222,6 +222,20 @@ Returns the batch size of the network
 """
 batch_size(net::Net) = net.batch_size
 
+"""
+A connection between two ensembles.
+
+** Fields **
+- source        -- the source `Ensemble`
+- mapping       -- a mapping function to a range of neurons in `source`
+- shape         -- shape of the connected neurons returned by `mapping`
+- size          -- length of the connected neurons returned by `mapping`
+- copy          -- whether the connection requires input values to be copied
+- is_dim_fixed  -- vector of booleans that are true if the connection is fixed along a dimension
+- is_one_to_one -- whether the connection is one to one
+- padding       -- amount of padding used for the connection
+- recurrent     -- whether the connection is recurrent
+"""
 type Connection
     source        :: AbstractEnsemble
     mapping       :: Function
@@ -234,6 +248,19 @@ type Connection
     recurrent     :: Bool
 end
 
+"""
+An ensemble
+
+** Fields **
+- name         -- name of the ensemble
+- neurons      -- an array of neurons of type `T`
+- connections  -- a list of `Ensemble`s connected to this ensemble
+- batch_fields -- a vector of `Batch` fields for `T` (used internally)
+- arg_dim_info -- 
+- params       -- a vector of `Param`s associated with the ensemble
+- phase        -- phase(s) in which this ensemble is active
+- net_subgroup -- the net subgroup the ensemble is a member of (use for model parallelism)
+"""
 type Ensemble{T <: Neuron, N} <: AbstractEnsemble
     name         :: Symbol
     neurons      :: Array{T,N}
