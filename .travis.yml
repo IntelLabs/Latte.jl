@@ -7,15 +7,7 @@ os:
     - linux
 
 julia:
-    - 0.4.0
-    - 0.4.1
-    - 0.4.2
-    - 0.4.3
-    - nightly
-
-matrix:
-    allow_failures:
-        - julia: nightly
+    - 0.4
 
 before_install:
     - sudo apt-get update
