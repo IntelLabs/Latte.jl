@@ -9,5 +9,8 @@
 
 ## Library Outline
     {contents}
-    Pages = ["lib/internals.md"]
+    Pages = [
+        "lib/public.md",
+        "lib/internals.md"
+    ]
     Depth = 2

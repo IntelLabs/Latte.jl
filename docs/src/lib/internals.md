@@ -1,31 +1,34 @@
 # Internals
 
-    {docs}
-    Latte.Net
-    Latte.Ensemble
-    Latte.Connection
-    Latte.Param
+## Contents
 
+    {contents}
+    Pages = ["internals.md"]
+
+## Index
+
+    {index}
+    Pages = ["internals.md"]
+
+## Net
+
+    {docs}
     Latte.init_buffer
     Latte.set_buffer
-    Latte.get_buffer
 
     Latte.rand_values
     Latte.clear_values
     Latte.clear_∇
 
-    Latte.load_snapshot
-    Latte.save_snapshot
+## Connections
 
-    Latte.test
-
-    Latte.add_connections
+    {docs}
     Latte.check_one_to_one
     Latte.check_dimensions_fixed
 
-    Latte.add_ensemble
-    Latte.init
+## Synthesis and Optimization
 
+    {docs}
     Latte.add_send_exprs
     Latte.add_recv_expr
     Latte.init_backward
@@ -40,6 +43,7 @@
     Latte.get_src_idx
     Latte.optimize
 
+## Utility Datastructures
     Latte.TaskSet
     Latte.JuliaTask
     Latte.UpdateTask

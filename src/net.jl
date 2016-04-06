@@ -1,29 +1,28 @@
-#=
-Copyright (c) 2015, Intel Corporation
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Intel Corporation nor the names of its contributors
-      may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-=#
+# Copyright (c) 2015, Intel Corporation
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#     * Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Intel Corporation nor the names of its contributors
+#       may be used to endorse or promote products derived from this software
+#       without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 export Net, init, forward, backward, clear_∇, clear_values, add_ensemble,
        add_connections, copy_from_mic, copy_to_mic, get_buffer,
@@ -63,9 +62,15 @@ include("optimizers/wrap_for_loops.jl")
 include("optimizers/parallelize.jl")
 
 """
-TODO: doc
+Optimize a function `fn`
+
+** Params **
+- `args`                -- an ordered vector of arguments (buffers)
+- `tile_fusion_factors` -- factors for tile fusions determined by connection
+                           structure
+- `fn`                  -- the ast of the function to be optimized
 """
-function optimize(args::Vector, tile_fusion_factors::Vector, fn)
+function optimize(args::Vector, tile_fusion_factors::Vector, fn::Expr)
     ast = macroexpand(fn)
     ast = remove_line_nodes(ast)
     arg_name_map = build_arg_name_map(args, ast)
@@ -83,7 +88,7 @@ function optimize(args::Vector, tile_fusion_factors::Vector, fn)
     ast = AstWalk(ast, pattern_match_gemm6, arg_name_map)
     ast = AstWalk(ast, pattern_match_gemm5, arg_name_map)
     ast = AstWalk(ast, pattern_match_gemm4, arg_name_map)
-    # FIXME: Above pattern matches should be cleaned up to ingest the "clean"
+    # TODO: Above pattern matches should be cleaned up to ingest the "clean"
     # ast like fuse_loops below
     ast = clean_tree(ast)
     ast.args[2].args = fuse_loops(ast.args[2].args)
@@ -96,9 +101,87 @@ end
 mk_clamp(idx, _max) = :($idx > 0 && $idx <= $_max)
 
 """
-TODO: doc
+Synthesize a loopnest to copy value or ∇ to the appropriate buffer
 """
-function get_src_idx(mapping)
+function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
+                        connection::Connection, index::Int; ∇=false)
+    if ∇
+        shape = size(get_buffer(net, ensemble, :∇))
+        sink_name  = symbol(ensemble.name, :∇inputs, index)
+        source_name = symbol(connection.source.name, :∇)
+    else
+        shape = size(get_buffer(net, ensemble, :value))
+        sink_name   = symbol(ensemble.name,:inputs,index)
+        source_name = symbol(connection.source.name,:value)
+    end
+    N = length(shape)
+    source = get_buffer(net, source_name)
+
+    # connection.is_dim_fixed is a Bool[], we use the inverse to select non
+    # fixed indices
+    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
+
+    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
+
+    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
+    mapping_inlined = inline(connection.mapping, mapping_args)
+    src_idx = get_src_idx(mapping_inlined)
+
+    body = Expr(:block)
+    idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
+    for_block = gen_loop_nest(body, idx, src_idx)
+
+    if ∇
+        assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
+                       $sink_name[count, $(sink_idx...)])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            assign = :(if $cond
+                $assign
+            end)
+        end
+        statements = [
+            assign,
+            :($sink_name[count, $(sink_idx...)] = 0.0f0)
+        ]
+    else
+        rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            rhs = :(ifelse($cond, $rhs, 0.0f0))
+        end
+        statements = [:($sink_name[count, $(sink_idx...)] = $rhs)]
+    end
+    append!(body.args, (quote
+        $(statements...)
+        count += 1
+    end).args)
+    copy_block = quote
+        $(mapping_inlined.args[1:end-1]...)
+        count = 1
+        $for_block
+    end
+    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
+    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(shape[i])) for i in 1:N-1]
+    push!(ranges, :(1:$(shape[N])))
+    gen_loop_nest(copy_block, vars, ranges)
+end
+
+"""
+Extract the final expression of the mapping function to be used as an indexing
+expression.  Handles cases where the final expression can be a Tuple or a
+single value.
+
+** Params **
+- `mapping` -- an ast for a mapping function
+"""
+function get_src_idx(mapping::Expr)
     if isa(mapping.args[end], Expr) &&
             mapping.args[end].head == :call &&
             isa(mapping.args[end].args[1], TopNode)
@@ -109,9 +192,18 @@ function get_src_idx(mapping)
 end
 
 """
-TODO: doc
+Synthesize the code to execute forward for an ensemble
+
+** Params **
+- `ensemble`     -- the `AbstractEnsemble` that is having its forward synthesized
+- `net`          -- the `Net` containing `ensemble`
+- `compute_body` -- the body that the synthesized code will be added to
+- `compute_args` -- a set of arguments reference in `compute_body`.  Any values
+                    referenced in the synthesized code should be added to
+                    `compute_args`
 """
-function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
+function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net,
+                            compute_body::Dict{Phase, Vector},
                             compute_args::ArgSet)
     forward_tasks = net.forward_tasks
 
@@ -181,79 +273,6 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
         append!(compute_body[Test], deepcopy(body))
         union!(compute_args[Test], args)
     end
-end
-
-"""
-TODO: doc
-"""
-function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
-                        connection::Connection, index::Int; ∇=false)
-    if ∇
-        shape = size(get_buffer(net, ensemble, :∇))
-        sink_name  = symbol(ensemble.name, :∇inputs, index)
-        source_name = symbol(connection.source.name, :∇)
-    else
-        shape = size(get_buffer(net, ensemble, :value))
-        sink_name   = symbol(ensemble.name,:inputs,index)
-        source_name = symbol(connection.source.name,:value)
-    end
-    N = length(shape)
-    source = get_buffer(net, source_name)
-
-    # connection.is_dim_fixed is a Bool[], we use the inverse to select non
-    # fixed indices
-    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
-
-    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
-
-    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
-    mapping_inlined = inline(connection.mapping, mapping_args)
-    src_idx = get_src_idx(mapping_inlined)
-
-    body = Expr(:block)
-    idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
-    for_block = gen_loop_nest(body, idx, src_idx)
-
-    if ∇
-        assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
-                       $sink_name[count, $(sink_idx...)])
-        if connection.padding > 0
-            cond = mk_clamp(idx[1], size(source, 1))
-            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-                cond = :($cond && $(mk_clamp(i, d)))
-            end
-            assign = :(if $cond
-                $assign
-            end)
-        end
-        append!(body.args, (quote
-            $assign
-            $sink_name[count, $(sink_idx...)] = 0.0f0
-            count += 1
-        end).args)
-    else
-        rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
-        if connection.padding > 0
-            cond = mk_clamp(idx[1], size(source, 1))
-            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-                cond = :($cond && $(mk_clamp(i, d)))
-            end
-            rhs = :(ifelse($cond, $rhs, 0.0f0))
-        end
-        append!(body.args, (quote
-            $sink_name[count, $(sink_idx...)] = $rhs
-            count += 1
-        end).args)
-    end
-    copy_block = quote
-        $(mapping_inlined.args[1:end-1]...)
-        count = 1
-        $for_block
-    end
-    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(shape[i])) for i in 1:N-1]
-    push!(ranges, :(1:$(shape[N])))
-    gen_loop_nest(copy_block, vars, ranges)
 end
 
 """
