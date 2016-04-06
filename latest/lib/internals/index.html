@@ -211,6 +211,15 @@
       
         
   <li>
+    <a class="" title="Public" href="../public/">
+      Public
+    </a>
+    
+  </li>
+
+      
+        
+  <li>
     <a class="current" title="Internals" href="./">
       Internals
     </a>
@@ -218,6 +227,46 @@
       
         
       
+      
+        <ul>
+          
+            <li class="anchor">
+              <a title="Contents" href="#contents">
+                Contents
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Index" href="#index">
+                Index
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Net" href="#net">
+                Net
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Connections" href="#connections">
+                Connections
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Synthesis and Optimization" href="#synthesis-and-optimization">
+                Synthesis and Optimization
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Utility Datastructures" href="#utility-datastructures">
+                Utility Datastructures
+              </a>
+            </li>
+          
+        </ul>
       
     
   </li>
@@ -239,47 +288,143 @@
           
           <p><a id='Internals-1'></a></p>
 <h1 id="internals">Internals</h1>
-<div class="codehilite"><pre><span></span>{docs}
-Latte.Net
-Latte.Ensemble
-Latte.Connection
-Latte.Param
-
-Latte.init_buffer
-Latte.set_buffer
-Latte.get_buffer
-
-Latte.rand_values
-Latte.clear_values
-Latte.clear_∇
-
-Latte.load_snapshot
-Latte.save_snapshot
-
-Latte.test
-
-Latte.add_connections
-Latte.check_one_to_one
-Latte.check_dimensions_fixed
-
-Latte.add_ensemble
-Latte.init
-
-Latte.add_send_exprs
-Latte.add_recv_expr
-Latte.init_backward
-Latte.init_forward
-Latte.add_forward_julia_tasks
-Latte.add_forward_data_tasks
-Latte.push_compute_tasks!
-Latte.generate_c_function
-Latte.gen_neuron_backward
-Latte.gen_neuron_forward
-Latte.gen_copy_block
-Latte.get_src_idx
-Latte.optimize
-
-Latte.TaskSet
+<p><a id='Contents-1'></a></p>
+<h2 id="contents">Contents</h2>
+<ul>
+<li><a href="./#Internals-1">Internals</a><ul>
+<li><a href="./#Contents-1">Contents</a></li>
+<li><a href="./#Index-1">Index</a></li>
+<li><a href="./#Net-1">Net</a></li>
+<li><a href="./#Connections-1">Connections</a></li>
+<li><a href="./#Synthesis-and-Optimization-1">Synthesis and Optimization</a></li>
+<li><a href="./#Utility-Datastructures-1">Utility Datastructures</a></li>
+</ul>
+</li>
+</ul>
+<p><a id='Index-1'></a></p>
+<h2 id="index">Index</h2>
+<ul>
+<li><a href="./#Latte.add_forward_data_tasks"><code>Latte.add_forward_data_tasks</code></a></li>
+<li><a href="./#Latte.add_forward_julia_tasks"><code>Latte.add_forward_julia_tasks</code></a></li>
+<li><a href="./#Latte.add_recv_expr"><code>Latte.add_recv_expr</code></a></li>
+<li><a href="./#Latte.add_send_exprs"><code>Latte.add_send_exprs</code></a></li>
+<li><a href="./#Latte.check_dimensions_fixed"><code>Latte.check_dimensions_fixed</code></a></li>
+<li><a href="./#Latte.check_one_to_one"><code>Latte.check_one_to_one</code></a></li>
+<li><a href="./#Latte.clear_values"><code>Latte.clear_values</code></a></li>
+<li><a href="./#Latte.clear_∇"><code>Latte.clear_∇</code></a></li>
+<li><a href="./#Latte.gen_copy_block"><code>Latte.gen_copy_block</code></a></li>
+<li><a href="./#Latte.gen_neuron_backward"><code>Latte.gen_neuron_backward</code></a></li>
+<li><a href="./#Latte.gen_neuron_forward"><code>Latte.gen_neuron_forward</code></a></li>
+<li><a href="./#Latte.generate_c_function"><code>Latte.generate_c_function</code></a></li>
+<li><a href="./#Latte.get_src_idx"><code>Latte.get_src_idx</code></a></li>
+<li><a href="./#Latte.init_backward"><code>Latte.init_backward</code></a></li>
+<li><a href="./#Latte.init_buffer"><code>Latte.init_buffer</code></a></li>
+<li><a href="./#Latte.init_forward"><code>Latte.init_forward</code></a></li>
+<li><a href="./#Latte.optimize"><code>Latte.optimize</code></a></li>
+<li><a href="./#Latte.push_compute_tasks!"><code>Latte.push_compute_tasks!</code></a></li>
+<li><a href="./#Latte.rand_values"><code>Latte.rand_values</code></a></li>
+<li><a href="./#Latte.set_buffer"><code>Latte.set_buffer</code></a></li>
+</ul>
+<p><a id='Net-1'></a></p>
+<h2 id="net">Net</h2>
+<p><a id='Latte.init_buffer' href='#Latte.init_buffer'>#</a>
+<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Initialize a buffer in <code>net</code></p>
+<p><strong> Params </strong> - <code>net</code>   – network to receive initialized buffer - <code>name</code>  – name of the buffer - <code>shape</code> – shape of the buffer - <code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</p>
+<p><a id='Latte.set_buffer' href='#Latte.set_buffer'>#</a>
+<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Add or update a buffer at a particular time step <code>t</code></p>
+<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>t</code>     – time step to add buffer</p>
+<p>Add or update a buffer</p>
+<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>_copy</code> – whether to copy the buffer</p>
+<p><a id='Latte.rand_values' href='#Latte.rand_values'>#</a>
+<strong><code>Latte.rand_values</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>randval</code> with random values</p>
+<p><a id='Latte.clear_values' href='#Latte.clear_values'>#</a>
+<strong><code>Latte.clear_values</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>value</code> with zeros.</p>
+<p><a id='Latte.clear_' href='#Latte.clear_'>#</a>
+<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>∇</code> with zeros.</p>
+<p><a id='Connections-1'></a></p>
+<h2 id="connections">Connections</h2>
+<p><a id='Latte.check_one_to_one' href='#Latte.check_one_to_one'>#</a>
+<strong><code>Latte.check_one_to_one</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.check_dimensions_fixed' href='#Latte.check_dimensions_fixed'>#</a>
+<strong><code>Latte.check_dimensions_fixed</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Synthesis-and-Optimization-1'></a></p>
+<h2 id="synthesis-and-optimization">Synthesis and Optimization</h2>
+<p><a id='Latte.add_send_exprs' href='#Latte.add_send_exprs'>#</a>
+<strong><code>Latte.add_send_exprs</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_recv_expr' href='#Latte.add_recv_expr'>#</a>
+<strong><code>Latte.add_recv_expr</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.init_backward' href='#Latte.init_backward'>#</a>
+<strong><code>Latte.init_backward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p><a id='Latte.init_forward' href='#Latte.init_forward'>#</a>
+<strong><code>Latte.init_forward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_julia_tasks' href='#Latte.add_forward_julia_tasks'>#</a>
+<strong><code>Latte.add_forward_julia_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_data_tasks' href='#Latte.add_forward_data_tasks'>#</a>
+<strong><code>Latte.add_forward_data_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.push_compute_tasks!' href='#Latte.push_compute_tasks!'>#</a>
+<strong><code>Latte.push_compute_tasks!</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc FIXME: My, my this function is ugly, clean this up some day...</p>
+<p><a id='Latte.generate_c_function' href='#Latte.generate_c_function'>#</a>
+<strong><code>Latte.generate_c_function</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.gen_neuron_backward' href='#Latte.gen_neuron_backward'>#</a>
+<strong><code>Latte.gen_neuron_backward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.gen_neuron_forward' href='#Latte.gen_neuron_forward'>#</a>
+<strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Synthesize the code to execute forward for an ensemble</p>
+<p><strong> Params </strong> - <code>ensemble</code>     – the <code>AbstractEnsemble</code> that is having its forward synthesized - <code>net</code>          – the <code>Net</code> containing <code>ensemble</code> - <code>compute_body</code> – the body that the synthesized code will be added to - <code>compute_args</code> – a set of arguments reference in <code>compute_body</code>.  Any values                     referenced in the synthesized code should be added to                     <code>compute_args</code></p>
+<p><a id='Latte.gen_copy_block' href='#Latte.gen_copy_block'>#</a>
+<strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Synthesize a loopnest to copy value or ∇ to the appropriate buffer</p>
+<p><a id='Latte.get_src_idx' href='#Latte.get_src_idx'>#</a>
+<strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Extract the final expression of the mapping function to be used as an indexing expression.  Handles cases where the final expression can be a Tuple or a single value.</p>
+<p><strong> Params </strong> - <code>mapping</code> – an ast for a mapping function</p>
+<p><a id='Latte.optimize' href='#Latte.optimize'>#</a>
+<strong><code>Latte.optimize</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Optimize a function <code>fn</code></p>
+<p><strong> Params </strong> - <code>args</code>                – an ordered vector of arguments (buffers) - <code>tile_fusion_factors</code> – factors for tile fusions determined by connection                            structure - <code>fn</code>                  – the ast of the function to be optimized</p>
+<p><a id='Utility-Datastructures-1'></a></p>
+<h2 id="utility-datastructures">Utility Datastructures</h2>
+<div class="codehilite"><pre><span></span>Latte.TaskSet
 Latte.JuliaTask
 Latte.UpdateTask
 Latte.Batch
@@ -300,7 +445,7 @@ Latte.Batch
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../../man/examples/" title="Examples">
+        <a href="../public/" title="Public">
           <span class="direction">
             Previous
           </span>
@@ -310,7 +455,7 @@ Latte.Batch
             </div>
             <div class="stretch">
               <div class="title">
-                Examples
+                Public
               </div>
             </div>
           </div>

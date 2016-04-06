@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nInternals", 
+            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nPublic\n\n\nInternals\n\n\nContents\n\n\nIndex\n\n\nNet\n\n\nConnections\n\n\nSynthesis and Optimization\n\n\nUtility Datastructures", 
             "title": "Home"
         }, 
         {
@@ -17,7 +17,7 @@
         }, 
         {
             "location": "/#library-outline", 
-            "text": "Internals", 
+            "text": "Public  Internals  Contents  Index  Net  Connections  Synthesis and Optimization  Utility Datastructures", 
             "title": "Library Outline"
         }, 
         {
@@ -61,14 +61,54 @@
             "title": "cifar10"
         }, 
         {
+            "location": "/lib/public/", 
+            "text": "Public\n\n\n{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
+            "title": "Public"
+        }, 
+        {
+            "location": "/lib/public/#public", 
+            "text": "{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
+            "title": "Public"
+        }, 
+        {
             "location": "/lib/internals/", 
-            "text": "Internals\n\n\n{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\n\nLatte.init_buffer\nLatte.set_buffer\nLatte.get_buffer\n\nLatte.rand_values\nLatte.clear_values\nLatte.clear_\u2207\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.test\n\nLatte.add_connections\nLatte.check_one_to_one\nLatte.check_dimensions_fixed\n\nLatte.add_ensemble\nLatte.init\n\nLatte.add_send_exprs\nLatte.add_recv_expr\nLatte.init_backward\nLatte.init_forward\nLatte.add_forward_julia_tasks\nLatte.add_forward_data_tasks\nLatte.push_compute_tasks!\nLatte.generate_c_function\nLatte.gen_neuron_backward\nLatte.gen_neuron_forward\nLatte.gen_copy_block\nLatte.get_src_idx\nLatte.optimize\n\nLatte.TaskSet\nLatte.JuliaTask\nLatte.UpdateTask\nLatte.Batch", 
+            "text": "Internals\n\n\n\n\nContents\n\n\n\n\nInternals\n\n\nContents\n\n\nIndex\n\n\nNet\n\n\nConnections\n\n\nSynthesis and Optimization\n\n\nUtility Datastructures\n\n\n\n\n\n\n\n\n\n\nIndex\n\n\n\n\nLatte.add_forward_data_tasks\n\n\nLatte.add_forward_julia_tasks\n\n\nLatte.add_recv_expr\n\n\nLatte.add_send_exprs\n\n\nLatte.check_dimensions_fixed\n\n\nLatte.check_one_to_one\n\n\nLatte.clear_values\n\n\nLatte.clear_\u2207\n\n\nLatte.gen_copy_block\n\n\nLatte.gen_neuron_backward\n\n\nLatte.gen_neuron_forward\n\n\nLatte.generate_c_function\n\n\nLatte.get_src_idx\n\n\nLatte.init_backward\n\n\nLatte.init_buffer\n\n\nLatte.init_forward\n\n\nLatte.optimize\n\n\nLatte.push_compute_tasks!\n\n\nLatte.rand_values\n\n\nLatte.set_buffer\n\n\n\n\n\n\nNet\n\n\n#\n\n\nLatte.init_buffer\n \n \nFunction\n.\n\n\n\n\nInitialize a buffer in \nnet\n\n\n Params \n - \nnet\n   \u2013 network to receive initialized buffer - \nname\n  \u2013 name of the buffer - \nshape\n \u2013 shape of the buffer - \nfunc\n  \u2013 function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)\n\n\n#\n\n\nLatte.set_buffer\n \n \nFunction\n.\n\n\n\n\nAdd or update a buffer at a particular time step \nt\n\n\n Params \n - \nnet\n   \u2013 network to add/update buffer - \nname\n  \u2013 name of the buffer - \narr\n   \u2013 buffer - \nt\n     \u2013 time step to add buffer\n\n\nAdd or update a buffer\n\n\n Params \n - \nnet\n   \u2013 network to add/update buffer - \nname\n  \u2013 name of the buffer - \narr\n   \u2013 buffer - \n_copy\n \u2013 whether to copy the buffer\n\n\n#\n\n\nLatte.rand_values\n \n \nFunction\n.\n\n\n\n\nFill buffers with names containing \nrandval\n with random values\n\n\n#\n\n\nLatte.clear_values\n \n \nFunction\n.\n\n\n\n\nFill buffers with names containing \nvalue\n with zeros.\n\n\n#\n\n\nLatte.clear_\u2207\n \n \nFunction\n.\n\n\n\n\nFill buffers with names containing \n\u2207\n with zeros.\n\n\n\n\nConnections\n\n\n#\n\n\nLatte.check_one_to_one\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.check_dimensions_fixed\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n\n\nSynthesis and Optimization\n\n\n#\n\n\nLatte.add_send_exprs\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.add_recv_expr\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.init_backward\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\nTODO: doc\n\n\nTODO: doc\n\n\n#\n\n\nLatte.init_forward\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\nTODO: doc\n\n\nTODO: doc\n\n\n#\n\n\nLatte.add_forward_julia_tasks\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.add_forward_data_tasks\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.push_compute_tasks!\n \n \nFunction\n.\n\n\n\n\nTODO: doc FIXME: My, my this function is ugly, clean this up some day...\n\n\n#\n\n\nLatte.generate_c_function\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.gen_neuron_backward\n \n \nFunction\n.\n\n\n\n\nTODO: doc\n\n\n#\n\n\nLatte.gen_neuron_forward\n \n \nFunction\n.\n\n\n\n\nSynthesize the code to execute forward for an ensemble\n\n\n Params \n - \nensemble\n     \u2013 the \nAbstractEnsemble\n that is having its forward synthesized - \nnet\n          \u2013 the \nNet\n containing \nensemble\n - \ncompute_body\n \u2013 the body that the synthesized code will be added to - \ncompute_args\n \u2013 a set of arguments reference in \ncompute_body\n.  Any values                     referenced in the synthesized code should be added to                     \ncompute_args\n\n\n#\n\n\nLatte.gen_copy_block\n \n \nFunction\n.\n\n\n\n\nSynthesize a loopnest to copy value or \u2207 to the appropriate buffer\n\n\n#\n\n\nLatte.get_src_idx\n \n \nFunction\n.\n\n\n\n\nExtract the final expression of the mapping function to be used as an indexing expression.  Handles cases where the final expression can be a Tuple or a single value.\n\n\n Params \n - \nmapping\n \u2013 an ast for a mapping function\n\n\n#\n\n\nLatte.optimize\n \n \nFunction\n.\n\n\n\n\nOptimize a function \nfn\n\n\n Params \n - \nargs\n                \u2013 an ordered vector of arguments (buffers) - \ntile_fusion_factors\n \u2013 factors for tile fusions determined by connection                            structure - \nfn\n                  \u2013 the ast of the function to be optimized\n\n\n\n\nUtility Datastructures\n\n\nLatte.TaskSet\nLatte.JuliaTask\nLatte.UpdateTask\nLatte.Batch", 
             "title": "Internals"
         }, 
         {
             "location": "/lib/internals/#internals", 
-            "text": "{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\n\nLatte.init_buffer\nLatte.set_buffer\nLatte.get_buffer\n\nLatte.rand_values\nLatte.clear_values\nLatte.clear_\u2207\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.test\n\nLatte.add_connections\nLatte.check_one_to_one\nLatte.check_dimensions_fixed\n\nLatte.add_ensemble\nLatte.init\n\nLatte.add_send_exprs\nLatte.add_recv_expr\nLatte.init_backward\nLatte.init_forward\nLatte.add_forward_julia_tasks\nLatte.add_forward_data_tasks\nLatte.push_compute_tasks!\nLatte.generate_c_function\nLatte.gen_neuron_backward\nLatte.gen_neuron_forward\nLatte.gen_copy_block\nLatte.get_src_idx\nLatte.optimize\n\nLatte.TaskSet\nLatte.JuliaTask\nLatte.UpdateTask\nLatte.Batch", 
+            "text": "", 
             "title": "Internals"
+        }, 
+        {
+            "location": "/lib/internals/#contents", 
+            "text": "Internals  Contents  Index  Net  Connections  Synthesis and Optimization  Utility Datastructures", 
+            "title": "Contents"
+        }, 
+        {
+            "location": "/lib/internals/#index", 
+            "text": "Latte.add_forward_data_tasks  Latte.add_forward_julia_tasks  Latte.add_recv_expr  Latte.add_send_exprs  Latte.check_dimensions_fixed  Latte.check_one_to_one  Latte.clear_values  Latte.clear_\u2207  Latte.gen_copy_block  Latte.gen_neuron_backward  Latte.gen_neuron_forward  Latte.generate_c_function  Latte.get_src_idx  Latte.init_backward  Latte.init_buffer  Latte.init_forward  Latte.optimize  Latte.push_compute_tasks!  Latte.rand_values  Latte.set_buffer", 
+            "title": "Index"
+        }, 
+        {
+            "location": "/lib/internals/#net", 
+            "text": "#  Latte.init_buffer     Function .   Initialize a buffer in  net   Params   -  net    \u2013 network to receive initialized buffer -  name   \u2013 name of the buffer -  shape  \u2013 shape of the buffer -  func   \u2013 function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)  #  Latte.set_buffer     Function .   Add or update a buffer at a particular time step  t   Params   -  net    \u2013 network to add/update buffer -  name   \u2013 name of the buffer -  arr    \u2013 buffer -  t      \u2013 time step to add buffer  Add or update a buffer   Params   -  net    \u2013 network to add/update buffer -  name   \u2013 name of the buffer -  arr    \u2013 buffer -  _copy  \u2013 whether to copy the buffer  #  Latte.rand_values     Function .   Fill buffers with names containing  randval  with random values  #  Latte.clear_values     Function .   Fill buffers with names containing  value  with zeros.  #  Latte.clear_\u2207     Function .   Fill buffers with names containing  \u2207  with zeros.", 
+            "title": "Net"
+        }, 
+        {
+            "location": "/lib/internals/#connections", 
+            "text": "#  Latte.check_one_to_one     Function .   TODO: doc  #  Latte.check_dimensions_fixed     Function .   TODO: doc", 
+            "title": "Connections"
+        }, 
+        {
+            "location": "/lib/internals/#synthesis-and-optimization", 
+            "text": "#  Latte.add_send_exprs     Function .   TODO: doc  #  Latte.add_recv_expr     Function .   TODO: doc  #  Latte.init_backward     Function .   TODO: doc  TODO: doc  TODO: doc  #  Latte.init_forward     Function .   TODO: doc  TODO: doc  TODO: doc  #  Latte.add_forward_julia_tasks     Function .   TODO: doc  #  Latte.add_forward_data_tasks     Function .   TODO: doc  #  Latte.push_compute_tasks!     Function .   TODO: doc FIXME: My, my this function is ugly, clean this up some day...  #  Latte.generate_c_function     Function .   TODO: doc  #  Latte.gen_neuron_backward     Function .   TODO: doc  #  Latte.gen_neuron_forward     Function .   Synthesize the code to execute forward for an ensemble   Params   -  ensemble      \u2013 the  AbstractEnsemble  that is having its forward synthesized -  net           \u2013 the  Net  containing  ensemble  -  compute_body  \u2013 the body that the synthesized code will be added to -  compute_args  \u2013 a set of arguments reference in  compute_body .  Any values                     referenced in the synthesized code should be added to                      compute_args  #  Latte.gen_copy_block     Function .   Synthesize a loopnest to copy value or \u2207 to the appropriate buffer  #  Latte.get_src_idx     Function .   Extract the final expression of the mapping function to be used as an indexing expression.  Handles cases where the final expression can be a Tuple or a single value.   Params   -  mapping  \u2013 an ast for a mapping function  #  Latte.optimize     Function .   Optimize a function  fn   Params   -  args                 \u2013 an ordered vector of arguments (buffers) -  tile_fusion_factors  \u2013 factors for tile fusions determined by connection                            structure -  fn                   \u2013 the ast of the function to be optimized", 
+            "title": "Synthesis and Optimization"
+        }, 
+        {
+            "location": "/lib/internals/#utility-datastructures", 
+            "text": "Latte.TaskSet\nLatte.JuliaTask\nLatte.UpdateTask\nLatte.Batch", 
+            "title": "Utility Datastructures"
         }
     ]
 }

@@ -28,6 +28,12 @@
     
         
     <url>
+     <loc>None/lib/public/</loc>
+     <lastmod>2016-04-06</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
      <loc>None/lib/internals/</loc>
      <lastmod>2016-04-06</lastmod>
      <changefreq>daily</changefreq>
