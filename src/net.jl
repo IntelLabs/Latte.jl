@@ -65,6 +65,7 @@ include("optimizers/parallelize.jl")
 Optimize a function `fn`
 
 ** Params **
+
 - `args`                -- an ordered vector of arguments (buffers)
 - `tile_fusion_factors` -- factors for tile fusions determined by connection
                            structure
@@ -179,6 +180,7 @@ expression.  Handles cases where the final expression can be a Tuple or a
 single value.
 
 ** Params **
+
 - `mapping` -- an ast for a mapping function
 """
 function get_src_idx(mapping::Expr)
@@ -195,6 +197,7 @@ end
 Synthesize the code to execute forward for an ensemble
 
 ** Params **
+
 - `ensemble`     -- the `AbstractEnsemble` that is having its forward synthesized
 - `net`          -- the `Net` containing `ensemble`
 - `compute_body` -- the body that the synthesized code will be added to
@@ -1083,6 +1086,7 @@ end
 Get a buffer associated with an ensemble
 
 ** Params **
+
 - `net`   -- network to get buffer
 - `ens`   -- the ensemble
 - `name`  -- name of buffer associated with `ens`
@@ -1095,6 +1099,7 @@ end
 Get a buffer at the time_step `t`
 
 ** Params **
+
 - `net`   -- network to get buffer
 - `name`  -- name of the buffer
 - `t`     -- time step
@@ -1107,6 +1112,7 @@ end
 Add or update a buffer at a particular time step `t`
 
 ** Params **
+
 - `net`   -- network to add/update buffer
 - `name`  -- name of the buffer
 - `arr`   -- buffer
@@ -1121,6 +1127,7 @@ end
 Add or update a buffer
 
 ** Params **
+
 - `net`   -- network to add/update buffer
 - `name`  -- name of the buffer
 - `arr`   -- buffer
@@ -1142,6 +1149,7 @@ end
 Initialize a buffer in `net`
 
 ** Params **
+
 - `net`   -- network to receive initialized buffer
 - `name`  -- name of the buffer
 - `shape` -- shape of the buffer
