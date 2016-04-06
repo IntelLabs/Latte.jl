@@ -1,7 +1,13 @@
 using Documenter, Latte
 
-makedocs()
+makedocs(
+    modules = Latte
+)
+
+custom_deps() = run(`pip install --user pygments mkdocs mkdocs-material`)
+
 deploydocs(
+    deps = custom_deps,
     repo = "github.com/IntelLabs/Latte.jl.git",
     julia = "0.4"
 )
