@@ -27,7 +27,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 export Net, init, forward, backward, clear_∇, clear_values, add_ensemble,
        add_connections, copy_from_mic, copy_to_mic, get_buffer,
-       get_param, get_value, get_gradient
+       get_value, get_gradient
 importall ParallelAccelerator
 import ParallelAccelerator.CGen
 import ParallelAccelerator.CGen.mk_parallel_loophead
@@ -52,6 +52,8 @@ LATTE_DISABLE_TILE_FUSION = false
 include("transforms/util.jl")
 include("transforms/fixed_dims.jl")
 include("transforms/distribute.jl")
+include("transforms/tree_cleaners.jl")
+include("transforms/neuron.jl")
 
 include("optimizers/tiling.jl")
 include("optimizers/fusion.jl")
@@ -60,6 +62,9 @@ include("optimizers/array_expr_inline.jl")
 include("optimizers/wrap_for_loops.jl")
 include("optimizers/parallelize.jl")
 
+"""
+TODO: doc
+"""
 function optimize(args::Vector, tile_fusion_factors::Vector, fn)
     ast = macroexpand(fn)
     ast = remove_line_nodes(ast)
@@ -88,10 +93,11 @@ function optimize(args::Vector, tile_fusion_factors::Vector, fn)
     return ast
 end
 
-include("transforms/neuron.jl")
-
 mk_clamp(idx, _max) = :($idx > 0 && $idx <= $_max)
 
+"""
+TODO: doc
+"""
 function get_src_idx(mapping)
     if isa(mapping.args[end], Expr) &&
             mapping.args[end].head == :call &&
@@ -102,6 +108,9 @@ function get_src_idx(mapping)
     end
 end
 
+"""
+TODO: doc
+"""
 function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
                             compute_args::ArgSet)
     forward_tasks = net.forward_tasks
@@ -174,6 +183,9 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
     end
 end
 
+"""
+TODO: doc
+"""
 function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
                         connection::Connection, index::Int; ∇=false)
     if ∇
@@ -244,6 +256,9 @@ function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
     gen_loop_nest(copy_block, vars, ranges)
 end
 
+"""
+TODO: doc
+"""
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
                              compute_body, compute_args::Set)
     if !(ensemble.phase in [Train, TrainTest])
@@ -309,6 +324,9 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
     union!(compute_args, args)
 end
 
+"""
+TODO: doc
+"""
 function generate_c_function(func::Function, signature::Tuple,
                              run_where::Int, signal::Array{Cint,1},
                              buffers::Dict)
@@ -363,9 +381,8 @@ function generate_c_function(func::Function, signature::Tuple,
     end
 end
 
-include("transforms/tree_cleaners.jl")
-
 """
+TODO: doc
 FIXME: My, my this function is ugly, clean this up some day...
 """
 function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
@@ -461,6 +478,9 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
     end
 end
 
+"""
+TODO: doc
+"""
 function add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net)
     test_args = (ensemble, symbol(ensemble.name, :value), net, Test)
     train_args = (ensemble, symbol(ensemble.name, :value), net, Train)
@@ -468,6 +488,9 @@ function add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
+"""
+TODO: doc
+"""
 function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::Net)
     inputs = []
     for connection in ensemble.connections
@@ -479,12 +502,21 @@ function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::N
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
+"""
+TODO: doc
+"""
 function init_forward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
 end
 
+"""
+TODO: doc
+"""
 function init_backward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
 end
 
+"""
+TODO: doc
+"""
 function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
     asts = []
     output_name = symbol(ensemble.name, :value)
@@ -514,6 +546,9 @@ function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, 
     end
 end
 
+"""
+TODO: doc
+"""
 function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
     asts = []
     output_name = symbol(ensemble.name, :∇)
@@ -539,6 +574,9 @@ function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
     append!(compute_body[Train], asts)
 end
 
+"""
+TODO: doc
+"""
 function init_forward(ensemble::NormalizationEnsemble, net::Net,
         compute_args::ArgSet, compute_body)
     args = get_forward_args(ensemble)
@@ -562,6 +600,9 @@ function init_forward(ensemble::NormalizationEnsemble, net::Net,
     push!(compute_body[ensemble.phase], body)
 end
 
+"""
+TODO: doc
+"""
 function init_backward(ensemble::NormalizationEnsemble, net::Net,
         compute_args::ArgSet, compute_body)
     args = get_backward_args(ensemble)
@@ -588,6 +629,9 @@ function init_backward(ensemble::NormalizationEnsemble, net::Net,
     unshift!(compute_body[ensemble.phase], body)
 end
 
+"""
+TODO: doc
+"""
 function add_recv_expr(net, source, ensemble, compute_body, compute_args)
     key = symbol(source.name, :value)
     source_subgroup = source.net_subgroup - 1  # -1 for zero based indexing with MPI ranks
@@ -607,6 +651,9 @@ function add_recv_expr(net, source, ensemble, compute_body, compute_args)
     end
 end
 
+"""
+TODO: doc
+"""
 function add_send_exprs(net, ensemble, compute_body, compute_args)
     for (target, tag) in net.ensemble_send_list[ensemble.name]
         target = target - 1 # 0-based indexing for MPI
@@ -628,6 +675,9 @@ function add_send_exprs(net, ensemble, compute_body, compute_args)
     end
 end
 
+"""
+TODO: doc
+"""
 function init(net::Net)
     log_info("Initializing net...")
     forward_tasks = net.forward_tasks
@@ -797,9 +847,6 @@ function get_task_args(net, task_args, t)
     args
 end
 
-function run_task(task::JuliaTask)
-end
-
 # Use metaprogramming to generate single and multi versions of forward
 # and backward.
 for direction in [:forward, :backward]
@@ -829,6 +876,9 @@ function add_ensemble(net::Net, ens::AbstractEnsemble)
     net.ensembles_map[ens.name] = ens
 end
 
+"""
+TODO: doc
+"""
 function check_dimensions_fixed(mapping::Function, sink_shape)
     n = length(sink_shape)
     is_dim_fixed = [true for _ in 1:n]
@@ -850,6 +900,9 @@ function check_dimensions_fixed(mapping::Function, sink_shape)
     is_dim_fixed
 end
 
+"""
+TODO: doc
+"""
 function check_one_to_one(mapping, shape)
     is_one_to_one = true
     for i in CartesianRange(shape)
@@ -899,6 +952,9 @@ function add_connections(net::Net, source::AbstractEnsemble,
                                        is_one_to_one, padding, recurrent))
 end
 
+"""
+Test `net` for one epoch
+"""
 function test(net::Net)
     curr_epoch = net.test_epoch
     accuracy = 0.0f0
@@ -917,6 +973,9 @@ end
 
 export save_snapshot, load_snapshot
 
+"""
+Save a snapshot of `net` to `file`
+"""
 function save_snapshot(net::Net, file::AbstractString)
     param_dict = Dict{Symbol, Vector{Param}}()
     for ens in net.ensembles
@@ -927,6 +986,11 @@ function save_snapshot(net::Net, file::AbstractString)
     save(file, "param_dict", param_dict)
 end
 
+"""
+Load a network snapshot from `file`.
+
+TODO: Can we save the structure of `net` in the snapshot?
+"""
 function load_snapshot(net::Net, file::AbstractString)
     param_dict = load(file, "param_dict")
     for ens in net.ensembles
@@ -938,6 +1002,11 @@ function load_snapshot(net::Net, file::AbstractString)
     end
 end
 
+"""
+Get the current loss for `net`
+
+TODO: This is not general, assumes one :loss ensemble
+"""
 function get_loss(net::Net)
     @latte_mpi(if haskey(net.buffers[net.curr_buffer_set][1], :lossvalue)
         loss = get_buffer(net, :lossvalue)[1]
@@ -949,6 +1018,9 @@ function get_loss(net::Net)
     return get_buffer(net, :lossvalue)[1])
 end
 
+"""
+Fill buffers with names containing `∇` with zeros.
+"""
 function clear_∇(net::Net)
     i = net.curr_buffer_set
     for t in 1:net.time_steps
@@ -960,6 +1032,9 @@ function clear_∇(net::Net)
     end
 end
 
+"""
+Fill buffers with names containing `value` with zeros.
+"""
 function clear_values(net::Net)
     i = net.curr_buffer_set
     for t in 1:net.time_steps
@@ -971,6 +1046,9 @@ function clear_values(net::Net)
     end
 end
 
+"""
+Fill buffers with names containing `randval` with random values
+"""
 function rand_values(net::Net)
     i = net.curr_buffer_set
     for t in 1:net.time_steps
@@ -982,28 +1060,53 @@ function rand_values(net::Net)
     end
 end
 
-function get_param(net::Net, name::Symbol)
-    for param in net.params
-        if param.name == name
-            return param
-        end
-    end
-    throw("Param $name not found")
-end
+"""
+Get a buffer associated with an ensemble
 
+** Params **
+- `net`   -- network to get buffer
+- `ens`   -- the ensemble
+- `name`  -- name of buffer associated with `ens`
+"""
 function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
     return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
 end
 
+"""
+Get a buffer at the time_step `t`
+
+** Params **
+- `net`   -- network to get buffer
+- `name`  -- name of the buffer
+- `t`     -- time step
+"""
 function get_buffer(net::Net, name::Symbol, t::Int=1)
     return net.buffers[net.curr_buffer_set][t][name]
 end
 
+"""
+Add or update a buffer at a particular time step `t`
+
+** Params **
+- `net`   -- network to add/update buffer
+- `name`  -- name of the buffer
+- `arr`   -- buffer
+- `t`     -- time step to add buffer
+"""
 function set_buffer(net::Net, name::Symbol, arr::Array, t::Int)
     net.buffers[1][t][name] = arr
     net.buffers[2][t][name] = arr
 end
 
+"""
+Add or update a buffer
+
+** Params **
+- `net`   -- network to add/update buffer
+- `name`  -- name of the buffer
+- `arr`   -- buffer
+- `_copy` -- whether to copy the buffer
+"""
 function set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
     for t in 1:net.time_steps
         if _copy
@@ -1016,6 +1119,16 @@ function set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
     end
 end
 
+"""
+Initialize a buffer in `net`
+
+** Params **
+- `net`   -- network to receive initialized buffer
+- `name`  -- name of the buffer
+- `shape` -- shape of the buffer
+- `func`  -- function used to initialize the buffer, should return an Array and
+             have a signature (Float32, dims...)
+"""
 function init_buffer(net::Net, name::Symbol, shape; func=zeros)
     for t in 1:net.time_steps
         net.buffers[1][t][name] = func(Float32, shape...)
