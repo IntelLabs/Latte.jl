@@ -27,3 +27,8 @@ docs_dir: 'build'
 
 pages:
     - Home: index.md
+    - Manual:
+        - Setup: man/setup.md
+        - Examples: man/examples.md
+    - Library:
+        - Internals: lib/internals.md
