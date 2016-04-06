@@ -6,7 +6,7 @@
 
 **IMPORTANT:** Latte is prelease (alpha) software, please report bugs using the [Github issue tracker](https://github.com/IntelLabs/Latte.jl/issues). For usage questions, visit the [Gitter room](https://gitter.im/IntelLabs/Latte.jl).
 
-Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials and documentation.
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](http://intellabs.github.io/Latte.jl/latest/)
 
 # Setup
 
