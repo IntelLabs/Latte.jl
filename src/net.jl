@@ -90,118 +90,6 @@ end
 
 include("transforms/neuron.jl")
 
-function clear_∇(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "∇")
-                fill!(net.buffers[i][t][name], 0.0)
-            end
-        end
-    end
-end
-
-function clear_values(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "value")
-                fill!(net.buffers[i][t][name], 0.0)
-            end
-        end
-    end
-end
-
-function rand_values(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "randval")
-                rand!(net.buffers[i][t][name])
-            end
-        end
-    end
-end
-
-function get_param(net::SingleNet, name::Symbol)
-    for param in net.params
-        if param.name == name
-            return param
-        end
-    end
-    throw("Param $name not found")
-end
-
-function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
-    return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
-end
-
-function get_buffer(net::SingleNet, name::Symbol, t::Int=1)
-    return net.buffers[net.curr_buffer_set][t][name]
-end
-
-function set_buffer(net::SingleNet, name::Symbol, arr::Array, t::Int)
-    net.buffers[1][t][name] = arr
-    net.buffers[2][t][name] = arr
-end
-
-function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
-    for t in 1:net.time_steps
-        if _copy
-            net.buffers[1][t][name] = copy(arr)
-            net.buffers[2][t][name] = copy(arr)
-        else
-            net.buffers[1][t][name] = arr
-            net.buffers[2][t][name] = arr
-        end
-    end
-end
-
-function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
-    for t in 1:net.time_steps
-        net.buffers[1][t][name] = func(Float32, shape...)
-        net.buffers[2][t][name] = func(Float32, shape...)
-    end
-end
-
-"""
-Generates a loopnest with `body` as the body of the inner most loop using
-`vars` as a list of loop variables and `ranges` as a list of ranges for each
-loop nest.
-
-Example:
-    julia> gen_loop_nest(:(println((a, b))), [:a, :b], [1:2, 1:3])
-    :(for b = 1:3
-          for a = 1:2
-              println((a, b))
-          end
-      end)
-"""
-function gen_loop_nest(body, vars, ranges)
-    nest = body
-    for (var, range) in zip(vars, ranges)
-        nest = :(for $var = $range
-            $nest
-        end)
-    end
-    nest
-end
-
-"""
-Synthesizes a loop nest around body based on the dimensionality of `buffer`.
-We split each statement in `statements` into a separate synthesized loop nest
-to facilitate pattern matching of statements.  If no pattern matching occurs,
-the identical loop nests will be fused later.
-"""
-function append_neuron_loop!(body::Vector, statements::Vector, buffer::Array)
-    N = ndims(buffer)
-    for statement in statements
-        vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-        ranges = [:(1:$(size(buffer,i)))    for i in 1:N]
-        push!(body, gen_loop_nest(statement, vars, ranges))
-    end
-end
-
 mk_clamp(idx, _max) = :($idx > 0 && $idx <= $_max)
 
 function get_src_idx(mapping)
@@ -1055,4 +943,78 @@ function get_loss(net::Net)
         return sync_intra_loss(net, 0.0f0)
     end, 
     return get_buffer(net, :lossvalue)[1])
+end
+
+function clear_∇(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "∇")
+                fill!(net.buffers[i][t][name], 0.0)
+            end
+        end
+    end
+end
+
+function clear_values(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "value")
+                fill!(net.buffers[i][t][name], 0.0)
+            end
+        end
+    end
+end
+
+function rand_values(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "randval")
+                rand!(net.buffers[i][t][name])
+            end
+        end
+    end
+end
+
+function get_param(net::SingleNet, name::Symbol)
+    for param in net.params
+        if param.name == name
+            return param
+        end
+    end
+    throw("Param $name not found")
+end
+
+function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
+    return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
+end
+
+function get_buffer(net::SingleNet, name::Symbol, t::Int=1)
+    return net.buffers[net.curr_buffer_set][t][name]
+end
+
+function set_buffer(net::SingleNet, name::Symbol, arr::Array, t::Int)
+    net.buffers[1][t][name] = arr
+    net.buffers[2][t][name] = arr
+end
+
+function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
+    for t in 1:net.time_steps
+        if _copy
+            net.buffers[1][t][name] = copy(arr)
+            net.buffers[2][t][name] = copy(arr)
+        else
+            net.buffers[1][t][name] = arr
+            net.buffers[2][t][name] = arr
+        end
+    end
+end
+
+function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
+    for t in 1:net.time_steps
+        net.buffers[1][t][name] = func(Float32, shape...)
+        net.buffers[2][t][name] = func(Float32, shape...)
+    end
 end
