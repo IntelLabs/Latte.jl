@@ -57,18 +57,17 @@ end
 A parameter in a `Net` (learned during training)
 
 ** Fields **
+
 - `name`          -- the name of the parameter
 - `gradient_name` -- the name of the gradient (should be ∇`name`)
 - `hist_name`     -- the name of the history buffer (should be `name`hist)
 - learning_rate   -- local learning rate for the parameter
 - regu_coef       -- local regularization coefficient
 - clip_gradients  -- NOT IMPLEMENTED, gradient clipping parameter
-
-- value    -- buffer containing the value of the parameter
-- gradient -- buffer containing the gradient of the parameter
-- hist     -- buffer containing the history of the parameter
-
-- request  -- request id, used for MPI data parallelism
+- value           -- buffer containing the value of the parameter
+- gradient        -- buffer containing the gradient of the parameter
+- hist            -- buffer containing the history of the parameter
+- request         -- request id, used for MPI data parallelism
 """
 type Param
     name           :: Symbol
@@ -92,7 +91,9 @@ end
 
 """
 A container for tasks for multiple `Phase`s
+
 ** Fields **
+
 - tasks -- a dictionary containing a `Vector` of tasks for each `Phase`
 """
 type TaskSet
@@ -133,6 +134,7 @@ end
 
 """
 ** Fields **
+
 - `ensembles`          -- a vector containing each `Ensemble` in the network.
 - `ensembles_map`      -- a mapping between ensemble names in the network to the
                           instance stored in `ensembles`
@@ -226,6 +228,7 @@ batch_size(net::Net) = net.batch_size
 A connection between two ensembles.
 
 ** Fields **
+
 - source        -- the source `Ensemble`
 - mapping       -- a mapping function to a range of neurons in `source`
 - shape         -- shape of the connected neurons returned by `mapping`
@@ -252,6 +255,7 @@ end
 An ensemble
 
 ** Fields **
+
 - name         -- name of the ensemble
 - neurons      -- an array of neurons of type `T`
 - connections  -- a list of `Ensemble`s connected to this ensemble
