@@ -48,8 +48,6 @@ type Shared{T}
     value :: T
 end
 
-abstract Net
-
 type Param
     name           :: Symbol
     gradient_name  :: Symbol
@@ -105,42 +103,96 @@ function Base.union!(first::ArgSet, second::ArgSet)
     union!(first[Test], second[Test])
 end
 
-type SingleNet <: Net
+"""
+** Fields **
+- `ensembles`          -- a vector containing each `Ensemble` in the network.
+- `ensembles_map`      -- a mapping between ensemble names in the network to the
+                          instance stored in `ensembles`
+- `buffers`            -- the internal buffers used by the network
+- `curr_buffer_set`    -- the current buffer set (used for double buffering)
+- `forward_tasks`      -- a set of tasks for performing forward propogation of the network
+- `backward_tasks`     -- a set of tasks for performing back propogation of the network
+- `update_tasks`       -- a set of tasks for performing parameter updates
+- `params`             -- a vector of `Param` instances corresponding to network parameters
+- `run_where`          -- DEPRECATED
+- `signal`             -- DEPRECATED
+- `batch_size`         -- the batch size of the network 
+                          TODO: support different batch sizes for train/test
+- `train_epoch`        -- number of epochs completed for training
+- `test_epoch`         -- number of epochs completed for testing
+- `curr_time_step`     -- the current time step (for RNNs)
+- `time_steps`         -- total number of time steps to unroll (for RNNs)
+- `num_subgroups`      -- number of partitions in network (for model parallelism)
+- `ensemble_send_list` -- a mapping between ensembles and a list of subgroups to send
+                          values to, used internally when synthesizing code for
+                          model parallelism
+"""
+type Net
     ensembles          :: Vector{AbstractEnsemble}
     ensembles_map      :: Dict{Symbol, AbstractEnsemble}
-    buffers            :: Tuple{Vector{Dict{Symbol, Array}},Vector{Dict{Symbol, Array}}}
+
+    buffers            :: Tuple{Vector{Dict{Symbol, Array}},
+                                Vector{Dict{Symbol, Array}}}
     curr_buffer_set    :: Int
+
     forward_tasks      :: TaskSet
     backward_tasks     :: TaskSet
     update_tasks       :: Vector{LatteTask}
+
     params             :: Vector{Param}
+
     run_where          :: Int
     signal             :: Array{Cint, 1}
+
     batch_size         :: Int
+
     train_epoch        :: Int
     test_epoch         :: Int
+
     curr_time_step     :: Int
     time_steps         :: Int
+
     num_subgroups      :: Int
     ensemble_send_list :: Dict{Symbol, Vector{Tuple{Int, Int}}}
-    SingleNet(batch_size, time_steps=1, num_subgroups=1) = new([],
-                Dict{Symbol, AbstractEnsemble}(),
+
+    Net(batch_size, time_steps=1, num_subgroups=1) = new(
+                [],                                                  # ensembles
+                Dict{Symbol, AbstractEnsemble}(),                    # ensembles_map
                 tuple([Dict{Symbol,Array}() for _ in 1:time_steps],
-                      [Dict{Symbol,Array}() for _ in 1:time_steps]),
-                1,
-                TaskSet(),
-                TaskSet(),
-                [], [], -1, Array(Cint, 1), batch_size, 1, 1, 1, time_steps, num_subgroups,
-                Dict{Symbol, Vector{Int}}())
+                      [Dict{Symbol,Array}() for _ in 1:time_steps]), # buffers
+                1,                                                   # curr_buffer_set 
+                TaskSet(),                                           # forward_tasks
+                TaskSet(),                                           # backward_tasks
+                [],                                                  # update_tasks
+                Param[],                                             # params
+                -1,                                                  # run_where 
+                Array(Cint, 1),                                      # signal
+                batch_size,                                          # batch_size
+                1,                                                   # train_epoch
+                1,                                                   # test_epoch
+                1,                                                   # curr_time_step
+                time_steps,                                          # time_steps
+                num_subgroups,                                       # num_subgroups
+                Dict{Symbol, Vector{Int}}())                         # ensemble_send_list
 end
 
+"""
+Main `Net` constructor that should be used.
+** Params **
+- `batch_size`    -- batch size of the network
+- `time_steps`    -- number of time steps to unroll the network (for RNNs)
+- `num_subgroups` -- number of subgroups in the network (for model parallelism)
+"""
 function Net(batch_size::Int; time_steps=1, num_subgroups=1)
-    net = SingleNet(batch_size, time_steps, num_subgroups)
+    net = Net(batch_size, time_steps, num_subgroups)
     @latte_mpi initialize_communicators(net)
     net
 end
 
-batch_size(net::SingleNet) = net.batch_size
+"""
+Returns the batch size of the network
+"""
+batch_size(net::Net) = net.batch_size
 
 type Connection
     source        :: AbstractEnsemble

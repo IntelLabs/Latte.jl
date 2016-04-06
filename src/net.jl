@@ -620,7 +620,7 @@ function init_backward(ensemble::NormalizationEnsemble, net::Net,
 end
 
 
-function init(net::SingleNet)
+function init(net::Net)
     log_info("Initializing net...")
     forward_tasks = net.forward_tasks
     backward_tasks = net.backward_tasks
@@ -808,7 +808,7 @@ end
 # and backward.
 for direction in [:forward, :backward]
     tasks = symbol(direction,:_tasks)
-    @eval function $direction(net::SingleNet; phase=Train, solver=nothing)
+    @eval function $direction(net::Net; phase=Train, solver=nothing)
         for t = 1:net.time_steps
             net.curr_time_step = t
             for (index, task) in enumerate(net.$tasks[phase])
@@ -895,7 +895,7 @@ function add_connections(net::Net, source::AbstractEnsemble,
                                        is_one_to_one, padding, recurrent))
 end
 
-function test(net::SingleNet)
+function test(net::Net)
     curr_epoch = net.test_epoch
     accuracy = 0.0f0
     num_batches = 0.0f0
@@ -978,7 +978,7 @@ function rand_values(net::Net)
     end
 end
 
-function get_param(net::SingleNet, name::Symbol)
+function get_param(net::Net, name::Symbol)
     for param in net.params
         if param.name == name
             return param
@@ -991,16 +991,16 @@ function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
     return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
 end
 
-function get_buffer(net::SingleNet, name::Symbol, t::Int=1)
+function get_buffer(net::Net, name::Symbol, t::Int=1)
     return net.buffers[net.curr_buffer_set][t][name]
 end
 
-function set_buffer(net::SingleNet, name::Symbol, arr::Array, t::Int)
+function set_buffer(net::Net, name::Symbol, arr::Array, t::Int)
     net.buffers[1][t][name] = arr
     net.buffers[2][t][name] = arr
 end
 
-function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
+function set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
     for t in 1:net.time_steps
         if _copy
             net.buffers[1][t][name] = copy(arr)
@@ -1012,7 +1012,7 @@ function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
     end
 end
 
-function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
+function init_buffer(net::Net, name::Symbol, shape; func=zeros)
     for t in 1:net.time_steps
         net.buffers[1][t][name] = func(Float32, shape...)
         net.buffers[2][t][name] = func(Float32, shape...)
