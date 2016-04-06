@@ -31,23 +31,45 @@ abstract NormalizationEnsemble <: AbstractEnsemble
 
 abstract LatteTask
 
+"""
+A task that calls `func` with `args...`
+"""
 type JuliaTask <: LatteTask
     func :: Function
     args :: Tuple
 end
 
+"""
+A task that updates parameter `param_id`
+"""
 type UpdateTask <: LatteTask
     param_id   :: UInt64
 end
 
+"""
+Used in neuron definitions to mark a field to be unique per batch item
+"""
 type Batch{T}
     init :: T
 end
 
-type Shared{T}
-    value :: T
-end
+"""
+A parameter in a `Net` (learned during training)
 
+** Fields **
+- `name`          -- the name of the parameter
+- `gradient_name` -- the name of the gradient (should be ∇`name`)
+- `hist_name`     -- the name of the history buffer (should be `name`hist)
+- learning_rate   -- local learning rate for the parameter
+- regu_coef       -- local regularization coefficient
+- clip_gradients  -- NOT IMPLEMENTED, gradient clipping parameter
+
+- value    -- buffer containing the value of the parameter
+- gradient -- buffer containing the gradient of the parameter
+- hist     -- buffer containing the history of the parameter
+
+- request  -- request id, used for MPI data parallelism
+"""
 type Param
     name           :: Symbol
     gradient_name  :: Symbol
@@ -60,6 +82,7 @@ type Param
     gradient :: Array
     hist     :: Array
     request  :: Cint
+
     Param(ensemble_name::Symbol, name::Symbol,
           learning_rate::Float32, regu_coef::Float32) =
               new(symbol(ensemble_name, name),
@@ -67,14 +90,19 @@ type Param
                   symbol(ensemble_name, name, :hist), learning_rate, regu_coef, -1.0f0)
 end
 
+"""
+A container for tasks for multiple `Phase`s
+** Fields **
+- tasks -- a dictionary containing a `Vector` of tasks for each `Phase`
+"""
 type TaskSet
     tasks :: Dict{Phase, Vector{LatteTask}}
     TaskSet() = new(Dict{Phase, Vector{LatteTask}}(Train => [], Test => []))
 end
 
-function TaskSet(tasks::Dict{Phase, Set})
-    @assert haskey(tasks, Train) && haskey(tasks, Test)
-end
+#= function TaskSet(tasks::Dict{Phase, Set}) =#
+#=     @assert haskey(tasks, Train) && haskey(tasks, Test) =#
+#= end =#
 
 function Base.getindex(task_set::TaskSet, phase::Phase)
     return task_set.tasks[phase]

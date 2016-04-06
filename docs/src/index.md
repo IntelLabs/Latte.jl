@@ -2,3 +2,8 @@
     
     {docs}
     Net
+    Param
+    TaskSet
+    JuliaTask
+    UpdateTask
+    Batch

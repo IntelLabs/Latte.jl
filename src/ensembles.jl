@@ -140,8 +140,6 @@ inputs array using ArrayViews and remove the need for a CopyTask
             fill!(arr, field.init)
             set_buffer(net, key, arr)
             push!(ensemble.batch_fields, name)
-        elseif isa(field, Shared)
-            # Skip
         elseif !isbits(typ)
             uniform_across_dim = [true for _ in 1:length(shape)]
             first = getfield(ensemble.neurons[ones(Int, length(shape))...], name)
@@ -274,8 +272,6 @@ end
             fill!(arr, field.init)
             set_buffer(net, key, arr)
             push!(ensemble.batch_fields, name)
-        elseif isa(field, Shared)
-            throw("Not implemented error")
         else
             arr = map((elem) -> getfield(elem, name), ensemble.neurons)
             for t = 1:net.time_steps
