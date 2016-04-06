@@ -49,39 +49,9 @@ NOFUSE = 0
 LATTE_DISABLE_TILING = false
 LATTE_DISABLE_TILE_FUSION = false
 
-"""
-Construct a Dict{Symbol, Any} that maps the arguments of the function
-`ast` to the correspondnig value in Vector `args`.
-"""
-function build_arg_name_map(args::Vector, ast::Expr)
-    @assert is_function(ast)
-    map = Dict()
-    for (index, arg) in enumerate(ast.args[1].args[2:end])
-        map[arg.args[1]] = args[index]
-    end
-    map
-end
-
+include("transforms/util.jl")
 include("transforms/fixed_dims.jl")
-
-function distribute_batch_loops(statements)
-    new_body = []
-    for statement in statements
-        if isa(statement, Expr) && statement.head == :for
-            for expr in statement.args[2].args
-                loop = deepcopy(statement)
-                if isa(expr, LineNumberNode) || isa(expr, LabelNode) || expr.head == :line
-                    continue
-                end
-                loop.args[2].args = [expr]
-                push!(new_body, loop)
-            end
-        else
-            push!(new_body, statement)
-        end
-    end
-    new_body
-end
+include("transforms/distribute.jl")
 
 include("optimizers/tiling.jl")
 include("optimizers/fusion.jl")
