@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\n\n\nSetup\n\n\n\n\nPrerequisites\n\n\nTo build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:\n\n\n$ sudo apt-get install hdf5-tools libhdf5-dev cmake\n\n\n\n\n\nLatte currently depends on \nIntel MKL\n and the \nIntel C++ Compiler (icpc)\n.\n\n\n\n\nQuick Install\n\n\n# Latte currently depends on the master branch of these packages\n\n\njulia\n \nPkg\n.\nclone\n(\nhttps://github.com/IntelLabs/Latte.jl\n)\n\n\njulia\n \nPkg\n.\ncheckout\n(\nCompilerTools\n)\n\n\njulia\n \nPkg\n.\ncheckout\n(\nParallelAccelerator\n)\n\n\njulia\n \n# To build with MPI enabled, uncomment these lines\n\n\njulia\n \n# ENV[\nLATTE_BUILD_MPI\n] = 1\n\n\njulia\n \n# ENV[\nCXX\n] = \nmpiicpc\n  # Replace with your mpi compiler wrapper\n\n\njulia\n \nPkg\n.\nbuild\n(\nLatte\n)\n\n\n\n\n\n\n\n\nExamples\n\n\n\n\nMNIST\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia mnist.jl\n\n\n\n\n\n\n\ncifar10\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia vgg-mini.jl\n\n\n\n\n\n\n\nLibrary Outline", 
+            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline", 
             "title": "Home"
         }, 
         {
@@ -11,34 +11,9 @@
             "title": "Latte.jl"
         }, 
         {
-            "location": "/#setup", 
-            "text": "", 
-            "title": "Setup"
-        }, 
-        {
-            "location": "/#prerequisites", 
-            "text": "To build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:  $ sudo apt-get install hdf5-tools libhdf5-dev cmake  Latte currently depends on  Intel MKL  and the  Intel C++ Compiler (icpc) .", 
-            "title": "Prerequisites"
-        }, 
-        {
-            "location": "/#quick-install", 
-            "text": "# Latte currently depends on the master branch of these packages  julia   Pkg . clone ( https://github.com/IntelLabs/Latte.jl )  julia   Pkg . checkout ( CompilerTools )  julia   Pkg . checkout ( ParallelAccelerator )  julia   # To build with MPI enabled, uncomment these lines  julia   # ENV[ LATTE_BUILD_MPI ] = 1  julia   # ENV[ CXX ] =  mpiicpc   # Replace with your mpi compiler wrapper  julia   Pkg . build ( Latte )", 
-            "title": "Quick Install"
-        }, 
-        {
-            "location": "/#examples", 
-            "text": "", 
-            "title": "Examples"
-        }, 
-        {
-            "location": "/#mnist", 
-            "text": "$  cd  ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$  cd  ..\n$ julia mnist.jl", 
-            "title": "MNIST"
-        }, 
-        {
-            "location": "/#cifar10", 
-            "text": "$  cd  ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$  cd  ..\n$ julia vgg-mini.jl", 
-            "title": "cifar10"
+            "location": "/#manual-outline", 
+            "text": "Setup  Prerequisites  Quick Install    Examples  MNIST  cifar10", 
+            "title": "Manual Outline"
         }, 
         {
             "location": "/#library-outline", 

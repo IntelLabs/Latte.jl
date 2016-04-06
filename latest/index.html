@@ -179,14 +179,8 @@
         <ul>
           
             <li class="anchor">
-              <a title="Setup" href="#setup">
-                Setup
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="Examples" href="#examples">
-                Examples
+              <a title="Manual Outline" href="#manual-outline">
+                Manual Outline
               </a>
             </li>
           
@@ -214,49 +208,20 @@
           
           <p><a id='Latte.jl-1'></a></p>
 <h1 id="lattejl">Latte.jl</h1>
-<p><a id='Setup-1'></a></p>
-<h2 id="setup">Setup</h2>
-<p><a id='Prerequisites-1'></a></p>
-<h3 id="prerequisites">Prerequisites</h3>
-<p>To build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:</p>
-<div class="codehilite"><pre><span></span>$ sudo apt-get install hdf5-tools libhdf5-dev cmake
-</pre></div>
-
-
-<p>Latte currently depends on <a href="https://software.intel.com/en-us/intel-mkl">Intel MKL</a> and the <a href="https://software.intel.com/en-us/c-compilers">Intel C++ Compiler (icpc)</a>.</p>
-<p><a id='Quick-Install-1'></a></p>
-<h3 id="quick-install">Quick Install</h3>
-<div class="codehilite"><pre><span></span><span class="c"># Latte currently depends on the master branch of these packages</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="s">&quot;https://github.com/IntelLabs/Latte.jl&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s">&quot;CompilerTools&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s">&quot;ParallelAccelerator&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># To build with MPI enabled, uncomment these lines</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># ENV[&quot;LATTE_BUILD_MPI&quot;] = 1</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># ENV[&quot;CXX&quot;] = &quot;mpiicpc&quot;  # Replace with your mpi compiler wrapper</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s">&quot;Latte&quot;</span><span class="p">)</span>
-</pre></div>
-
-
-<p><a id='Examples-1'></a></p>
-<h2 id="examples">Examples</h2>
-<p><a id='MNIST-1'></a></p>
-<h3 id="mnist">MNIST</h3>
-<div class="codehilite"><pre><span></span>$ <span class="nb">cd</span> ~/.julia/v0.4/Latte/examples/mnist/data
-$ ./get-data.sh
-$ <span class="nb">cd</span> ..
-$ julia mnist.jl
-</pre></div>
-
-
-<p><a id='cifar10-1'></a></p>
-<h3 id="cifar10">cifar10</h3>
-<div class="codehilite"><pre><span></span>$ <span class="nb">cd</span> ~/.julia/v0.4/Latte/examples/cifar10/data
-$ ./get-data.sh
-$ <span class="nb">cd</span> ..
-$ julia vgg-mini.jl
-</pre></div>
-
-
+<p><a id='Manual-Outline-1'></a></p>
+<h2 id="manual-outline">Manual Outline</h2>
+<ul>
+<li><a href="man/setup.md#Setup-1">Setup</a><ul>
+<li><a href="man/setup.md#Prerequisites-1">Prerequisites</a></li>
+<li><a href="man/setup.md#Quick-Install-1">Quick Install</a></li>
+</ul>
+</li>
+<li><a href="man/examples.md#Examples-1">Examples</a><ul>
+<li><a href="man/examples.md#MNIST-1">MNIST</a></li>
+<li><a href="man/examples.md#cifar10-1">cifar10</a></li>
+</ul>
+</li>
+</ul>
 <p><a id='Library-Outline-1'></a></p>
 <h2 id="library-outline">Library Outline</h2>
           <aside class="copyright" role="note">
