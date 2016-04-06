@@ -43,6 +43,16 @@
     Latte.get_src_idx
     Latte.optimize
 
+    Latte.unpack_tiled_loop
+    Latte.is_tiled_loop
+    Latte.get_tile_fusion_factor_forward
+    Latte.get_tile_fusion_factor_backward
+    Latte.update_tile_var
+    Latte.inner_loop_tiler
+    Latte.get_inner_loop_tiler
+    Latte.tile_size_inliner
+    Latte.get_tile_loops
+
 ## Utility Datastructures
     Latte.TaskSet
     Latte.JuliaTask
