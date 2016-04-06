@@ -22,6 +22,8 @@ before_install:
     - sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-mpich2-dev -y
     - sudo apt-get install libopenblas-dev -y
 
+before_script:
+      - export PATH=$HOME/.local/bin:$PATH
 
 script:
     - julia -e 'Pkg.clone(pwd());'
@@ -34,6 +36,8 @@ script:
 
 after_success:
     - julia bin/coverage.jl
+    - julia -e 'Pkg.clone("https://github.com/MichaelHatherly/Documenter.jl")'
+    - julia -e 'cd(Pkg.dir("Latte")); include(joinpath("docs", "make.jl"))'
 
 notifications:
     webhooks:
