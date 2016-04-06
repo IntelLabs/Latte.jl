@@ -102,57 +102,6 @@ function get_src_idx(mapping)
     end
 end
 
-"""
-Generate a loop nest to perform the copy from the source of `connection`
-to an input buffer for `ensemble`
-"""
-function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
-                               connection::Connection, index::Int)
-    block = []
-    value = get_buffer(net, ensemble, :value)
-    N = ndims(value)
-    sink_name   = symbol(ensemble.name,:inputs,index)
-    source_name = symbol(connection.source.name,:value)
-    source      = get_buffer(net, source_name)
-
-    # connection.is_dim_fixed is a Bool[], we use the inverse to select non
-    # fixed indices
-    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
-
-    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
-
-    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
-    mapping_inlined = inline(connection.mapping, mapping_args)
-    src_idx = get_src_idx(mapping_inlined)
-    body = Expr(:block)
-    idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
-
-    for_block = gen_loop_nest(body, idx, src_idx)
-
-    rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
-    if connection.padding > 0
-        cond = mk_clamp(idx[1], size(source, 1))
-        for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-            cond = :($cond && $(mk_clamp(i, d)))
-        end
-        rhs = :(ifelse($cond, $rhs, 0.0f0))
-    end
-    append!(body.args, (quote
-        $sink_name[count, $(sink_idx...)] = $rhs
-        count += 1
-    end).args)
-    copy_block = quote
-        $(mapping_inlined.args[1:end-1]...)
-        count = 1
-        $for_block
-    end
-    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(value,i))) for i in 1:N-1]
-    push!(ranges, :(1:$(size(value,N))))
-    push!(block, gen_loop_nest(copy_block, vars, ranges))
-    block
-end
-
 function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
                             compute_args::ArgSet)
     forward_tasks = net.forward_tasks
@@ -172,8 +121,7 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
         if connection.copy
             source_name = symbol(connection.source.name,:value)
             push!(args, source_name)
-            append!(body, gen_copy_block_inputs(net, ensemble, connection,
-                index))
+            push!(body, gen_copy_block(net, ensemble, connection, index))
         end
     end
     # Transform body of neuron function
@@ -226,53 +174,74 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
     end
 end
 
-function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
-                                connection::Connection, index::Int)
-    body = []
-    ∇ = get_buffer(net, ensemble, :∇)
-    N = ndims(∇)
-    sink_name   = symbol(ensemble.name, :∇inputs, index)
-    source_name = symbol(connection.source.name, :∇)
-    source      = get_buffer(net, connection.source, :∇)
-    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
-    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
-    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
+function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
+                        connection::Connection, index::Int; ∇=false)
+    if ∇
+        shape = size(get_buffer(net, ensemble, :∇))
+        sink_name  = symbol(ensemble.name, :∇inputs, index)
+        source_name = symbol(connection.source.name, :∇)
+    else
+        shape = size(get_buffer(net, ensemble, :value))
+        sink_name   = symbol(ensemble.name,:inputs,index)
+        source_name = symbol(connection.source.name,:value)
+    end
+    N = length(shape)
+    source = get_buffer(net, source_name)
 
+    # connection.is_dim_fixed is a Bool[], we use the inverse to select non
+    # fixed indices
+    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
+
+    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
+
+    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
     mapping_inlined = inline(connection.mapping, mapping_args)
     src_idx = get_src_idx(mapping_inlined)
 
-    for_block = Expr(:for, Expr(:block), Expr(:block))
-    block = Expr(:block)
+    body = Expr(:block)
     idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
-    for_block = gen_loop_nest(block, idx, src_idx)
+    for_block = gen_loop_nest(body, idx, src_idx)
 
-    assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
-                   $sink_name[count, $(sink_idx...)])
-    if connection.padding > 0
-        cond = mk_clamp(idx[1], size(source, 1))
-        for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-            cond = :($cond && $(mk_clamp(i, d)))
+    if ∇
+        assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
+                       $sink_name[count, $(sink_idx...)])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            assign = :(if $cond
+                $assign
+            end)
         end
-        assign = :(if $cond
+        append!(body.args, (quote
             $assign
-        end)
+            $sink_name[count, $(sink_idx...)] = 0.0f0
+            count += 1
+        end).args)
+    else
+        rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            rhs = :(ifelse($cond, $rhs, 0.0f0))
+        end
+        append!(body.args, (quote
+            $sink_name[count, $(sink_idx...)] = $rhs
+            count += 1
+        end).args)
     end
-    append!(block.args, (quote
-        $assign
-        $sink_name[count, $(sink_idx...)] = 0.0f0
-        count += 1
-    end).args)
     copy_block = quote
         $(mapping_inlined.args[1:end-1]...)
         count = 1
         $for_block
     end
     vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(∇,i))) for i in 1:N-1]
-    push!(ranges, :(1:$(size(∇,N))))
-    push!(body, gen_loop_nest(copy_block, vars, ranges))
-
-    body
+    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(shape[i])) for i in 1:N-1]
+    push!(ranges, :(1:$(shape[N])))
+    gen_loop_nest(copy_block, vars, ranges)
 end
 
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
@@ -323,7 +292,7 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
         if !isa(connection.source, DataEnsemble) && connection.copy
             source_name = symbol(connection.source.name, :∇)
             push!(args, source_name)
-            append!(body, gen_copy_block_∇inputs(net, ensemble, connection, index))
+            push!(body, gen_copy_block(net, ensemble, connection, index; ∇=true))
         end
     end
     defn = optimize(arg_bufs, tile_fusion_factors, :(function $fn($(params...))
