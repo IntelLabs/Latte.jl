@@ -54,6 +54,8 @@
     Latte.get_tile_loops
 
 ## Utility Datastructures
+
+    {docs}
     Latte.TaskSet
     Latte.JuliaTask
     Latte.UpdateTask
