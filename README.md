@@ -12,15 +12,16 @@ Check out the [wiki](https://github.com/IntelLabs/Latte.jl/wiki) for tutorials a
 
 ## Prerequisites
 
-To build Latte, you will need HDF5.  What to install will vary by platform and
-your needs.  On Ubuntu, try:
+To build Latte, you will need HDF5 and cmake.  What to install will vary by
+platform and your needs.  On Ubuntu, try:
 
 ```shell
-$ sudo apt-get install hdf5-tools libhdf5-dev 
+$ sudo apt-get install hdf5-tools libhdf5-dev cmake
 ```
 
 Latte currently depends on [Intel
-MKL](https://software.intel.com/en-us/intel-mkl).
+MKL](https://software.intel.com/en-us/intel-mkl) and the [Intel C++ Compiler
+(icpc)](https://software.intel.com/en-us/c-compilers).
 
 ## Quick Install
 ```julia
