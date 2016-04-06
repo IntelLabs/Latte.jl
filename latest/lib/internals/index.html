@@ -310,6 +310,127 @@
 <li>hist            – buffer containing the history of the parameter</li>
 <li>request         – request id, used for MPI data parallelism</li>
 </ul>
+<p><a id='Latte.init_buffer' href='#Latte.init_buffer'>#</a>
+<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Initialize a buffer in <code>net</code></p>
+<p><strong> Params </strong> - <code>net</code>   – network to receive initialized buffer - <code>name</code>  – name of the buffer - <code>shape</code> – shape of the buffer - <code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</p>
+<p><a id='Latte.set_buffer' href='#Latte.set_buffer'>#</a>
+<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Add or update a buffer at a particular time step <code>t</code></p>
+<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>t</code>     – time step to add buffer</p>
+<p>Add or update a buffer</p>
+<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>_copy</code> – whether to copy the buffer</p>
+<p><a id='Latte.get_buffer' href='#Latte.get_buffer'>#</a>
+<strong><code>Latte.get_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Get a buffer at the time_step <code>t</code></p>
+<p><strong> Params </strong> - <code>net</code>   – network to get buffer - <code>name</code>  – name of the buffer - <code>t</code>     – time step</p>
+<p>Get a buffer associated with an ensemble</p>
+<p><strong> Params </strong> - <code>net</code>   – network to get buffer - <code>ens</code>   – the ensemble - <code>name</code>  – name of buffer associated with <code>ens</code></p>
+<p><a id='Latte.rand_values' href='#Latte.rand_values'>#</a>
+<strong><code>Latte.rand_values</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>randval</code> with random values</p>
+<p><a id='Latte.clear_values' href='#Latte.clear_values'>#</a>
+<strong><code>Latte.clear_values</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>value</code> with zeros.</p>
+<p><a id='Latte.clear_' href='#Latte.clear_'>#</a>
+<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Fill buffers with names containing <code>∇</code> with zeros.</p>
+<p><a id='Latte.load_snapshot' href='#Latte.load_snapshot'>#</a>
+<strong><code>Latte.load_snapshot</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Load a network snapshot from <code>file</code>.</p>
+<p>TODO: Can we save the structure of <code>net</code> in the snapshot?</p>
+<p><a id='Latte.save_snapshot' href='#Latte.save_snapshot'>#</a>
+<strong><code>Latte.save_snapshot</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Save a snapshot of <code>net</code> to <code>file</code></p>
+<p><a id='Latte.test' href='#Latte.test'>#</a>
+<strong><code>Latte.test</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Test <code>net</code> for one epoch</p>
+<p><a id='Latte.add_connections' href='#Latte.add_connections'>#</a>
+<strong><code>Latte.add_connections</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Connect neurons in <code>source</code> to neurons in <code>sink</code> using the function <code>mapping</code>. <code>mapping</code> should be a function with a parameter for the index in each dimension of sink. For example, if sink is a 3-d ensemble, mapping = f(i, j, k) -&gt; ...</p>
+<p><code>mapping</code> should return a tuple of continuous ranges corresponding to the indices of neurons in source that should be connected to the neuron at the current index</p>
+<p><a id='Latte.check_one_to_one' href='#Latte.check_one_to_one'>#</a>
+<strong><code>Latte.check_one_to_one</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.check_dimensions_fixed' href='#Latte.check_dimensions_fixed'>#</a>
+<strong><code>Latte.check_dimensions_fixed</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_ensemble' href='#Latte.add_ensemble'>#</a>
+<strong><code>Latte.add_ensemble</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Add an ensemble to the network <code>net</code></p>
+<p><a id='Latte.init' href='#Latte.init'>#</a>
+<strong><code>Latte.init</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_send_exprs' href='#Latte.add_send_exprs'>#</a>
+<strong><code>Latte.add_send_exprs</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_recv_expr' href='#Latte.add_recv_expr'>#</a>
+<strong><code>Latte.add_recv_expr</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.init_backward' href='#Latte.init_backward'>#</a>
+<strong><code>Latte.init_backward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p><a id='Latte.init_forward' href='#Latte.init_forward'>#</a>
+<strong><code>Latte.init_forward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_julia_tasks' href='#Latte.add_forward_julia_tasks'>#</a>
+<strong><code>Latte.add_forward_julia_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_data_tasks' href='#Latte.add_forward_data_tasks'>#</a>
+<strong><code>Latte.add_forward_data_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.push_compute_tasks!' href='#Latte.push_compute_tasks!'>#</a>
+<strong><code>Latte.push_compute_tasks!</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc FIXME: My, my this function is ugly, clean this up some day...</p>
+<p><a id='Latte.generate_c_function' href='#Latte.generate_c_function'>#</a>
+<strong><code>Latte.generate_c_function</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.gen_neuron_backward' href='#Latte.gen_neuron_backward'>#</a>
+<strong><code>Latte.gen_neuron_backward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.gen_neuron_forward' href='#Latte.gen_neuron_forward'>#</a>
+<strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.gen_copy_block' href='#Latte.gen_copy_block'>#</a>
+<strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.get_src_idx' href='#Latte.get_src_idx'>#</a>
+<strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.optimize' href='#Latte.optimize'>#</a>
+<strong><code>Latte.optimize</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
 <p><a id='Latte.TaskSet' href='#Latte.TaskSet'>#</a>
 <strong><code>Latte.TaskSet</code></strong> &mdash; <em>Type</em>.</p>
 <hr />
