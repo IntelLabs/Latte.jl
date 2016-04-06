@@ -239,218 +239,51 @@
           
           <p><a id='Internals-1'></a></p>
 <h1 id="internals">Internals</h1>
-<p><a id='Latte.Net' href='#Latte.Net'>#</a>
-<strong><code>Latte.Net</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p><strong> Fields </strong></p>
-<ul>
-<li><code>ensembles</code>          – a vector containing each <code>Ensemble</code> in the network.</li>
-<li><code>ensembles_map</code>      – a mapping between ensemble names in the network to the                           instance stored in <code>ensembles</code></li>
-<li><code>buffers</code>            – the internal buffers used by the network</li>
-<li><code>curr_buffer_set</code>    – the current buffer set (used for double buffering)</li>
-<li><code>forward_tasks</code>      – a set of tasks for performing forward propogation of the network</li>
-<li><code>backward_tasks</code>     – a set of tasks for performing back propogation of the network</li>
-<li><code>update_tasks</code>       – a set of tasks for performing parameter updates</li>
-<li><code>params</code>             – a vector of <code>Param</code> instances corresponding to network parameters</li>
-<li><code>run_where</code>          – DEPRECATED</li>
-<li><code>signal</code>             – DEPRECATED</li>
-<li><code>batch_size</code>         – the batch size of the network                            TODO: support different batch sizes for train/test</li>
-<li><code>train_epoch</code>        – number of epochs completed for training</li>
-<li><code>test_epoch</code>         – number of epochs completed for testing</li>
-<li><code>curr_time_step</code>     – the current time step (for RNNs)</li>
-<li><code>time_steps</code>         – total number of time steps to unroll (for RNNs)</li>
-<li><code>num_subgroups</code>      – number of partitions in network (for model parallelism)</li>
-<li><code>ensemble_send_list</code> – a mapping between ensembles and a list of subgroups to send                           values to, used internally when synthesizing code for                           model parallelism</li>
-</ul>
-<p><a id='Latte.Ensemble' href='#Latte.Ensemble'>#</a>
-<strong><code>Latte.Ensemble</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>An ensemble</p>
-<p><strong> Fields </strong></p>
-<ul>
-<li>name         – name of the ensemble</li>
-<li>neurons      – an array of neurons of type <code>T</code></li>
-<li>connections  – a list of <code>Ensemble</code>s connected to this ensemble</li>
-<li>batch_fields – a vector of <code>Batch</code> fields for <code>T</code> (used internally)</li>
-<li>arg_dim_info – </li>
-<li>params       – a vector of <code>Param</code>s associated with the ensemble</li>
-<li>phase        – phase(s) in which this ensemble is active</li>
-<li>net_subgroup – the net subgroup the ensemble is a member of (use for model parallelism)</li>
-</ul>
-<p><a id='Latte.Connection' href='#Latte.Connection'>#</a>
-<strong><code>Latte.Connection</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>A connection between two ensembles.</p>
-<p><strong> Fields </strong></p>
-<ul>
-<li>source        – the source <code>Ensemble</code></li>
-<li>mapping       – a mapping function to a range of neurons in <code>source</code></li>
-<li>shape         – shape of the connected neurons returned by <code>mapping</code></li>
-<li>size          – length of the connected neurons returned by <code>mapping</code></li>
-<li>copy          – whether the connection requires input values to be copied</li>
-<li>is_dim_fixed  – vector of booleans that are true if the connection is fixed along a dimension</li>
-<li>is_one_to_one – whether the connection is one to one</li>
-<li>padding       – amount of padding used for the connection</li>
-<li>recurrent     – whether the connection is recurrent</li>
-</ul>
-<p><a id='Latte.Param' href='#Latte.Param'>#</a>
-<strong><code>Latte.Param</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>A parameter in a <code>Net</code> (learned during training)</p>
-<p><strong> Fields </strong></p>
-<ul>
-<li><code>name</code>          – the name of the parameter</li>
-<li><code>gradient_name</code> – the name of the gradient (should be ∇<code>name</code>)</li>
-<li><code>hist_name</code>     – the name of the history buffer (should be <code>name</code>hist)</li>
-<li>learning_rate   – local learning rate for the parameter</li>
-<li>regu_coef       – local regularization coefficient</li>
-<li>clip_gradients  – NOT IMPLEMENTED, gradient clipping parameter</li>
-<li>value           – buffer containing the value of the parameter</li>
-<li>gradient        – buffer containing the gradient of the parameter</li>
-<li>hist            – buffer containing the history of the parameter</li>
-<li>request         – request id, used for MPI data parallelism</li>
-</ul>
-<p><a id='Latte.init_buffer' href='#Latte.init_buffer'>#</a>
-<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Initialize a buffer in <code>net</code></p>
-<p><strong> Params </strong> - <code>net</code>   – network to receive initialized buffer - <code>name</code>  – name of the buffer - <code>shape</code> – shape of the buffer - <code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</p>
-<p><a id='Latte.set_buffer' href='#Latte.set_buffer'>#</a>
-<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Add or update a buffer at a particular time step <code>t</code></p>
-<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>t</code>     – time step to add buffer</p>
-<p>Add or update a buffer</p>
-<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>_copy</code> – whether to copy the buffer</p>
-<p><a id='Latte.get_buffer' href='#Latte.get_buffer'>#</a>
-<strong><code>Latte.get_buffer</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Get a buffer at the time_step <code>t</code></p>
-<p><strong> Params </strong> - <code>net</code>   – network to get buffer - <code>name</code>  – name of the buffer - <code>t</code>     – time step</p>
-<p>Get a buffer associated with an ensemble</p>
-<p><strong> Params </strong> - <code>net</code>   – network to get buffer - <code>ens</code>   – the ensemble - <code>name</code>  – name of buffer associated with <code>ens</code></p>
-<p><a id='Latte.rand_values' href='#Latte.rand_values'>#</a>
-<strong><code>Latte.rand_values</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>randval</code> with random values</p>
-<p><a id='Latte.clear_values' href='#Latte.clear_values'>#</a>
-<strong><code>Latte.clear_values</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>value</code> with zeros.</p>
-<p><a id='Latte.clear_' href='#Latte.clear_'>#</a>
-<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>∇</code> with zeros.</p>
-<p><a id='Latte.load_snapshot' href='#Latte.load_snapshot'>#</a>
-<strong><code>Latte.load_snapshot</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Load a network snapshot from <code>file</code>.</p>
-<p>TODO: Can we save the structure of <code>net</code> in the snapshot?</p>
-<p><a id='Latte.save_snapshot' href='#Latte.save_snapshot'>#</a>
-<strong><code>Latte.save_snapshot</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Save a snapshot of <code>net</code> to <code>file</code></p>
-<p><a id='Latte.test' href='#Latte.test'>#</a>
-<strong><code>Latte.test</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Test <code>net</code> for one epoch</p>
-<p><a id='Latte.add_connections' href='#Latte.add_connections'>#</a>
-<strong><code>Latte.add_connections</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Connect neurons in <code>source</code> to neurons in <code>sink</code> using the function <code>mapping</code>. <code>mapping</code> should be a function with a parameter for the index in each dimension of sink. For example, if sink is a 3-d ensemble, mapping = f(i, j, k) -&gt; ...</p>
-<p><code>mapping</code> should return a tuple of continuous ranges corresponding to the indices of neurons in source that should be connected to the neuron at the current index</p>
-<p><a id='Latte.check_one_to_one' href='#Latte.check_one_to_one'>#</a>
-<strong><code>Latte.check_one_to_one</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.check_dimensions_fixed' href='#Latte.check_dimensions_fixed'>#</a>
-<strong><code>Latte.check_dimensions_fixed</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.add_ensemble' href='#Latte.add_ensemble'>#</a>
-<strong><code>Latte.add_ensemble</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>Add an ensemble to the network <code>net</code></p>
-<p><a id='Latte.init' href='#Latte.init'>#</a>
-<strong><code>Latte.init</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.add_send_exprs' href='#Latte.add_send_exprs'>#</a>
-<strong><code>Latte.add_send_exprs</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.add_recv_expr' href='#Latte.add_recv_expr'>#</a>
-<strong><code>Latte.add_recv_expr</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.init_backward' href='#Latte.init_backward'>#</a>
-<strong><code>Latte.init_backward</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p><a id='Latte.init_forward' href='#Latte.init_forward'>#</a>
-<strong><code>Latte.init_forward</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p><a id='Latte.add_forward_julia_tasks' href='#Latte.add_forward_julia_tasks'>#</a>
-<strong><code>Latte.add_forward_julia_tasks</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.add_forward_data_tasks' href='#Latte.add_forward_data_tasks'>#</a>
-<strong><code>Latte.add_forward_data_tasks</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.push_compute_tasks!' href='#Latte.push_compute_tasks!'>#</a>
-<strong><code>Latte.push_compute_tasks!</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc FIXME: My, my this function is ugly, clean this up some day...</p>
-<p><a id='Latte.generate_c_function' href='#Latte.generate_c_function'>#</a>
-<strong><code>Latte.generate_c_function</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.gen_neuron_backward' href='#Latte.gen_neuron_backward'>#</a>
-<strong><code>Latte.gen_neuron_backward</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.gen_neuron_forward' href='#Latte.gen_neuron_forward'>#</a>
-<strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.gen_copy_block' href='#Latte.gen_copy_block'>#</a>
-<strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.get_src_idx' href='#Latte.get_src_idx'>#</a>
-<strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.optimize' href='#Latte.optimize'>#</a>
-<strong><code>Latte.optimize</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p><a id='Latte.TaskSet' href='#Latte.TaskSet'>#</a>
-<strong><code>Latte.TaskSet</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>A container for tasks for multiple <code>Phase</code>s</p>
-<p><strong> Fields </strong></p>
-<ul>
-<li>tasks – a dictionary containing a <code>Vector</code> of tasks for each <code>Phase</code></li>
-</ul>
-<p><a id='Latte.JuliaTask' href='#Latte.JuliaTask'>#</a>
-<strong><code>Latte.JuliaTask</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>A task that calls <code>func</code> with <code>args...</code></p>
-<p><a id='Latte.UpdateTask' href='#Latte.UpdateTask'>#</a>
-<strong><code>Latte.UpdateTask</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>A task that updates parameter <code>param_id</code></p>
-<p><a id='Latte.Batch' href='#Latte.Batch'>#</a>
-<strong><code>Latte.Batch</code></strong> &mdash; <em>Type</em>.</p>
-<hr />
-<p>Used in neuron definitions to mark a field to be unique per batch item</p>
+<div class="codehilite"><pre><span></span>{docs}
+Latte.Net
+Latte.Ensemble
+Latte.Connection
+Latte.Param
+
+Latte.init_buffer
+Latte.set_buffer
+Latte.get_buffer
+
+Latte.rand_values
+Latte.clear_values
+Latte.clear_∇
+
+Latte.load_snapshot
+Latte.save_snapshot
+
+Latte.test
+
+Latte.add_connections
+Latte.check_one_to_one
+Latte.check_dimensions_fixed
+
+Latte.add_ensemble
+Latte.init
+
+Latte.add_send_exprs
+Latte.add_recv_expr
+Latte.init_backward
+Latte.init_forward
+Latte.add_forward_julia_tasks
+Latte.add_forward_data_tasks
+Latte.push_compute_tasks!
+Latte.generate_c_function
+Latte.gen_neuron_backward
+Latte.gen_neuron_forward
+Latte.gen_copy_block
+Latte.get_src_idx
+Latte.optimize
+
+Latte.TaskSet
+Latte.JuliaTask
+Latte.UpdateTask
+Latte.Batch
+</pre></div>
           <aside class="copyright" role="note">
             
             Documentation built with
