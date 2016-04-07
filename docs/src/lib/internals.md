@@ -14,8 +14,17 @@
     Pages = ["internals.md"]
 
 ## Net
+The `Net` datastructure is the main container used by the Latte compiler and
+runtime.  When constructing a `Net` a user adds ensembles and applies
+connections between them.  This implicitly constructs a task graph with
+connections as data dependencies and ensembles as groups of comptue tasks.  The
+`init(net::Net)` routine is the main entry point for the Latte compiler.
+Inside this function, the Latte compiler consumes the implicit task graph,
+synthesizes functions to compute various tasks and optimizes these functions.
 
     {docs}
+    init(net::Net)
+
     init_buffer(net::Net, name::Symbol, shape; func=zeros)
     set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
     set_buffer(net::Net, name::Symbol, arr::Array, t::Int)

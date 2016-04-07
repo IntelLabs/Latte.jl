@@ -715,7 +715,19 @@ function add_send_exprs(net::Net, ensemble::AbstractEnsemble,
 end
 
 """
-Initialize the network `net`
+Initialize the network `net`.
+
+This function begins by initializing each `Ensemble` in the Network.  This is
+done by calling `init(ens)` which will be dispatched to the appropriate
+initialization routine.  These initialization routines are responsible for
+adding buffers to the network to contain neuron fields and output values.  See
+the specific initialization functions for different Ensemble types for more
+information (TODO: Reference these).  
+
+After initializaing the local fields and output values for each ensemble, we
+then initialize the input buffers for each ensemble.  This is done after all
+output values have been initialized so that we can analyze recurrent
+connections.  This is done by calling the `init_inputs(ens)` routine.
 """
 function init(net::Net)
     log_info("Initializing net...")
