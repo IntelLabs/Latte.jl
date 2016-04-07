@@ -14,18 +14,28 @@ To understand this representation, we'll first define the properties of a singul
 ### Defining a Neuron in Latte
 Defining a **Neuron** begins with a subtype of the abstract `Neuron` type.  We define the following fields:
 
-- `value`   -- stores the output value of the neuron
-- `inputs`  -- a vector of `Float32` input values
-- `weights` -- a vector learned weights
-- `bias`    -- the bias value
+- `value`    -- contains the output value of the neuron
+- `∇`        -- contains the gradient of the neuron
+- `inputs`   -- a vector of input values
+- `∇inputs`  -- a vector of gradients for connected neurons
+- `weights`  -- a vector of learned weights
+- `∇weights` -- a vector of gradients for the weights
+- `bias`     -- the bias value
+- `∇bias`    -- the gradient for the bias value
 
 ```julia
 @neuron type WeightedNeuron <: Neuron
-    value   :: Float32
+    value    :: Float32
+    ∇        :: Float32
 
-    inputs  :: Vector{Float32}
-    weights :: Vector{Float32}
-    bias    :: Float32
+    inputs   :: DenseArray{Float32}
+    ∇inputs  :: DenseArray{Float32}
+
+    weights  :: DenseArray{Float32}
+    ∇weights :: DenseArray{Float32}
+
+    bias     :: DenseArray{Float32}
+    ∇bias    :: DenseArray{Float32}
 end
 ```
 
@@ -40,6 +50,5 @@ Next we define the forward computation for the neuron.
     neuron.value += neuron.bias
 end
 ```
-
 
 [1]: http://www.sciencedirect.com/science/article/pii/0893608089900208 "Multilayer feedforward networks are universal approximators. Hornik et al. 1989"
