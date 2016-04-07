@@ -2,12 +2,12 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\nLatte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.  We are working hard on filling out this site with documentation, tutorials, and examples.\n\n\nIMPORTANT:\n Latte is prelease (alpha) software, please report bugs using the \nGithub issue tracker\n. For usage questions, visit the \nGitter room\n.\n\n\nIf you use Latte for research, please use the following citation:\n\n\nForthcoming...", 
+            "text": "Latte.jl\n\n\nLatte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.  We are working hard on filling out this site with documentation, tutorials, and examples.\n\n\n\n\nNote\n\n\nLatte is prelease (alpha) software, please report bugs using the \nGithub issue tracker\n. For usage questions, visit the \nGitter room\n.\n\n\n\n\nIf you use Latte for research, please use the following citation:\n\n\nForthcoming...", 
             "title": "Home"
         }, 
         {
             "location": "/#lattejl", 
-            "text": "Latte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.  We are working hard on filling out this site with documentation, tutorials, and examples.  IMPORTANT:  Latte is prelease (alpha) software, please report bugs using the  Github issue tracker . For usage questions, visit the  Gitter room .  If you use Latte for research, please use the following citation:  Forthcoming...", 
+            "text": "Latte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.  We are working hard on filling out this site with documentation, tutorials, and examples.   Note  Latte is prelease (alpha) software, please report bugs using the  Github issue tracker . For usage questions, visit the  Gitter room .   If you use Latte for research, please use the following citation:  Forthcoming...", 
             "title": "Latte.jl"
         }, 
         {
