@@ -29,7 +29,9 @@ pages:
     - Home: index.md
     - Manual:
         - Setup: man/setup.md
-        - Examples: man/examples.md
+        - Examples: 
+            - MNIST: man/examples/mnist.md
+            - CIFAR-10: man/examples/cifar.md
     - Library:
         - Public: lib/public.md
         - Internals: lib/internals.md
