@@ -27,10 +27,10 @@ docs_dir: 'build'
 
 pages:
     - Home: index.md
+    - Setup: setup.md
     - Tutorial: 
         - Multi-Layer Perceptron: tut/MLP.md
     - Manual:
-        - Setup: man/setup.md
         - Examples: 
             - MNIST: man/examples/mnist.md
             - CIFAR-10: man/examples/cifar.md
