@@ -31,24 +31,44 @@
             "title": "Quick Install"
         }, 
         {
-            "location": "/man/examples/", 
-            "text": "Examples\n\n\n\n\nMNIST\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia mnist.jl\n\n\n\n\n\n\n\ncifar10\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia vgg-mini.jl", 
-            "title": "Examples"
-        }, 
-        {
-            "location": "/man/examples/#examples", 
-            "text": "", 
-            "title": "Examples"
-        }, 
-        {
-            "location": "/man/examples/#mnist", 
-            "text": "$  cd  ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$  cd  ..\n$ julia mnist.jl", 
+            "location": "/man/examples/mnist/", 
+            "text": "MNIST\n\n\n\n\nTLDR\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia mnist.jl\n\n\n\n\n\n\n\nPreparing the data\n\n\nThese steps can be performed automatically by running the \nget-data.sh\n script inside the \nexamples/mnist\n directory.\n\n\nFirst we will download the MNIST dataset from Yann Lecun's website.\n\n\nTARGET_DIR\n=\n$(\npwd\n)\n\n\nfor\n dset in train-images-idx3-ubyte.gz train-labels-idx1-ubyte.gz \n\\\n\n    t10k-images-idx3-ubyte.gz t10k-labels-idx1-ubyte.gz\n\ndo\n\n    curl -o \n$TARGET_DIR\n/\n$dset\n -O http://yann.lecun.com/exdb/mnist/\n$dset\n\n    \nSTEM\n=\n$(\nbasename \n${\ndset\n}\n .gz\n)\n\n    gunzip -c \n$TARGET_DIR\n/\n$dset\n \n \n$TARGET_DIR\n/\n$STEM\n\n\ndone\n\n\n\n\n\n\nNext we will convert the binary data into HDF5 datasets.  This code is contained in \nconvert.jl\n.\n\n\nThis begins by reading the binary files using Julia's \nopen\n.\n\n\nbase_dir = \n./\n\n\n\ndatasets = Dict(\ntrain\n =\n [\n$\nbase_dir\n/train-labels-idx1-ubyte\n,\n$\nbase_dir\n/train-images-idx3-ubyte\n],\n\n\n                \ntest\n =\n [\n$\nbase_dir\n/t10k-labels-idx1-ubyte\n,\n$\nbase_dir\n/t10k-images-idx3-ubyte\n])\n\n\n\nfor key in keys(datasets)\n\n\n  label_fn, data_fn = datasets[key]\n\n\n  label_f = open(label_fn)\n\n\n  data_f  = open(data_fn)\n\n\n\n\n\n\nNext we read the headers for the binary data to give us information about the dataset dimensions.\n\n\n  label_header = read(label_f, Int32, 2)\n  @assert ntoh(label_header[1]) == 2049\n  n_label = round(Int, ntoh(label_header[2]))\n  data_header = read(data_f, Int32, 4)\n  @assert ntoh(data_header[1]) == 2051\n  n_data = round(Int, ntoh(data_header[2]))\n  @assert n_label == n_data\n  h = round(Int, ntoh(data_header[3]))\n  w = round(Int, ntoh(data_header[4]))\n\n\n\n\n\nNext we open an HDF5 file for writing and initialize two datasets (label and data).\n\n\n  println(\nExporting \n$\nn_data\n digits of size \n$\nh\n x \n$\nw\n)\n\n\n\n  h5open(\n$\nbase_dir\n/\n$\nkey\n.\nhdf5\n, \nw\n) do h5\n\n\n    dset_data = d_create(h5, \ndata\n, datatype(Float32), dataspace(w, h, 1, n_data))\n\n\n    dset_label = d_create(h5, \nlabel\n, datatype(Float32), dataspace(1, n_data))\n\n\n\n\n\n\nThen we read the label and data bytes and convert them to Arrays of Float32.  We normalize the data to values between [0, 1) by dividing by 256.\n\n\n    img = readbytes(data_f, n_data * h*w)\n    img = convert(Array{Float32},img) / 256 # scale into [0,1)\n    class = readbytes(label_f, n_data)\n    class = convert(Array{Float32},class)\n\n\n\n\n\nWe will permute the indices of the dataset so that they are stored in a shuffled ordering.  Then we iterate over the permuted indices and store the data and label values into the HDF5 dataset.\n\n\n    idx = 1:n_data\n\n\n    println(\n  \n$\nidx\n...\n)\n\n\n\n    idx = collect(idx)\n\n\n    rp = randperm(length(idx))\n\n\n\n    for j = 1:length(idx)\n\n\n      r_idx = rp[j]\n\n\n      dset_data[:,:,1,idx[j]] = img[(r_idx-1)*h*w+1:r_idx*h*w]\n\n\n      dset_label[1,idx[j]] = class[r_idx]\n\n\n    end\n\n\n\n\n\n\n\n\nThe Model\n\n\nThe model code can be found in \nexamples/mnist.jl\n\n\nusing Latte\n\nnet = Net(100)\ndata, label = HDF5DataLayer(net, \ndata/train.txt\n, \ndata/test.txt\n)\nconv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)\nrelu1    = ReLULayer(:relu1, net, conv1)\npool1    = MaxPoolingLayer(:pool1, net, relu1, 2, 2, 0)\nconv2    = ConvolutionLayer(:conv2, net, pool1, 50, 5, 1, 1)\nrelu2    = ReLULayer(:relu2, net, conv2)\npool2    = MaxPoolingLayer(:pool2, net, relu2, 2, 2, 0)\nconv3    = ConvolutionLayer(:conv3, net, pool1, 50, 3, 1, 1)\nrelu3    = ReLULayer(:relu3, net, conv3)\npool3    = MaxPoolingLayer(:pool3, net, relu3, 2, 2, 0)\nfc4      = InnerProductLayer(:fc4, net, pool3, 512)\nrelu4    = ReLULayer(:relu4, net, fc4)\nfc5      = InnerProductLayer(:fc5, net, relu4, 512)\nrelu5    = ReLULayer(:relu5, net, fc5)\nfc6      = InnerProductLayer(:fc6, net, relu5, 10)\nloss     = SoftmaxLossLayer(:loss, net, fc6, label)\naccuracy = AccuracyLayer(:accuracy, net, fc6, label)\n\nparams = SolverParameters(\n    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),\n    mom_policy   = MomPolicy.Fixed(0.9),\n    max_epoch    = 50,\n    regu_coef    = .0005)\nsgd = SGD(params)\nsolve(sgd, net)", 
             "title": "MNIST"
         }, 
         {
-            "location": "/man/examples/#cifar10", 
+            "location": "/man/examples/mnist/#mnist", 
+            "text": "", 
+            "title": "MNIST"
+        }, 
+        {
+            "location": "/man/examples/mnist/#tldr", 
+            "text": "$  cd  ~/.julia/v0.4/Latte/examples/mnist/data\n$ ./get-data.sh\n$  cd  ..\n$ julia mnist.jl", 
+            "title": "TLDR"
+        }, 
+        {
+            "location": "/man/examples/mnist/#preparing-the-data", 
+            "text": "These steps can be performed automatically by running the  get-data.sh  script inside the  examples/mnist  directory.  First we will download the MNIST dataset from Yann Lecun's website.  TARGET_DIR = $( pwd )  for  dset in train-images-idx3-ubyte.gz train-labels-idx1-ubyte.gz  \\ \n    t10k-images-idx3-ubyte.gz t10k-labels-idx1-ubyte.gz do \n    curl -o  $TARGET_DIR / $dset  -O http://yann.lecun.com/exdb/mnist/ $dset \n     STEM = $( basename  ${ dset }  .gz ) \n    gunzip -c  $TARGET_DIR / $dset     $TARGET_DIR / $STEM  done   Next we will convert the binary data into HDF5 datasets.  This code is contained in  convert.jl .  This begins by reading the binary files using Julia's  open .  base_dir =  ./  datasets = Dict( train  =  [ $ base_dir /train-labels-idx1-ubyte , $ base_dir /train-images-idx3-ubyte ],                   test  =  [ $ base_dir /t10k-labels-idx1-ubyte , $ base_dir /t10k-images-idx3-ubyte ])  for key in keys(datasets)    label_fn, data_fn = datasets[key]    label_f = open(label_fn)    data_f  = open(data_fn)   Next we read the headers for the binary data to give us information about the dataset dimensions.    label_header = read(label_f, Int32, 2)\n  @assert ntoh(label_header[1]) == 2049\n  n_label = round(Int, ntoh(label_header[2]))\n  data_header = read(data_f, Int32, 4)\n  @assert ntoh(data_header[1]) == 2051\n  n_data = round(Int, ntoh(data_header[2]))\n  @assert n_label == n_data\n  h = round(Int, ntoh(data_header[3]))\n  w = round(Int, ntoh(data_header[4]))  Next we open an HDF5 file for writing and initialize two datasets (label and data).    println( Exporting  $ n_data  digits of size  $ h  x  $ w )    h5open( $ base_dir / $ key . hdf5 ,  w ) do h5      dset_data = d_create(h5,  data , datatype(Float32), dataspace(w, h, 1, n_data))      dset_label = d_create(h5,  label , datatype(Float32), dataspace(1, n_data))   Then we read the label and data bytes and convert them to Arrays of Float32.  We normalize the data to values between [0, 1) by dividing by 256.      img = readbytes(data_f, n_data * h*w)\n    img = convert(Array{Float32},img) / 256 # scale into [0,1)\n    class = readbytes(label_f, n_data)\n    class = convert(Array{Float32},class)  We will permute the indices of the dataset so that they are stored in a shuffled ordering.  Then we iterate over the permuted indices and store the data and label values into the HDF5 dataset.      idx = 1:n_data      println(    $ idx ... )      idx = collect(idx)      rp = randperm(length(idx))      for j = 1:length(idx)        r_idx = rp[j]        dset_data[:,:,1,idx[j]] = img[(r_idx-1)*h*w+1:r_idx*h*w]        dset_label[1,idx[j]] = class[r_idx]      end", 
+            "title": "Preparing the data"
+        }, 
+        {
+            "location": "/man/examples/mnist/#the-model", 
+            "text": "The model code can be found in  examples/mnist.jl  using Latte\n\nnet = Net(100)\ndata, label = HDF5DataLayer(net,  data/train.txt ,  data/test.txt )\nconv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)\nrelu1    = ReLULayer(:relu1, net, conv1)\npool1    = MaxPoolingLayer(:pool1, net, relu1, 2, 2, 0)\nconv2    = ConvolutionLayer(:conv2, net, pool1, 50, 5, 1, 1)\nrelu2    = ReLULayer(:relu2, net, conv2)\npool2    = MaxPoolingLayer(:pool2, net, relu2, 2, 2, 0)\nconv3    = ConvolutionLayer(:conv3, net, pool1, 50, 3, 1, 1)\nrelu3    = ReLULayer(:relu3, net, conv3)\npool3    = MaxPoolingLayer(:pool3, net, relu3, 2, 2, 0)\nfc4      = InnerProductLayer(:fc4, net, pool3, 512)\nrelu4    = ReLULayer(:relu4, net, fc4)\nfc5      = InnerProductLayer(:fc5, net, relu4, 512)\nrelu5    = ReLULayer(:relu5, net, fc5)\nfc6      = InnerProductLayer(:fc6, net, relu5, 10)\nloss     = SoftmaxLossLayer(:loss, net, fc6, label)\naccuracy = AccuracyLayer(:accuracy, net, fc6, label)\n\nparams = SolverParameters(\n    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),\n    mom_policy   = MomPolicy.Fixed(0.9),\n    max_epoch    = 50,\n    regu_coef    = .0005)\nsgd = SGD(params)\nsolve(sgd, net)", 
+            "title": "The Model"
+        }, 
+        {
+            "location": "/man/examples/cifar/", 
+            "text": "CIFAR-10\n\n\n\n\nTLDR\n\n\n$ \ncd\n ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$ \ncd\n ..\n$ julia vgg-mini.jl", 
+            "title": "CIFAR-10"
+        }, 
+        {
+            "location": "/man/examples/cifar/#cifar-10", 
+            "text": "", 
+            "title": "CIFAR-10"
+        }, 
+        {
+            "location": "/man/examples/cifar/#tldr", 
             "text": "$  cd  ~/.julia/v0.4/Latte/examples/cifar10/data\n$ ./get-data.sh\n$  cd  ..\n$ julia vgg-mini.jl", 
-            "title": "cifar10"
+            "title": "TLDR"
         }, 
         {
             "location": "/lib/public/", 

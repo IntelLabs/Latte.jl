@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
     
       
-        <title>Examples - Latte.jl</title>
+        <title>CIFAR-10 - Latte.jl</title>
       
       
       
@@ -19,33 +19,33 @@
     
     <meta property="og:url" content="None">
     <meta property="og:title" content="Latte.jl">
-    <meta property="og:image" content="None/../../">
+    <meta property="og:image" content="None/../../../">
     <meta name="apple-mobile-web-app-title" content="Latte.jl">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     
-    <link rel="shortcut icon" type="image/x-icon" href="../../None">
-    <link rel="icon" type="image/x-icon" href="../../None">
+    <link rel="shortcut icon" type="image/x-icon" href="../../../None">
+    <link rel="icon" type="image/x-icon" href="../../../None">
     <style>
       @font-face {
       	font-family: 'Icon';
-      	src: url('../../assets/fonts/icon.eot?52m981');
-      	src: url('../../assets/fonts/icon.eot?#iefix52m981')
+      	src: url('../../../assets/fonts/icon.eot?52m981');
+      	src: url('../../../assets/fonts/icon.eot?#iefix52m981')
                format('embedded-opentype'),
-      		   url('../../assets/fonts/icon.woff?52m981')
+      		   url('../../../assets/fonts/icon.woff?52m981')
                format('woff'),
-      		   url('../../assets/fonts/icon.ttf?52m981')
+      		   url('../../../assets/fonts/icon.ttf?52m981')
                format('truetype'),
-      		   url('../../assets/fonts/icon.svg?52m981#icon')
+      		   url('../../../assets/fonts/icon.svg?52m981#icon')
                format('svg');
       	font-weight: normal;
       	font-style: normal;
       }
     </style>
-    <link rel="stylesheet" href="../../assets/stylesheets/application-54f87043f3.css">
+    <link rel="stylesheet" href="../../../assets/stylesheets/application-54f87043f3.css">
     
-      <link rel="stylesheet" href="../../assets/stylesheets/palettes-05ab2406df.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/palettes-05ab2406df.css">
     
     
       
@@ -62,9 +62,9 @@
       </style>
     
     
-      <link rel="stylesheet" href="../../assets/Documenter.css">
+      <link rel="stylesheet" href="../../../assets/Documenter.css">
     
-    <script src="../../assets/javascripts/modernizr-4ab42b99fd.js"></script>
+    <script src="../../../assets/javascripts/modernizr-4ab42b99fd.js"></script>
     
   </head>
   
@@ -98,9 +98,13 @@
                 Manual <i class="icon icon-link"></i>
               
             
+              
+                Examples <i class="icon icon-link"></i>
+              
+            
           </span>
         
-        Examples
+        CIFAR-10
       </div>
     </div>
     
@@ -170,7 +174,7 @@
           
             
   <li>
-    <a class="" title="Home" href="../..">
+    <a class="" title="Home" href="../../..">
       Home
     </a>
     
@@ -184,7 +188,7 @@
       
         
   <li>
-    <a class="" title="Setup" href="../setup/">
+    <a class="" title="Setup" href="../../setup/">
       Setup
     </a>
     
@@ -193,8 +197,22 @@
       
         
   <li>
-    <a class="current" title="Examples" href="./">
-      Examples
+    <span class="section">Examples</span>
+    <ul>
+      
+        
+  <li>
+    <a class="" title="MNIST" href="../mnist/">
+      MNIST
+    </a>
+    
+  </li>
+
+      
+        
+  <li>
+    <a class="current" title="CIFAR-10" href="./">
+      CIFAR-10
     </a>
     
       
@@ -204,20 +222,18 @@
         <ul>
           
             <li class="anchor">
-              <a title="MNIST" href="#mnist">
-                MNIST
-              </a>
-            </li>
-          
-            <li class="anchor">
-              <a title="cifar10" href="#cifar10">
-                cifar10
+              <a title="TLDR" href="#tldr">
+                TLDR
               </a>
             </li>
           
         </ul>
       
     
+  </li>
+
+      
+    </ul>
   </li>
 
       
@@ -232,7 +248,7 @@
       
         
   <li>
-    <a class="" title="Public" href="../../lib/public/">
+    <a class="" title="Public" href="../../../lib/public/">
       Public
     </a>
     
@@ -241,7 +257,7 @@
       
         
   <li>
-    <a class="" title="Internals" href="../../lib/internals/">
+    <a class="" title="Internals" href="../../../lib/internals/">
       Internals
     </a>
     
@@ -262,19 +278,10 @@
       <article class="article">
         <div class="wrapper">
           
-          <p><a id='Examples-1'></a></p>
-<h1 id="examples">Examples</h1>
-<p><a id='MNIST-1'></a></p>
-<h2 id="mnist">MNIST</h2>
-<div class="codehilite"><pre><span></span>$ <span class="nb">cd</span> ~/.julia/v0.4/Latte/examples/mnist/data
-$ ./get-data.sh
-$ <span class="nb">cd</span> ..
-$ julia mnist.jl
-</pre></div>
-
-
-<p><a id='cifar10-1'></a></p>
-<h2 id="cifar10">cifar10</h2>
+          <p><a id='CIFAR-10-1'></a></p>
+<h1 id="cifar-10">CIFAR-10</h1>
+<p><a id='TLDR-1'></a></p>
+<h2 id="tldr">TLDR</h2>
 <div class="codehilite"><pre><span></span>$ <span class="nb">cd</span> ~/.julia/v0.4/Latte/examples/cifar10/data
 $ ./get-data.sh
 $ <span class="nb">cd</span> ..
@@ -296,7 +303,7 @@ $ julia vgg-mini.jl
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../setup/" title="Setup">
+        <a href="../mnist/" title="MNIST">
           <span class="direction">
             Previous
           </span>
@@ -306,7 +313,7 @@ $ julia vgg-mini.jl
             </div>
             <div class="stretch">
               <div class="title">
-                Setup
+                MNIST
               </div>
             </div>
           </div>
@@ -315,7 +322,7 @@ $ julia vgg-mini.jl
     </div>
     <div class="next">
       
-        <a href="../../lib/public/" title="Public">
+        <a href="../../../lib/public/" title="Public">
           <span class="direction">
             Next
           </span>
@@ -348,14 +355,14 @@ $ julia vgg-mini.jl
       </div>
     </main>
     <script>
-      var base_url = '../..';
+      var base_url = '../../..';
       var repo_id  = 'IntelLabs/Latte.jl';
     </script>
-    <script src="../../assets/javascripts/application-997097ee0c.js"></script>
+    <script src="../../../assets/javascripts/application-997097ee0c.js"></script>
     
       <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
     
-      <script src="../../assets/mathjaxhelper.js"></script>
+      <script src="../../../assets/mathjaxhelper.js"></script>
     
     
   </body>

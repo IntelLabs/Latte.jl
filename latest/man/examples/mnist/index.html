@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html class="no-js ie6"><![endif]-->
+<!--[if IE 7 ]><html class="no-js ie7"><![endif]-->
+<!--[if IE 8 ]><html class="no-js ie8"><![endif]-->
+<!--[if IE 9 ]><html class="no-js ie9"><![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html class="no-js"> <!--<![endif]-->
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1,maximum-scale=1">
+    
+      
+        <title>MNIST - Latte.jl</title>
+      
+      
+      
+      
+        <meta name="author" content="Intel Labs">
+      
+    
+    <meta property="og:url" content="None">
+    <meta property="og:title" content="Latte.jl">
+    <meta property="og:image" content="None/../../../">
+    <meta name="apple-mobile-web-app-title" content="Latte.jl">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../../None">
+    <link rel="icon" type="image/x-icon" href="../../../None">
+    <style>
+      @font-face {
+      	font-family: 'Icon';
+      	src: url('../../../assets/fonts/icon.eot?52m981');
+      	src: url('../../../assets/fonts/icon.eot?#iefix52m981')
+               format('embedded-opentype'),
+      		   url('../../../assets/fonts/icon.woff?52m981')
+               format('woff'),
+      		   url('../../../assets/fonts/icon.ttf?52m981')
+               format('truetype'),
+      		   url('../../../assets/fonts/icon.svg?52m981#icon')
+               format('svg');
+      	font-weight: normal;
+      	font-style: normal;
+      }
+    </style>
+    <link rel="stylesheet" href="../../../assets/stylesheets/application-54f87043f3.css">
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/palettes-05ab2406df.css">
+    
+    
+      
+      
+      
+      <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Ubuntu:400,700|Ubuntu+Mono">
+      <style>
+        body, input {
+          font-family: 'Ubuntu', Helvetica, Arial, sans-serif;
+        }
+        pre, code {
+          font-family: 'Ubuntu Mono', 'Courier New', 'Courier', monospace;
+        }
+      </style>
+    
+    
+      <link rel="stylesheet" href="../../../assets/Documenter.css">
+    
+    <script src="../../../assets/javascripts/modernizr-4ab42b99fd.js"></script>
+    
+  </head>
+  
+  
+  
+  <body class="palette-primary-blue palette-accent-light-blue">
+    
+      
+      
+    
+    <div class="backdrop">
+      <div class="backdrop-paper"></div>
+    </div>
+    <input class="toggle" type="checkbox" id="toggle-drawer">
+    <input class="toggle" type="checkbox" id="toggle-search">
+    <label class="toggle-button overlay" for="toggle-drawer"></label>
+    <header class="header">
+      <nav aria-label="Header">
+  <div class="bar default">
+    <div class="button button-menu" role="button" aria-label="Menu">
+      <label class="toggle-button icon icon-menu" for="toggle-drawer">
+        <span></span>
+      </label>
+    </div>
+    <div class="stretch">
+      <div class="title">
+        
+          <span class="path">
+            
+              
+                Manual <i class="icon icon-link"></i>
+              
+            
+              
+                Examples <i class="icon icon-link"></i>
+              
+            
+          </span>
+        
+        MNIST
+      </div>
+    </div>
+    
+    
+    <div class="button button-search" role="button" aria-label="Search">
+      <label class="toggle-button icon icon-search" title="Search" for="toggle-search"></label>
+    </div>
+  </div>
+  <div class="bar search">
+    <div class="button button-close" role="button" aria-label="Close">
+      <label class="toggle-button icon icon-back" for="toggle-search"></label>
+    </div>
+    <div class="stretch">
+      <div class="field">
+        <input class="query" type="text" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck>
+      </div>
+    </div>
+    <div class="button button-reset" role="button" aria-label="Search">
+      <button class="toggle-button icon icon-close" id="reset-search"></button>
+    </div>
+  </div>
+</nav>
+    </header>
+    <main class="main">
+      
+      <div class="drawer">
+        <nav aria-label="Navigation">
+  
+  <a href="https://github.com/IntelLabs/Latte.jl" class="project">
+    <div class="banner">
+      
+      <div class="name">
+        <strong>
+          Latte.jl
+          <span class="version">
+            
+          </span>
+        </strong>
+        
+          <br>
+          IntelLabs/Latte.jl
+        
+      </div>
+    </div>
+  </a>
+  <div class="scrollable">
+    <div class="wrapper">
+      
+        <ul class="repo">
+          <li class="repo-download">
+            
+            <a href="https://github.com/IntelLabs/Latte.jl/archive/master.zip" target="_blank" title="Download" data-action="download">
+              <i class="icon icon-download"></i> Download
+            </a>
+          </li>
+          <li class="repo-stars">
+            <a href="https://github.com/IntelLabs/Latte.jl/stargazers" target="_blank" title="Stargazers" data-action="star">
+              <i class="icon icon-star"></i> Stars
+              <span class="count">&ndash;</span>
+            </a>
+          </li>
+        </ul>
+        <hr>
+      
+      <div class="toc">
+        <ul>
+          
+            
+  <li>
+    <a class="" title="Home" href="../../..">
+      Home
+    </a>
+    
+  </li>
+
+          
+            
+  <li>
+    <span class="section">Manual</span>
+    <ul>
+      
+        
+  <li>
+    <a class="" title="Setup" href="../../setup/">
+      Setup
+    </a>
+    
+  </li>
+
+      
+        
+  <li>
+    <span class="section">Examples</span>
+    <ul>
+      
+        
+  <li>
+    <a class="current" title="MNIST" href="./">
+      MNIST
+    </a>
+    
+      
+        
+      
+      
+        <ul>
+          
+            <li class="anchor">
+              <a title="TLDR" href="#tldr">
+                TLDR
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Preparing the data" href="#preparing-the-data">
+                Preparing the data
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="The Model" href="#the-model">
+                The Model
+              </a>
+            </li>
+          
+        </ul>
+      
+    
+  </li>
+
+      
+        
+  <li>
+    <a class="" title="CIFAR-10" href="../cifar/">
+      CIFAR-10
+    </a>
+    
+  </li>
+
+      
+    </ul>
+  </li>
+
+      
+    </ul>
+  </li>
+
+          
+            
+  <li>
+    <span class="section">Library</span>
+    <ul>
+      
+        
+  <li>
+    <a class="" title="Public" href="../../../lib/public/">
+      Public
+    </a>
+    
+  </li>
+
+      
+        
+  <li>
+    <a class="" title="Internals" href="../../../lib/internals/">
+      Internals
+    </a>
+    
+  </li>
+
+      
+    </ul>
+  </li>
+
+          
+        </ul>
+        
+      </div>
+    </div>
+  </div>
+</nav>
+      </div>
+      <article class="article">
+        <div class="wrapper">
+          
+          <p><a id='MNIST-1'></a></p>
+<h1 id="mnist">MNIST</h1>
+<p><a id='TLDR-1'></a></p>
+<h2 id="tldr">TLDR</h2>
+<div class="codehilite"><pre><span></span>$ <span class="nb">cd</span> ~/.julia/v0.4/Latte/examples/mnist/data
+$ ./get-data.sh
+$ <span class="nb">cd</span> ..
+$ julia mnist.jl
+</pre></div>
+
+
+<p><a id='Preparing-the-data-1'></a></p>
+<h2 id="preparing-the-data">Preparing the data</h2>
+<p>These steps can be performed automatically by running the <code>get-data.sh</code> script inside the <code>examples/mnist</code> directory.</p>
+<p>First we will download the MNIST dataset from Yann Lecun's website.</p>
+<div class="codehilite"><pre><span></span><span class="nv">TARGET_DIR</span><span class="o">=</span><span class="k">$(</span><span class="nb">pwd</span><span class="k">)</span>
+<span class="k">for</span> dset in train-images-idx3-ubyte.gz train-labels-idx1-ubyte.gz <span class="se">\</span>
+    t10k-images-idx3-ubyte.gz t10k-labels-idx1-ubyte.gz
+<span class="k">do</span>
+    curl -o <span class="nv">$TARGET_DIR</span>/<span class="nv">$dset</span> -O http://yann.lecun.com/exdb/mnist/<span class="nv">$dset</span>
+    <span class="nv">STEM</span><span class="o">=</span><span class="k">$(</span>basename <span class="s2">&quot;</span><span class="si">${</span><span class="nv">dset</span><span class="si">}</span><span class="s2">&quot;</span> .gz<span class="k">)</span>
+    gunzip -c <span class="nv">$TARGET_DIR</span>/<span class="nv">$dset</span> &gt; <span class="nv">$TARGET_DIR</span>/<span class="nv">$STEM</span>
+<span class="k">done</span>
+</pre></div>
+
+
+<p>Next we will convert the binary data into HDF5 datasets.  This code is contained in <code>convert.jl</code>.</p>
+<p>This begins by reading the binary files using Julia's <code>open</code>.</p>
+<div class="codehilite"><pre><span></span><span class="x">base_dir = &quot;./&quot;</span>
+
+<span class="x">datasets = Dict(&quot;train&quot; =&gt; [&quot;</span><span class="p">$</span><span class="nv">base_dir</span><span class="x">/train-labels-idx1-ubyte&quot;,&quot;</span><span class="p">$</span><span class="nv">base_dir</span><span class="x">/train-images-idx3-ubyte&quot;],</span>
+<span class="x">                &quot;test&quot; =&gt; [&quot;</span><span class="p">$</span><span class="nv">base_dir</span><span class="x">/t10k-labels-idx1-ubyte&quot;,&quot;</span><span class="p">$</span><span class="nv">base_dir</span><span class="x">/t10k-images-idx3-ubyte&quot;])</span>
+
+<span class="x">for key in keys(datasets)</span>
+<span class="x">  label_fn, data_fn = datasets[key]</span>
+<span class="x">  label_f = open(label_fn)</span>
+<span class="x">  data_f  = open(data_fn)</span>
+</pre></div>
+
+
+<p>Next we read the headers for the binary data to give us information about the dataset dimensions.</p>
+<div class="codehilite"><pre><span></span>  label_header = read(label_f, Int32, 2)
+  @assert ntoh(label_header[1]) == 2049
+  n_label = round(Int, ntoh(label_header[2]))
+  data_header = read(data_f, Int32, 4)
+  @assert ntoh(data_header[1]) == 2051
+  n_data = round(Int, ntoh(data_header[2]))
+  @assert n_label == n_data
+  h = round(Int, ntoh(data_header[3]))
+  w = round(Int, ntoh(data_header[4]))
+</pre></div>
+
+
+<p>Next we open an HDF5 file for writing and initialize two datasets (label and data).</p>
+<div class="codehilite"><pre><span></span><span class="x">  println(&quot;Exporting </span><span class="p">$</span><span class="nv">n_data</span><span class="x"> digits of size </span><span class="p">$</span><span class="nv">h</span><span class="x"> x </span><span class="p">$</span><span class="nv">w</span><span class="x">&quot;)</span>
+
+<span class="x">  h5open(&quot;</span><span class="p">$</span><span class="nv">base_dir</span><span class="x">/</span><span class="p">$</span><span class="nv">key</span><span class="p">.</span><span class="nv">hdf5</span><span class="x">&quot;, &quot;w&quot;) do h5</span>
+<span class="x">    dset_data = d_create(h5, &quot;data&quot;, datatype(Float32), dataspace(w, h, 1, n_data))</span>
+<span class="x">    dset_label = d_create(h5, &quot;label&quot;, datatype(Float32), dataspace(1, n_data))</span>
+</pre></div>
+
+
+<p>Then we read the label and data bytes and convert them to Arrays of Float32.  We normalize the data to values between [0, 1) by dividing by 256.</p>
+<div class="codehilite"><pre><span></span>    img = readbytes(data_f, n_data * h*w)
+    img = convert(Array{Float32},img) / 256 # scale into [0,1)
+    class = readbytes(label_f, n_data)
+    class = convert(Array{Float32},class)
+</pre></div>
+
+
+<p>We will permute the indices of the dataset so that they are stored in a shuffled ordering.  Then we iterate over the permuted indices and store the data and label values into the HDF5 dataset.</p>
+<div class="codehilite"><pre><span></span><span class="x">    idx = 1:n_data</span>
+<span class="x">    println(&quot;  </span><span class="p">$</span><span class="nv">idx</span><span class="x">...&quot;)</span>
+
+<span class="x">    idx = collect(idx)</span>
+<span class="x">    rp = randperm(length(idx))</span>
+
+<span class="x">    for j = 1:length(idx)</span>
+<span class="x">      r_idx = rp[j]</span>
+<span class="x">      dset_data[:,:,1,idx[j]] = img[(r_idx-1)*h*w+1:r_idx*h*w]</span>
+<span class="x">      dset_label[1,idx[j]] = class[r_idx]</span>
+<span class="x">    end</span>
+</pre></div>
+
+
+<p><a id='The-Model-1'></a></p>
+<h2 id="the-model">The Model</h2>
+<p>The model code can be found in <code>examples/mnist.jl</code></p>
+<div class="codehilite"><pre><span></span>using Latte
+
+net = Net(100)
+data, label = HDF5DataLayer(net, &quot;data/train.txt&quot;, &quot;data/test.txt&quot;)
+conv1    = ConvolutionLayer(:conv1, net, data, 20, 5, 1, 1)
+relu1    = ReLULayer(:relu1, net, conv1)
+pool1    = MaxPoolingLayer(:pool1, net, relu1, 2, 2, 0)
+conv2    = ConvolutionLayer(:conv2, net, pool1, 50, 5, 1, 1)
+relu2    = ReLULayer(:relu2, net, conv2)
+pool2    = MaxPoolingLayer(:pool2, net, relu2, 2, 2, 0)
+conv3    = ConvolutionLayer(:conv3, net, pool1, 50, 3, 1, 1)
+relu3    = ReLULayer(:relu3, net, conv3)
+pool3    = MaxPoolingLayer(:pool3, net, relu3, 2, 2, 0)
+fc4      = InnerProductLayer(:fc4, net, pool3, 512)
+relu4    = ReLULayer(:relu4, net, fc4)
+fc5      = InnerProductLayer(:fc5, net, relu4, 512)
+relu5    = ReLULayer(:relu5, net, fc5)
+fc6      = InnerProductLayer(:fc6, net, relu5, 10)
+loss     = SoftmaxLossLayer(:loss, net, fc6, label)
+accuracy = AccuracyLayer(:accuracy, net, fc6, label)
+
+params = SolverParameters(
+    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),
+    mom_policy   = MomPolicy.Fixed(0.9),
+    max_epoch    = 50,
+    regu_coef    = .0005)
+sgd = SGD(params)
+solve(sgd, net)
+</pre></div>
+          <aside class="copyright" role="note">
+            
+            Documentation built with
+            <a href="http://www.mkdocs.org" target="_blank">MkDocs</a>
+            using the
+            <a href="http://squidfunk.github.io/mkdocs-material/" target="_blank">
+              Material
+            </a>
+            theme.
+          </aside>
+          
+            <footer class="footer">
+              
+  <nav class="pagination" aria-label="Footer">
+    <div class="previous">
+      
+        <a href="../../setup/" title="Setup">
+          <span class="direction">
+            Previous
+          </span>
+          <div class="page">
+            <div class="button button-previous" role="button" aria-label="Previous">
+              <i class="icon icon-back"></i>
+            </div>
+            <div class="stretch">
+              <div class="title">
+                Setup
+              </div>
+            </div>
+          </div>
+        </a>
+      
+    </div>
+    <div class="next">
+      
+        <a href="../cifar/" title="CIFAR-10">
+          <span class="direction">
+            Next
+          </span>
+          <div class="page">
+            <div class="stretch">
+              <div class="title">
+                CIFAR-10
+              </div>
+            </div>
+            <div class="button button-next" role="button" aria-label="Next">
+              <i class="icon icon-forward"></i>
+            </div>
+          </div>
+        </a>
+      
+    </div>
+  </nav>
+
+            </footer>
+          
+        </div>
+      </article>
+      <div class="results" role="status" aria-live="polite">
+        <div class="scrollable">
+          <div class="wrapper">
+            <div class="meta"></div>
+            <div class="list"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      var base_url = '../../..';
+      var repo_id  = 'IntelLabs/Latte.jl';
+    </script>
+    <script src="../../../assets/javascripts/application-997097ee0c.js"></script>
+    
+      <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML"></script>
+    
+      <script src="../../../assets/mathjaxhelper.js"></script>
+    
+    
+  </body>
+</html>
