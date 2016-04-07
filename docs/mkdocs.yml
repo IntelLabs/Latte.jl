@@ -27,7 +27,8 @@ docs_dir: 'build'
 
 pages:
     - Home: index.md
-    - Tutorial: tut/MLP.md
+    - Tutorial: 
+        - Multi-Layer Perceptron: tut/MLP.md
     - Manual:
         - Setup: man/setup.md
         - Examples: 
