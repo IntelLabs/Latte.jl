@@ -1,5 +1,8 @@
 # Internals
 
+    {meta}
+    CurrentModule = Latte
+
 ## Contents
 
     {contents}
@@ -13,50 +16,73 @@
 ## Net
 
     {docs}
-    Latte.init_buffer
-    Latte.set_buffer
+    init_buffer(net::Net, name::Symbol, shape; func=zeros)
+    set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
+    set_buffer(net::Net, name::Symbol, arr::Array, t::Int)
 
-    Latte.rand_values
-    Latte.clear_values
-    Latte.clear_∇
+    rand_values(net::Net)
+    clear_values(net::Net)
+    clear_∇(net::Net)
 
 ## Connections
 
     {docs}
-    Latte.check_one_to_one
-    Latte.check_dimensions_fixed
+    check_one_to_one(mapping::Function, shape::Tuple)
+    check_dimensions_fixed(mapping::Function, sink_shape::Tuple)
 
 ## Synthesis and Optimization
 
     {docs}
-    Latte.add_send_exprs
-    Latte.add_recv_expr
-    Latte.init_backward
-    Latte.init_forward
-    Latte.add_forward_julia_tasks
-    Latte.add_forward_data_tasks
-    Latte.push_compute_tasks!
-    Latte.generate_c_function
-    Latte.gen_neuron_backward
-    Latte.gen_neuron_forward
-    Latte.gen_copy_block
-    Latte.get_src_idx
-    Latte.optimize
+    add_send_exprs(net::Net, ensemble::AbstractEnsemble,
+                         compute_body::Dict{Phase, Vector},
+                         compute_args::ArgSet)
+    add_recv_expr(net::Net, source::AbstractEnsemble,
+                        ensemble::AbstractEnsemble, 
+                        compute_body::Dict{Phase, Vector}, compute_args::ArgSet)
+    init_forward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+    init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
+                 compute_body::Dict{Phase, Vector})
+    init_forward(ensemble::NormalizationEnsemble, net::Net,
+                 compute_args::ArgSet, compute_body::Dict{Phase, Vector})
+    init_backward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+    init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
+                  compute_body::Dict{Phase, Vector})
+    init_backward(ensemble::NormalizationEnsemble, net::Net,
+                  compute_args::ArgSet, compute_body::Dict{Phase, Vector})
+    add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net)
+    add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::Net)
+    push_compute_tasks!(tasks::TaskSet, buffers::Dict,
+                        compute_body::Dict, compute_args::ArgSet,
+                        run_where::Int, signal::Array{Cint, 1};
+                        distribute::Bool=false)
+    generate_c_function(func::Function, signature::Tuple,
+                        run_where::Int, signal::Array{Cint,1},
+                        buffers::Dict)
+    gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
+                        compute_body::Dict{Phase, Vector},
+                        compute_args::ArgSet)
+    gen_neuron_forward(ensemble::AbstractEnsemble, net::Net,
+                       compute_body::Dict{Phase, Vector},
+                       compute_args::Set)
+    gen_copy_block(net::Net, ensemble::AbstractEnsemble,
+                   connection::Connection, index::Int; ∇::Bool=false)
+    get_src_idx(mapping::Expr)
+    optimize(args::Vector, tile_fusion_factors::Vector, fn::Expr)
 
-    Latte.unpack_tiled_loop
-    Latte.is_tiled_loop
-    Latte.get_tile_fusion_factor_forward
-    Latte.get_tile_fusion_factor_backward
-    Latte.update_tile_var
-    Latte.inner_loop_tiler
-    Latte.get_inner_loop_tiler
-    Latte.tile_size_inliner
-    Latte.get_tile_loops
+    unpack_tiled_loop
+    is_tiled_loop
+    get_tile_fusion_factor_forward
+    get_tile_fusion_factor_backward
+    update_tile_var
+    inner_loop_tiler
+    get_inner_loop_tiler
+    tile_size_inliner
+    get_tile_loops
 
 ## Utility Datastructures
 
     {docs}
-    Latte.TaskSet
-    Latte.JuliaTask
-    Latte.UpdateTask
-    Latte.Batch
+    TaskSet
+    JuliaTask
+    UpdateTask
+    Batch

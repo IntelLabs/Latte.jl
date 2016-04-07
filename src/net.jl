@@ -105,7 +105,7 @@ mk_clamp(idx, _max) = :($idx > 0 && $idx <= $_max)
 Synthesize a loopnest to copy value or ∇ to the appropriate buffer
 """
 function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
-                        connection::Connection, index::Int; ∇=false)
+                        connection::Connection, index::Int; ∇::Bool=false)
     if ∇
         shape = size(get_buffer(net, ensemble, :∇))
         sink_name  = symbol(ensemble.name, :∇inputs, index)
@@ -282,7 +282,8 @@ end
 TODO: doc
 """
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
-                             compute_body, compute_args::Set)
+                             compute_body::Dict{Phase, Vector},
+                             compute_args::Set)
     if !(ensemble.phase in [Train, TrainTest])
         return
     end
@@ -410,7 +411,7 @@ FIXME: My, my this function is ugly, clean this up some day...
 function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                              compute_body::Dict, compute_args::ArgSet,
                              run_where::Int, signal::Array{Cint, 1};
-                             distribute=false)
+                             distribute::Bool=false)
     for phase in [Train, Test]
         args = collect(compute_args[phase])
         if length(args) == 0
@@ -527,19 +528,22 @@ end
 """
 TODO: doc
 """
-function init_forward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+function init_forward(ensemble::ReshapeEnsemble, net::Net,
+                      compute_args::ArgSet, compute_body::Dict{Phase, Vector})
 end
 
 """
 TODO: doc
 """
-function init_backward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+function init_backward(ensemble::ReshapeEnsemble, net::Net,
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
 end
 
 """
 TODO: doc
 """
-function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
+                      compute_body::Dict{Phase, Vector})
     asts = []
     output_name = symbol(ensemble.name, :value)
     push!(compute_args[Train], output_name)
@@ -571,7 +575,8 @@ end
 """
 TODO: doc
 """
-function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+function init_backward(ensemble::ConcatEnsemble, net::Net,
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     asts = []
     output_name = symbol(ensemble.name, :∇)
     push!(compute_args[Train], output_name)
@@ -600,7 +605,7 @@ end
 TODO: doc
 """
 function init_forward(ensemble::NormalizationEnsemble, net::Net,
-        compute_args::ArgSet, compute_body)
+                      compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     args = get_forward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
 
@@ -626,7 +631,7 @@ end
 TODO: doc
 """
 function init_backward(ensemble::NormalizationEnsemble, net::Net,
-        compute_args::ArgSet, compute_body)
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     args = get_backward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
     for connection in ensemble.connections
@@ -654,7 +659,9 @@ end
 """
 TODO: doc
 """
-function add_recv_expr(net, source, ensemble, compute_body, compute_args)
+function add_recv_expr(net::Net, source::AbstractEnsemble,
+                       ensemble::AbstractEnsemble, 
+                       compute_body::Dict{Phase, Vector}, compute_args::ArgSet)
     key = symbol(source.name, :value)
     source_subgroup = source.net_subgroup - 1  # -1 for zero based indexing with MPI ranks
     tag = find(x -> x == ensemble, net.ensembles)[1]
@@ -676,7 +683,9 @@ end
 """
 TODO: doc
 """
-function add_send_exprs(net, ensemble, compute_body, compute_args)
+function add_send_exprs(net::Net, ensemble::AbstractEnsemble,
+                        compute_body::Dict{Phase, Vector},
+                        compute_args::ArgSet)
     for (target, tag) in net.ensemble_send_list[ensemble.name]
         target = target - 1 # 0-based indexing for MPI
         target_phase = net.ensembles[tag].phase
@@ -901,7 +910,7 @@ end
 """
 TODO: doc
 """
-function check_dimensions_fixed(mapping::Function, sink_shape)
+function check_dimensions_fixed(mapping::Function, sink_shape::Tuple)
     n = length(sink_shape)
     is_dim_fixed = [true for _ in 1:n]
     first = mapping(ones(Int, n)...)
@@ -925,7 +934,7 @@ end
 """
 TODO: doc
 """
-function check_one_to_one(mapping, shape)
+function check_one_to_one(mapping::Function, shape::Tuple)
     is_one_to_one = true
     for i in CartesianRange(shape)
         if mapping(i.I...) != i.I
