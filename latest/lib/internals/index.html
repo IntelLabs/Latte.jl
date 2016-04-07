@@ -304,6 +304,10 @@
 <p><a id='Index-1'></a></p>
 <h2 id="index">Index</h2>
 <ul>
+<li><a href="./#Latte.Batch"><code>Latte.Batch</code></a></li>
+<li><a href="./#Latte.JuliaTask"><code>Latte.JuliaTask</code></a></li>
+<li><a href="./#Latte.TaskSet"><code>Latte.TaskSet</code></a></li>
+<li><a href="./#Latte.UpdateTask"><code>Latte.UpdateTask</code></a></li>
 <li><a href="./#Latte.add_forward_data_tasks"><code>Latte.add_forward_data_tasks</code></a></li>
 <li><a href="./#Latte.add_forward_julia_tasks"><code>Latte.add_forward_julia_tasks</code></a></li>
 <li><a href="./#Latte.add_recv_expr"><code>Latte.add_recv_expr</code></a></li>
@@ -469,11 +473,26 @@
 <p>Tile loop variables use <code>_tile_idx</code> loopvars.</p>
 <p><a id='Utility-Datastructures-1'></a></p>
 <h2 id="utility-datastructures">Utility Datastructures</h2>
-<div class="codehilite"><pre><span></span>Latte.TaskSet
-Latte.JuliaTask
-Latte.UpdateTask
-Latte.Batch
-</pre></div>
+<p><a id='Latte.TaskSet' href='#Latte.TaskSet'>#</a>
+<strong><code>Latte.TaskSet</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>A container for tasks for multiple <code>Phase</code>s</p>
+<p><strong> Fields </strong></p>
+<ul>
+<li>tasks – a dictionary containing a <code>Vector</code> of tasks for each <code>Phase</code></li>
+</ul>
+<p><a id='Latte.JuliaTask' href='#Latte.JuliaTask'>#</a>
+<strong><code>Latte.JuliaTask</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>A task that calls <code>func</code> with <code>args...</code></p>
+<p><a id='Latte.UpdateTask' href='#Latte.UpdateTask'>#</a>
+<strong><code>Latte.UpdateTask</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>A task that updates parameter <code>param_id</code></p>
+<p><a id='Latte.Batch' href='#Latte.Batch'>#</a>
+<strong><code>Latte.Batch</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>Used in neuron definitions to mark a field to be unique per batch item</p>
           <aside class="copyright" role="note">
             
             Documentation built with
