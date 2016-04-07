@@ -281,15 +281,22 @@
           
           <p><a id='Multi-Layer-Perceptron-1'></a></p>
 <h1 id="multi-layer-perceptron">Multi-Layer Perceptron</h1>
-<p>This tutorial is based on http://deeplearning.net/tutorial/mlp.html but uses Latte to implement the code examples.  </p>
+<p>This tutorial is based on <a href="http://deeplearning.net/tutorial/mlp.html">http://deeplearning.net/tutorial/mlp.html</a> but uses Latte to implement the code examples.  </p>
 <p>A Multi-Layer Perceptron can be described as a logistic regression classifier where the input is first transformed using a learnt non-linear transformation $\Phi$.  This intermediate layer performing the transformation is referred to as a <strong>hidden layer</strong>.  One hidden layer is sufficient to make MLPs a <strong>universal approximator</strong><a href="http://www.sciencedirect.com/science/article/pii/0893608089900208" title="Multilayer feedforward networks are universal approximators. Hornik et al. 1989">1</a>.  </p>
 <p><a id='The-Model-1'></a></p>
 <h2 id="the-model">The Model</h2>
-<p>An MLP with a single hidden layer can be represented graphically as follows: <img alt="Single Hidden Layer MLP" src="http://deeplearning.net/tutorial/_images/mlp.png" /></p>
+<p>An MLP with a single hidden layer can be represented graphically as follows:</p>
+<p><img alt="Single Hidden Layer MLP" src="http://deeplearning.net/tutorial/_images/mlp.png" /></p>
 <p>To understand this representation, we'll first define the properties of a singular neuron.  A <strong>Neuron</strong>, depicted in the figure as a circle, computes an output (typically called an activation) as a function of its inputs.  In this figure, an input is depicted as a directed edge flowing into a <strong>Neuron</strong>.  For an MLP, the function to compute the output of a <strong>Neuron</strong> begins with a weighted sum of the inputs.  Formally, if we describe the input as a vector of values $x$ and a vector of weights $w$, this operation can be written as $w \cdot x$ (dot product).  Next, we will shift this value by a learned bias $b$, then apply an activation function $s$ such as $tanh$, $sigmoid$ or $relu$.  The entire computation is written as $s(w \cdot x + b)$.  The values of $w$ and $b$ will be learnt using back-propogation (described later).</p>
 <p><a id='Defining-a-Neuron-in-Latte-1'></a></p>
 <h3 id="defining-a-neuron-in-latte">Defining a Neuron in Latte</h3>
-<p>Defining a <strong>Neuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  We define the following fields: - <code>value</code>   – stores the output value of the neuron - <code>inputs</code>  – a vector of <code>Float32</code> input values - <code>weights</code> – a vector learned weights - <code>bias</code>    – the bias value</p>
+<p>Defining a <strong>Neuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  We define the following fields:</p>
+<ul>
+<li><code>value</code>   – stores the output value of the neuron</li>
+<li><code>inputs</code>  – a vector of <code>Float32</code> input values</li>
+<li><code>weights</code> – a vector learned weights</li>
+<li><code>bias</code>    – the bias value</li>
+</ul>
 <div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="k">type</span><span class="nc"> WeightedNeuron</span> <span class="o">&lt;:</span> <span class="n">Neuron</span>
     <span class="n">value</span>   <span class="p">::</span> <span class="kt">Float32</span>
 
@@ -302,9 +309,11 @@
 
 <p>Next we define the forward computation for the neuron.</p>
 <div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="n">forward</span><span class="p">(</span><span class="n">neuron</span><span class="p">::</span><span class="n">WeightedNeuron</span><span class="p">)</span> <span class="k">do</span>
+    <span class="c"># dot product of weights and inputs</span>
     <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
     <span class="k">end</span>
+    <span class="c"># shift by the bias value</span>
     <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">bias</span>
 <span class="k">end</span>
 </pre></div>
