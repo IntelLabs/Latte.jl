@@ -286,34 +286,129 @@
 <li><a href="./#Latte.Connection"><code>Latte.Connection</code></a></li>
 <li><a href="./#Latte.Ensemble"><code>Latte.Ensemble</code></a></li>
 <li><a href="./#Latte.Net"><code>Latte.Net</code></a></li>
+<li><a href="./#Latte.Net-Tuple{Int64}"><code>Latte.Net</code></a></li>
 <li><a href="./#Latte.Param"><code>Latte.Param</code></a></li>
-<li><a href="./#Latte.add_connections"><code>Latte.add_connections</code></a></li>
-<li><a href="./#Latte.add_ensemble"><code>Latte.add_ensemble</code></a></li>
-<li><a href="./#Latte.get_buffer"><code>Latte.get_buffer</code></a></li>
-<li><a href="./#Latte.init"><code>Latte.init</code></a></li>
-<li><a href="./#Latte.load_snapshot"><code>Latte.load_snapshot</code></a></li>
-<li><a href="./#Latte.save_snapshot"><code>Latte.save_snapshot</code></a></li>
+<li><a href="./#Latte.add_connections-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Function}"><code>Latte.add_connections</code></a></li>
+<li><a href="./#Latte.add_ensemble-Tuple{Latte.Net,Latte.AbstractEnsemble}"><code>Latte.add_ensemble</code></a></li>
+<li><a href="./#Latte.get_buffer-Tuple{Latte.Net,Symbol,Int64}"><code>Latte.get_buffer</code></a></li>
+<li><a href="./#Latte.init-Tuple{Latte.Net}"><code>Latte.init</code></a></li>
+<li><a href="./#Latte.load_snapshot-Tuple{Latte.Net,AbstractString}"><code>Latte.load_snapshot</code></a></li>
+<li><a href="./#Latte.save_snapshot-Tuple{Latte.Net,AbstractString}"><code>Latte.save_snapshot</code></a></li>
+<li><a href="./#Latte.test-Tuple{Latte.Net}"><code>Latte.test</code></a></li>
 </ul>
 <p><a id='API-1'></a></p>
 <h2 id="api">API</h2>
-<div class="codehilite"><pre><span></span>{docs}
-Latte.Net
-Latte.Ensemble
-Latte.Connection
-Latte.Param
-Latte.get_buffer
-
-Latte.add_connections
-Latte.add_ensemble
-Latte.init
-
-Latte.load_snapshot
-Latte.save_snapshot
-
-Latte.forward
-Latte.backward
-Latte.test
-</pre></div>
+<p><a id='Latte.Net' href='#Latte.Net'>#</a>
+<strong><code>Latte.Net</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p><strong> Fields </strong></p>
+<ul>
+<li><code>ensembles</code>          – a vector containing each <code>Ensemble</code> in the network.</li>
+<li><code>ensembles_map</code>      – a mapping between ensemble names in the network to the                           instance stored in <code>ensembles</code></li>
+<li><code>buffers</code>            – the internal buffers used by the network</li>
+<li><code>curr_buffer_set</code>    – the current buffer set (used for double buffering)</li>
+<li><code>forward_tasks</code>      – a set of tasks for performing forward propogation of the network</li>
+<li><code>backward_tasks</code>     – a set of tasks for performing back propogation of the network</li>
+<li><code>update_tasks</code>       – a set of tasks for performing parameter updates</li>
+<li><code>params</code>             – a vector of <code>Param</code> instances corresponding to network parameters</li>
+<li><code>run_where</code>          – DEPRECATED</li>
+<li><code>signal</code>             – DEPRECATED</li>
+<li><code>batch_size</code>         – the batch size of the network                            TODO: support different batch sizes for train/test</li>
+<li><code>train_epoch</code>        – number of epochs completed for training</li>
+<li><code>test_epoch</code>         – number of epochs completed for testing</li>
+<li><code>curr_time_step</code>     – the current time step (for RNNs)</li>
+<li><code>time_steps</code>         – total number of time steps to unroll (for RNNs)</li>
+<li><code>num_subgroups</code>      – number of partitions in network (for model parallelism)</li>
+<li><code>ensemble_send_list</code> – a mapping between ensembles and a list of subgroups to send                           values to, used internally when synthesizing code for                           model parallelism</li>
+</ul>
+<p><a id='Latte.Net-Tuple{Int64}' href='#Latte.Net-Tuple{Int64}'>#</a>
+<strong><code>Latte.Net</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Main <code>Net</code> constructor that should be used. <strong> Params </strong> - <code>batch_size</code>    – batch size of the network - <code>time_steps</code>    – number of time steps to unroll the network (for RNNs) - <code>num_subgroups</code> – number of subgroups in the network (for model parallelism)</p>
+<p><a id='Latte.Ensemble' href='#Latte.Ensemble'>#</a>
+<strong><code>Latte.Ensemble</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>An ensemble</p>
+<p><strong> Fields </strong></p>
+<ul>
+<li>name         – name of the ensemble</li>
+<li>neurons      – an array of neurons of type <code>T</code></li>
+<li>connections  – a list of <code>Ensemble</code>s connected to this ensemble</li>
+<li>batch_fields – a vector of <code>Batch</code> fields for <code>T</code> (used internally)</li>
+<li>arg_dim_info – </li>
+<li>params       – a vector of <code>Param</code>s associated with the ensemble</li>
+<li>phase        – phase(s) in which this ensemble is active</li>
+<li>net_subgroup – the net subgroup the ensemble is a member of (use for model parallelism)</li>
+</ul>
+<p><a id='Latte.Connection' href='#Latte.Connection'>#</a>
+<strong><code>Latte.Connection</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>A connection between two ensembles.</p>
+<p><strong> Fields </strong></p>
+<ul>
+<li>source        – the source <code>Ensemble</code></li>
+<li>mapping       – a mapping function to a range of neurons in <code>source</code></li>
+<li>shape         – shape of the connected neurons returned by <code>mapping</code></li>
+<li>size          – length of the connected neurons returned by <code>mapping</code></li>
+<li>copy          – whether the connection requires input values to be copied</li>
+<li>is_dim_fixed  – vector of booleans that are true if the connection is fixed along a dimension</li>
+<li>is_one_to_one – whether the connection is one to one</li>
+<li>padding       – amount of padding used for the connection</li>
+<li>recurrent     – whether the connection is recurrent</li>
+</ul>
+<p><a id='Latte.Param' href='#Latte.Param'>#</a>
+<strong><code>Latte.Param</code></strong> &mdash; <em>Type</em>.</p>
+<hr />
+<p>A parameter in a <code>Net</code> (learned during training)</p>
+<p><strong> Fields </strong></p>
+<ul>
+<li><code>name</code>          – the name of the parameter</li>
+<li><code>gradient_name</code> – the name of the gradient (should be ∇<code>name</code>)</li>
+<li><code>hist_name</code>     – the name of the history buffer (should be <code>name</code>hist)</li>
+<li>learning_rate   – local learning rate for the parameter</li>
+<li>regu_coef       – local regularization coefficient</li>
+<li>clip_gradients  – NOT IMPLEMENTED, gradient clipping parameter</li>
+<li>value           – buffer containing the value of the parameter</li>
+<li>gradient        – buffer containing the gradient of the parameter</li>
+<li>hist            – buffer containing the history of the parameter</li>
+<li>request         – request id, used for MPI data parallelism</li>
+</ul>
+<p><a id='Latte.get_buffer-Tuple{Latte.Net,Symbol,Int64}' href='#Latte.get_buffer-Tuple{Latte.Net,Symbol,Int64}'>#</a>
+<strong><code>Latte.get_buffer</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Get a buffer at the time_step <code>t</code></p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>net</code>   – network to get buffer</li>
+<li><code>name</code>  – name of the buffer</li>
+<li><code>t</code>     – time step</li>
+</ul>
+<p><a id='Latte.add_connections-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Function}' href='#Latte.add_connections-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Function}'>#</a>
+<strong><code>Latte.add_connections</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Connect neurons in <code>source</code> to neurons in <code>sink</code> using the function <code>mapping</code>. <code>mapping</code> should be a function with a parameter for the index in each dimension of sink. For example, if sink is a 3-d ensemble, mapping = f(i, j, k) -&gt; ...</p>
+<p><code>mapping</code> should return a tuple of continuous ranges corresponding to the indices of neurons in source that should be connected to the neuron at the current index</p>
+<p><a id='Latte.add_ensemble-Tuple{Latte.Net,Latte.AbstractEnsemble}' href='#Latte.add_ensemble-Tuple{Latte.Net,Latte.AbstractEnsemble}'>#</a>
+<strong><code>Latte.add_ensemble</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Add an ensemble to the network <code>net</code></p>
+<p><a id='Latte.init-Tuple{Latte.Net}' href='#Latte.init-Tuple{Latte.Net}'>#</a>
+<strong><code>Latte.init</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Initialize the network <code>net</code></p>
+<p><a id='Latte.load_snapshot-Tuple{Latte.Net,AbstractString}' href='#Latte.load_snapshot-Tuple{Latte.Net,AbstractString}'>#</a>
+<strong><code>Latte.load_snapshot</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Load a network snapshot from <code>file</code>.</p>
+<p>TODO: Can we save the structure of <code>net</code> in the snapshot?</p>
+<p><a id='Latte.save_snapshot-Tuple{Latte.Net,AbstractString}' href='#Latte.save_snapshot-Tuple{Latte.Net,AbstractString}'>#</a>
+<strong><code>Latte.save_snapshot</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Save a snapshot of <code>net</code> to <code>file</code></p>
+<p><a id='Latte.test-Tuple{Latte.Net}' href='#Latte.test-Tuple{Latte.Net}'>#</a>
+<strong><code>Latte.test</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Test <code>net</code> for one epoch</p>
           <aside class="copyright" role="note">
             
             Documentation built with

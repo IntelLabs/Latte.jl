@@ -308,40 +308,46 @@
 <li><a href="./#Latte.JuliaTask"><code>Latte.JuliaTask</code></a></li>
 <li><a href="./#Latte.TaskSet"><code>Latte.TaskSet</code></a></li>
 <li><a href="./#Latte.UpdateTask"><code>Latte.UpdateTask</code></a></li>
-<li><a href="./#Latte.add_forward_data_tasks"><code>Latte.add_forward_data_tasks</code></a></li>
-<li><a href="./#Latte.add_forward_julia_tasks"><code>Latte.add_forward_julia_tasks</code></a></li>
-<li><a href="./#Latte.add_recv_expr"><code>Latte.add_recv_expr</code></a></li>
-<li><a href="./#Latte.add_send_exprs"><code>Latte.add_send_exprs</code></a></li>
-<li><a href="./#Latte.check_dimensions_fixed"><code>Latte.check_dimensions_fixed</code></a></li>
-<li><a href="./#Latte.check_one_to_one"><code>Latte.check_one_to_one</code></a></li>
-<li><a href="./#Latte.clear_values"><code>Latte.clear_values</code></a></li>
-<li><a href="./#Latte.clear_∇"><code>Latte.clear_∇</code></a></li>
-<li><a href="./#Latte.gen_copy_block"><code>Latte.gen_copy_block</code></a></li>
-<li><a href="./#Latte.gen_neuron_backward"><code>Latte.gen_neuron_backward</code></a></li>
-<li><a href="./#Latte.gen_neuron_forward"><code>Latte.gen_neuron_forward</code></a></li>
-<li><a href="./#Latte.generate_c_function"><code>Latte.generate_c_function</code></a></li>
+<li><a href="./#Latte.add_forward_data_tasks-Tuple{Latte.DataEnsemble,Latte.TaskSet,Latte.Net}"><code>Latte.add_forward_data_tasks</code></a></li>
+<li><a href="./#Latte.add_forward_julia_tasks-Tuple{Latte.JuliaEnsemble,Latte.TaskSet,Latte.Net}"><code>Latte.add_forward_julia_tasks</code></a></li>
+<li><a href="./#Latte.add_recv_expr-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}"><code>Latte.add_recv_expr</code></a></li>
+<li><a href="./#Latte.add_send_exprs-Tuple{Latte.Net,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}"><code>Latte.add_send_exprs</code></a></li>
+<li><a href="./#Latte.check_dimensions_fixed-Tuple{Function,Tuple}"><code>Latte.check_dimensions_fixed</code></a></li>
+<li><a href="./#Latte.check_one_to_one-Tuple{Function,Tuple}"><code>Latte.check_one_to_one</code></a></li>
+<li><a href="./#Latte.clear_values-Tuple{Latte.Net}"><code>Latte.clear_values</code></a></li>
+<li><a href="./#Latte.clear_∇-Tuple{Latte.Net}"><code>Latte.clear_∇</code></a></li>
+<li><a href="./#Latte.gen_copy_block-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.Connection,Int64}"><code>Latte.gen_copy_block</code></a></li>
+<li><a href="./#Latte.gen_neuron_backward-Tuple{Latte.AbstractEnsemble,Latte.Net,Array{T,1},Set{T}}"><code>Latte.gen_neuron_backward</code></a></li>
+<li><a href="./#Latte.gen_neuron_forward-Tuple{Latte.AbstractEnsemble,Latte.Net,Dict{Latte.Phase,Array{T,1}},Set{T}}"><code>Latte.gen_neuron_forward</code></a></li>
+<li><a href="./#Latte.generate_c_function-Tuple{Function,Tuple,Int64,Array{Int32,1},Dict{K,V}}"><code>Latte.generate_c_function</code></a></li>
+<li><a href="./#Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}"><code>Latte.get_buffer</code></a></li>
 <li><a href="./#Latte.get_inner_loop_tiler"><code>Latte.get_inner_loop_tiler</code></a></li>
-<li><a href="./#Latte.get_src_idx"><code>Latte.get_src_idx</code></a></li>
+<li><a href="./#Latte.get_src_idx-Tuple{Expr}"><code>Latte.get_src_idx</code></a></li>
 <li><a href="./#Latte.get_tile_fusion_factor_backward"><code>Latte.get_tile_fusion_factor_backward</code></a></li>
 <li><a href="./#Latte.get_tile_fusion_factor_forward"><code>Latte.get_tile_fusion_factor_forward</code></a></li>
 <li><a href="./#Latte.get_tile_loops"><code>Latte.get_tile_loops</code></a></li>
-<li><a href="./#Latte.init_backward"><code>Latte.init_backward</code></a></li>
-<li><a href="./#Latte.init_buffer"><code>Latte.init_buffer</code></a></li>
-<li><a href="./#Latte.init_forward"><code>Latte.init_forward</code></a></li>
+<li><a href="./#Latte.init_backward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_backward</code></a></li>
+<li><a href="./#Latte.init_backward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_backward</code></a></li>
+<li><a href="./#Latte.init_backward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}"><code>Latte.init_backward</code></a></li>
+<li><a href="./#Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}"><code>Latte.init_buffer</code></a></li>
+<li><a href="./#Latte.init_forward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_forward</code></a></li>
+<li><a href="./#Latte.init_forward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_forward</code></a></li>
+<li><a href="./#Latte.init_forward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}"><code>Latte.init_forward</code></a></li>
 <li><a href="./#Latte.inner_loop_tiler"><code>Latte.inner_loop_tiler</code></a></li>
 <li><a href="./#Latte.is_tiled_loop"><code>Latte.is_tiled_loop</code></a></li>
-<li><a href="./#Latte.optimize"><code>Latte.optimize</code></a></li>
-<li><a href="./#Latte.push_compute_tasks!"><code>Latte.push_compute_tasks!</code></a></li>
-<li><a href="./#Latte.rand_values"><code>Latte.rand_values</code></a></li>
-<li><a href="./#Latte.set_buffer"><code>Latte.set_buffer</code></a></li>
+<li><a href="./#Latte.optimize-Tuple{Array{T,1},Array{T,1},Expr}"><code>Latte.optimize</code></a></li>
+<li><a href="./#Latte.push_compute_tasks!-Tuple{Latte.TaskSet,Dict{K,V},Dict{K,V},Latte.ArgSet,Int64,Array{Int32,1}}"><code>Latte.push_compute_tasks!</code></a></li>
+<li><a href="./#Latte.rand_values-Tuple{Latte.Net}"><code>Latte.rand_values</code></a></li>
+<li><a href="./#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}"><code>Latte.set_buffer</code></a></li>
+<li><a href="./#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}"><code>Latte.set_buffer</code></a></li>
 <li><a href="./#Latte.tile_size_inliner"><code>Latte.tile_size_inliner</code></a></li>
 <li><a href="./#Latte.unpack_tiled_loop"><code>Latte.unpack_tiled_loop</code></a></li>
 <li><a href="./#Latte.update_tile_var"><code>Latte.update_tile_var</code></a></li>
 </ul>
 <p><a id='Net-1'></a></p>
 <h2 id="net">Net</h2>
-<p><a id='Latte.init_buffer' href='#Latte.init_buffer'>#</a>
-<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}' href='#Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}'>#</a>
+<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Initialize a buffer in <code>net</code></p>
 <p><strong> Params </strong></p>
@@ -351,8 +357,19 @@
 <li><code>shape</code> – shape of the buffer</li>
 <li><code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</li>
 </ul>
-<p><a id='Latte.set_buffer' href='#Latte.set_buffer'>#</a>
-<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}' href='#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}'>#</a>
+<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Add or update a buffer</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>net</code>   – network to add/update buffer</li>
+<li><code>name</code>  – name of the buffer</li>
+<li><code>arr</code>   – buffer</li>
+<li><code>_copy</code> – whether to copy the buffer</li>
+</ul>
+<p><a id='Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}' href='#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}'>#</a>
+<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Add or update a buffer at a particular time step <code>t</code></p>
 <p><strong> Params </strong></p>
@@ -362,103 +379,114 @@
 <li><code>arr</code>   – buffer</li>
 <li><code>t</code>     – time step to add buffer</li>
 </ul>
-<p>Add or update a buffer</p>
+<p><a id='Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}' href='#Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}'>#</a>
+<strong><code>Latte.get_buffer</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>Get a buffer associated with an ensemble</p>
 <p><strong> Params </strong></p>
 <ul>
-<li><code>net</code>   – network to add/update buffer</li>
-<li><code>name</code>  – name of the buffer</li>
-<li><code>arr</code>   – buffer</li>
-<li><code>_copy</code> – whether to copy the buffer</li>
+<li><code>net</code>   – network to get buffer</li>
+<li><code>ens</code>   – the ensemble</li>
+<li><code>name</code>  – name of buffer associated with <code>ens</code></li>
 </ul>
-<p><a id='Latte.rand_values' href='#Latte.rand_values'>#</a>
-<strong><code>Latte.rand_values</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.rand_values-Tuple{Latte.Net}' href='#Latte.rand_values-Tuple{Latte.Net}'>#</a>
+<strong><code>Latte.rand_values</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Fill buffers with names containing <code>randval</code> with random values</p>
-<p><a id='Latte.clear_values' href='#Latte.clear_values'>#</a>
-<strong><code>Latte.clear_values</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.clear_values-Tuple{Latte.Net}' href='#Latte.clear_values-Tuple{Latte.Net}'>#</a>
+<strong><code>Latte.clear_values</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Fill buffers with names containing <code>value</code> with zeros.</p>
-<p><a id='Latte.clear_' href='#Latte.clear_'>#</a>
-<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.clear_-Tuple{Latte.Net}' href='#Latte.clear_-Tuple{Latte.Net}'>#</a>
+<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Fill buffers with names containing <code>∇</code> with zeros.</p>
 <p><a id='Connections-1'></a></p>
 <h2 id="connections">Connections</h2>
-<p><a id='Latte.check_one_to_one' href='#Latte.check_one_to_one'>#</a>
-<strong><code>Latte.check_one_to_one</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.check_one_to_one-Tuple{Function,Tuple}' href='#Latte.check_one_to_one-Tuple{Function,Tuple}'>#</a>
+<strong><code>Latte.check_one_to_one</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.check_dimensions_fixed' href='#Latte.check_dimensions_fixed'>#</a>
-<strong><code>Latte.check_dimensions_fixed</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.check_dimensions_fixed-Tuple{Function,Tuple}' href='#Latte.check_dimensions_fixed-Tuple{Function,Tuple}'>#</a>
+<strong><code>Latte.check_dimensions_fixed</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
 <p><a id='Synthesis-and-Optimization-1'></a></p>
 <h2 id="synthesis-and-optimization">Synthesis and Optimization</h2>
-<p><a id='Latte.add_send_exprs' href='#Latte.add_send_exprs'>#</a>
-<strong><code>Latte.add_send_exprs</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.add_send_exprs-Tuple{Latte.Net,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}' href='#Latte.add_send_exprs-Tuple{Latte.Net,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}'>#</a>
+<strong><code>Latte.add_send_exprs</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.add_recv_expr' href='#Latte.add_recv_expr'>#</a>
-<strong><code>Latte.add_recv_expr</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.add_recv_expr-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}' href='#Latte.add_recv_expr-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}'>#</a>
+<strong><code>Latte.add_recv_expr</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.init_backward' href='#Latte.init_backward'>#</a>
-<strong><code>Latte.init_backward</code></strong> &mdash; <em>Function</em>.</p>
-<hr />
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p>TODO: doc</p>
-<p><a id='Latte.init_forward' href='#Latte.init_forward'>#</a>
-<strong><code>Latte.init_forward</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.init_forward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}' href='#Latte.init_forward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}'>#</a>
+<strong><code>Latte.init_forward</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
 <p>TODO: doc</p>
 <p>TODO: doc</p>
-<p><a id='Latte.add_forward_julia_tasks' href='#Latte.add_forward_julia_tasks'>#</a>
-<strong><code>Latte.add_forward_julia_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.init_forward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}' href='#Latte.init_forward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}'>#</a>
+<strong><code>Latte.init_forward</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.add_forward_data_tasks' href='#Latte.add_forward_data_tasks'>#</a>
-<strong><code>Latte.add_forward_data_tasks</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.init_forward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}' href='#Latte.init_forward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}'>#</a>
+<strong><code>Latte.init_forward</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.push_compute_tasks!' href='#Latte.push_compute_tasks!'>#</a>
-<strong><code>Latte.push_compute_tasks!</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.init_backward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}' href='#Latte.init_backward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}'>#</a>
+<strong><code>Latte.init_backward</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p>TODO: doc</p>
+<p><a id='Latte.init_backward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}' href='#Latte.init_backward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}'>#</a>
+<strong><code>Latte.init_backward</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.init_backward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}' href='#Latte.init_backward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}'>#</a>
+<strong><code>Latte.init_backward</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_data_tasks-Tuple{Latte.DataEnsemble,Latte.TaskSet,Latte.Net}' href='#Latte.add_forward_data_tasks-Tuple{Latte.DataEnsemble,Latte.TaskSet,Latte.Net}'>#</a>
+<strong><code>Latte.add_forward_data_tasks</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.add_forward_julia_tasks-Tuple{Latte.JuliaEnsemble,Latte.TaskSet,Latte.Net}' href='#Latte.add_forward_julia_tasks-Tuple{Latte.JuliaEnsemble,Latte.TaskSet,Latte.Net}'>#</a>
+<strong><code>Latte.add_forward_julia_tasks</code></strong> &mdash; <em>Method</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.push_compute_tasks!-Tuple{Latte.TaskSet,Dict{K,V},Dict{K,V},Latte.ArgSet,Int64,Array{Int32,1}}' href='#Latte.push_compute_tasks!-Tuple{Latte.TaskSet,Dict{K,V},Dict{K,V},Latte.ArgSet,Int64,Array{Int32,1}}'>#</a>
+<strong><code>Latte.push_compute_tasks!</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc FIXME: My, my this function is ugly, clean this up some day...</p>
-<p><a id='Latte.generate_c_function' href='#Latte.generate_c_function'>#</a>
-<strong><code>Latte.generate_c_function</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.generate_c_function-Tuple{Function,Tuple,Int64,Array{Int32,1},Dict{K,V}}' href='#Latte.generate_c_function-Tuple{Function,Tuple,Int64,Array{Int32,1},Dict{K,V}}'>#</a>
+<strong><code>Latte.generate_c_function</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.gen_neuron_backward' href='#Latte.gen_neuron_backward'>#</a>
-<strong><code>Latte.gen_neuron_backward</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.gen_neuron_backward-Tuple{Latte.AbstractEnsemble,Latte.Net,Array{T,1},Set{T}}' href='#Latte.gen_neuron_backward-Tuple{Latte.AbstractEnsemble,Latte.Net,Array{T,1},Set{T}}'>#</a>
+<strong><code>Latte.gen_neuron_backward</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>TODO: doc</p>
-<p><a id='Latte.gen_neuron_forward' href='#Latte.gen_neuron_forward'>#</a>
-<strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.gen_neuron_forward-Tuple{Latte.AbstractEnsemble,Latte.Net,Dict{Latte.Phase,Array{T,1}},Set{T}}' href='#Latte.gen_neuron_forward-Tuple{Latte.AbstractEnsemble,Latte.Net,Dict{Latte.Phase,Array{T,1}},Set{T}}'>#</a>
+<strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
-<p>Synthesize the code to execute forward for an ensemble</p>
-<p><strong> Params </strong></p>
-<ul>
-<li><code>ensemble</code>     – the <code>AbstractEnsemble</code> that is having its forward synthesized</li>
-<li><code>net</code>          – the <code>Net</code> containing <code>ensemble</code></li>
-<li><code>compute_body</code> – the body that the synthesized code will be added to</li>
-<li><code>compute_args</code> – a set of arguments reference in <code>compute_body</code>.  Any values                     referenced in the synthesized code should be added to                     <code>compute_args</code></li>
-</ul>
-<p><a id='Latte.gen_copy_block' href='#Latte.gen_copy_block'>#</a>
-<strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Function</em>.</p>
+<p>nothing
+<a id='Latte.gen_copy_block-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.Connection,Int64}' href='#Latte.gen_copy_block-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.Connection,Int64}'>#</a>
+<strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Synthesize a loopnest to copy value or ∇ to the appropriate buffer</p>
-<p><a id='Latte.get_src_idx' href='#Latte.get_src_idx'>#</a>
-<strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.get_src_idx-Tuple{Expr}' href='#Latte.get_src_idx-Tuple{Expr}'>#</a>
+<strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Extract the final expression of the mapping function to be used as an indexing expression.  Handles cases where the final expression can be a Tuple or a single value.</p>
 <p><strong> Params </strong></p>
 <ul>
 <li><code>mapping</code> – an ast for a mapping function</li>
 </ul>
-<p><a id='Latte.optimize' href='#Latte.optimize'>#</a>
-<strong><code>Latte.optimize</code></strong> &mdash; <em>Function</em>.</p>
+<p><a id='Latte.optimize-Tuple{Array{T,1},Array{T,1},Expr}' href='#Latte.optimize-Tuple{Array{T,1},Array{T,1},Expr}'>#</a>
+<strong><code>Latte.optimize</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
 <p>Optimize a function <code>fn</code></p>
 <p><strong> Params </strong></p>
