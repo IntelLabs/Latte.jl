@@ -316,14 +316,23 @@
 <li><a href="./#Latte.gen_neuron_backward"><code>Latte.gen_neuron_backward</code></a></li>
 <li><a href="./#Latte.gen_neuron_forward"><code>Latte.gen_neuron_forward</code></a></li>
 <li><a href="./#Latte.generate_c_function"><code>Latte.generate_c_function</code></a></li>
+<li><a href="./#Latte.get_inner_loop_tiler"><code>Latte.get_inner_loop_tiler</code></a></li>
 <li><a href="./#Latte.get_src_idx"><code>Latte.get_src_idx</code></a></li>
+<li><a href="./#Latte.get_tile_fusion_factor_backward"><code>Latte.get_tile_fusion_factor_backward</code></a></li>
+<li><a href="./#Latte.get_tile_fusion_factor_forward"><code>Latte.get_tile_fusion_factor_forward</code></a></li>
+<li><a href="./#Latte.get_tile_loops"><code>Latte.get_tile_loops</code></a></li>
 <li><a href="./#Latte.init_backward"><code>Latte.init_backward</code></a></li>
 <li><a href="./#Latte.init_buffer"><code>Latte.init_buffer</code></a></li>
 <li><a href="./#Latte.init_forward"><code>Latte.init_forward</code></a></li>
+<li><a href="./#Latte.inner_loop_tiler"><code>Latte.inner_loop_tiler</code></a></li>
+<li><a href="./#Latte.is_tiled_loop"><code>Latte.is_tiled_loop</code></a></li>
 <li><a href="./#Latte.optimize"><code>Latte.optimize</code></a></li>
 <li><a href="./#Latte.push_compute_tasks!"><code>Latte.push_compute_tasks!</code></a></li>
 <li><a href="./#Latte.rand_values"><code>Latte.rand_values</code></a></li>
 <li><a href="./#Latte.set_buffer"><code>Latte.set_buffer</code></a></li>
+<li><a href="./#Latte.tile_size_inliner"><code>Latte.tile_size_inliner</code></a></li>
+<li><a href="./#Latte.unpack_tiled_loop"><code>Latte.unpack_tiled_loop</code></a></li>
+<li><a href="./#Latte.update_tile_var"><code>Latte.update_tile_var</code></a></li>
 </ul>
 <p><a id='Net-1'></a></p>
 <h2 id="net">Net</h2>
@@ -422,6 +431,42 @@
 <hr />
 <p>Optimize a function <code>fn</code></p>
 <p><strong> Params </strong> - <code>args</code>                – an ordered vector of arguments (buffers) - <code>tile_fusion_factors</code> – factors for tile fusions determined by connection                            structure - <code>fn</code>                  – the ast of the function to be optimized</p>
+<p><a id='Latte.unpack_tiled_loop' href='#Latte.unpack_tiled_loop'>#</a>
+<strong><code>Latte.unpack_tiled_loop</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Convert from an internal Latte tiled_loop to a normal Julia :for expression</p>
+<p><a id='Latte.is_tiled_loop' href='#Latte.is_tiled_loop'>#</a>
+<strong><code>Latte.is_tiled_loop</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Check if <code>node</code> is an internal Latte tiled_loop</p>
+<p><a id='Latte.get_tile_fusion_factor_forward' href='#Latte.get_tile_fusion_factor_forward'>#</a>
+<strong><code>Latte.get_tile_fusion_factor_forward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.get_tile_fusion_factor_backward' href='#Latte.get_tile_fusion_factor_backward'>#</a>
+<strong><code>Latte.get_tile_fusion_factor_backward</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.update_tile_var' href='#Latte.update_tile_var'>#</a>
+<strong><code>Latte.update_tile_var</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Replace indexing expressions with <code>tile_var</code> with the proper tiled expression When <code>inputs</code> are not copied, the neuron transformer appends :NOTILE to the index expression to force Latte not to tile the expression.</p>
+<p><a id='Latte.inner_loop_tiler' href='#Latte.inner_loop_tiler'>#</a>
+<strong><code>Latte.inner_loop_tiler</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.get_inner_loop_tiler' href='#Latte.get_inner_loop_tiler'>#</a>
+<strong><code>Latte.get_inner_loop_tiler</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.tile_size_inliner' href='#Latte.tile_size_inliner'>#</a>
+<strong><code>Latte.tile_size_inliner</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>TODO: doc</p>
+<p><a id='Latte.get_tile_loops' href='#Latte.get_tile_loops'>#</a>
+<strong><code>Latte.get_tile_loops</code></strong> &mdash; <em>Function</em>.</p>
+<hr />
+<p>Tile loop variables use <code>_tile_idx</code> loopvars.</p>
 <p><a id='Utility-Datastructures-1'></a></p>
 <h2 id="utility-datastructures">Utility Datastructures</h2>
 <div class="codehilite"><pre><span></span>Latte.TaskSet
