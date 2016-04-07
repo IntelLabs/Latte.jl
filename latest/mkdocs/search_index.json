@@ -2,23 +2,13 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nPublic\n\n\nContents\n\n\nIndex\n\n\nAPI\n\n\n\n\n\n\nInternals\n\n\nContents\n\n\nIndex\n\n\nNet\n\n\nConnections\n\n\nSynthesis and Optimization\n\n\nUtility Datastructures", 
+            "text": "Latte.jl\n\n\nLatte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.\n\n\nIf you use Latte for research, please use the following citation:\n\n\nForthcoming...", 
             "title": "Home"
         }, 
         {
             "location": "/#lattejl", 
-            "text": "", 
+            "text": "Latte is a high-performance DSL for deep neural networks.  Our goal was to design a language that closely matched domain concepts without sacrificing performance.  If you use Latte for research, please use the following citation:  Forthcoming...", 
             "title": "Latte.jl"
-        }, 
-        {
-            "location": "/#manual-outline", 
-            "text": "Setup  Prerequisites  Quick Install    Examples  MNIST  cifar10", 
-            "title": "Manual Outline"
-        }, 
-        {
-            "location": "/#library-outline", 
-            "text": "Public  Contents  Index  API    Internals  Contents  Index  Net  Connections  Synthesis and Optimization  Utility Datastructures", 
-            "title": "Library Outline"
         }, 
         {
             "location": "/man/setup/", 
