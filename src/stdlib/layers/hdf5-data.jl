@@ -65,7 +65,7 @@ end
 @eval function init(ens::HDF5DataEnsemble, net::Net)
     arr = Array(Float32, size(ens)..., net.batch_size)
     set_buffer(net, symbol(ens.name,:value), arr; _copy=false)
-    set_buffer(net, symbol(ens.name,:∇), Array(Float32, 0); _copy=false)
+    set_buffer(net, symbol(ens.name,:∇), zeros(arr); _copy=false)
     if ens.name == :data
         ccall((:set_data_pointer, $libIO), Void, (Cint, Ptr{Float32},), ens.train_id, arr)
         ccall((:set_data_pointer, $libIO), Void, (Cint, Ptr{Float32},), ens.test_id, arr)

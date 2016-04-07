@@ -26,21 +26,27 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
 export DropoutLayer
-
+# We use @eval begin ... end blocks here to delay the expansion of the @neuron
+# macro which causes side effects, that is, it should only happen once for the
+# active definition of dropout neuron
 if LATTE_BATCH_DROPOUT
+@eval begin
     @neuron type DropoutNeuron
         ratio   :: Float32
         randval :: Float32
         scale   :: Float32
     end
     DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, 0.0f0, 1.0f0 / (1.0f0 - ratio))
+end
 else
+@eval begin
     @neuron type DropoutNeuron
         ratio   :: Float32
         randval :: Batch{Float32}
         scale   :: Float32
     end
     DropoutNeuron(ratio::Float32) = DropoutNeuron(ratio, Batch(0.0f0), 1.0f0 / (1.0f0 - ratio))
+end
 end
 
 # FIXME: CGen does not support rand()

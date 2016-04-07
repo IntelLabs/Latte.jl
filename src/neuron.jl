@@ -25,7 +25,7 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =#
 
-export Neuron, neuron
+export Neuron, neuron, @neuron
 abstract Neuron
 
 function init(neuron::Neuron)
@@ -42,11 +42,9 @@ end
 macro neuron(expr)
     @assert isa(expr, Expr) "@neuron macro expects an expression"
     if expr.head == :call
-        return Expr(:escape, quote
-            function $(expr.args[1])($(expr.args[3:end]...))
-                return $(Expr(:quote, expr.args[2].args[2]))
-            end
-        end)
+        @eval function $(expr.args[1])($(expr.args[3:end]...))
+            return $(Expr(:quote, expr.args[2].args[2]))
+        end
     elseif expr.head == :type
         type_defn = expr.args[2]
         expr.args[2] = Expr(:(<:), type_defn, :Neuron)
@@ -65,11 +63,14 @@ macro neuron(expr)
             end
         end
 
-        result = Expr(:escape, quote
+        result = quote
             $expr
             $defn
+        end
+        @eval $result
+        return Expr(:escape, quote
+            typealias $type_defn Latte.$type_defn
         end)
-        return result
     else
         throw("Not Implemented")
     end

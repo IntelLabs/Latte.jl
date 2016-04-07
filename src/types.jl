@@ -88,6 +88,7 @@ type Param
                   symbol(ensemble_name,:∇,name), 
                   symbol(ensemble_name, name, :hist), learning_rate, regu_coef, -1.0f0)
 end
+export Param
 
 """
 A container for tasks for multiple `Phase`s
