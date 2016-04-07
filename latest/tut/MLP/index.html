@@ -215,6 +215,24 @@
               </a>
             </li>
           
+            <li class="anchor">
+              <a title="Building a Layer using Ensembles and Connections" href="#building-a-layer-using-ensembles-and-connections">
+                Building a Layer using Ensembles and Connections
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Constructing an MLP using Net" href="#constructing-an-mlp-using-net">
+                Constructing an MLP using Net
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Training" href="#training">
+                Training
+              </a>
+            </li>
+          
         </ul>
       
     
@@ -309,7 +327,7 @@
 <p>To understand this representation, we'll first define the properties of a singular neuron.  A <strong>Neuron</strong>, depicted in the figure as a circle, computes an output (typically called an activation) as a function of its inputs.  In this figure, an input is depicted as a directed edge flowing into a <strong>Neuron</strong>.  For an MLP, the function to compute the output of a <strong>Neuron</strong> begins with a weighted sum of the inputs.  Formally, if we describe the input as a vector of values $x$ and a vector of weights $w$, this operation can be written as $w \cdot x$ (dot product).  Next, we will shift this value by a learned bias $b$, then apply an activation function $s$ such as $tanh$, $sigmoid$ or $relu$.  The entire computation is written as $s(w \cdot x + b)$.  The values of $w$ and $b$ will be learnt using back-propogation.</p>
 <p><a id='Defining-a-WeightedNeuron-1'></a></p>
 <h2 id="defining-a-weightedneuron">Defining a WeightedNeuron</h2>
-<p>Defining a <strong>WeightedNeuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  The <code>Neuron</code> type contains 4 default fields: - <code>value</code>    – contains the output value of the neuron - <code>∇</code>        – contains the gradient of the neuron - <code>inputs</code>   – a vector of input values - <code>∇inputs</code>  – a vector of gradients for connected neurons</p>
+<p>Defining a <strong>WeightedNeuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  The <code>Neuron</code> type contains 4 default fields: - <code>value</code>    – contains the output value of the neuron - <code>∇</code>        – contains the gradient of the neuron - <code>inputs</code>   – a vector of vectors of input values. - <code>∇inputs</code>  – a vector of gradients for connected neurons</p>
 <p>For our <strong>WeightedNeuron</strong> we will define the following additional fields:</p>
 <ul>
 <li><code>weights</code>  – a vector of learned weights</li>
@@ -317,13 +335,7 @@
 <li><code>bias</code>     – the bias value</li>
 <li><code>∇bias</code>    – the gradient for the bias value</li>
 </ul>
-<div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="k">type</span><span class="nc"> WeightedNeuron</span> <span class="o">&lt;:</span> <span class="n">Neuron</span>
-    <span class="n">value</span>    <span class="p">::</span> <span class="kt">Float32</span>
-    <span class="n">∇</span>        <span class="p">::</span> <span class="kt">Float32</span>
-
-    <span class="n">inputs</span>   <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
-    <span class="n">∇inputs</span>  <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
-
+<div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="n">WeightedNeuron</span>
     <span class="n">weights</span>  <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
     <span class="n">∇weights</span> <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
 
@@ -333,29 +345,111 @@
 </pre></div>
 
 
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We do not define the default fields as using the @neuron macro for the type definition will specify them for us.  Furthermore the macro defines a constructor function that automatically initializes the default fields.</p>
+</div>
 <p>Next we define the forward computation for the neuron:</p>
 <div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="n">forward</span><span class="p">(</span><span class="n">neuron</span><span class="p">::</span><span class="n">WeightedNeuron</span><span class="p">)</span> <span class="k">do</span>
     <span class="c"># dot product of weights and inputs</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">)</span>
-        <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
     <span class="k">end</span>
     <span class="c"># shift by the bias value</span>
-    <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">bias</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">bias</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 <span class="k">end</span>
 </pre></div>
 
 
 <p>And finally we define the backward computation for the back-propogation algorithm:</p>
-<div class="codehilite"><pre><span></span>@neuron backward(neuron::WeightedNeuron) do
-    for i in 1:length(neuron.inputs[1])
-        neuron.∇inputs[i] += neuron.weights[i] * neuron.∇
-    end
-    for i in 1:length(neuron.inputs[1])
-        neuron.∇weights[i] += neuron.inputs[i] * neuron.∇
-    end
-    neuron.∇bias += neuron.∇
+<div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="n">backward</span><span class="p">(</span><span class="n">neuron</span><span class="p">::</span><span class="n">WeightedNeuron</span><span class="p">)</span> <span class="k">do</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">neuron</span><span class="o">.</span><span class="n">∇inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">neuron</span><span class="o">.</span><span class="n">∇</span>
+    <span class="k">end</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">length</span><span class="p">(</span><span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">neuron</span><span class="o">.</span><span class="n">∇weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">inputs</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">neuron</span><span class="o">.</span><span class="n">∇</span>
+    <span class="k">end</span>
+    <span class="n">neuron</span><span class="o">.</span><span class="n">∇bias</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">neuron</span><span class="o">.</span><span class="n">∇</span>
+<span class="k">end</span>
+</pre></div>
+
+
+<p><a id='Building-a-Layer-using-Ensembles-and-Connections-1'></a></p>
+<h2 id="building-a-layer-using-ensembles-and-connections">Building a Layer using Ensembles and Connections</h2>
+<p>In Latte, a <em>layer</em> can be described as an <code>Ensemble</code> of <code>Neuron</code>s with a specific set of connections to one or more input <code>Ensemble</code>s.  To construct a <strong>Hidden Layer</strong> for our MLP, we will use an <code>Ensemble</code> of <code>WeightedNeurons</code> with each neuron connected to each all the neurons in the input <code>Ensemble</code>.</p>
+<p>Our <code>FullyConnectedLayer</code> will be a Julia Function that instantiates an <code>Ensemble</code> of <code>WeightedNeuron</code>s and applies a full connection structure to the <code>input_ensemble</code>.  The signature looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="k">function</span><span class="nf"> FCLayer</span><span class="p">(</span><span class="n">net</span><span class="p">::</span><span class="n">Net</span><span class="p">,</span> <span class="n">input_ensemble</span><span class="p">::</span><span class="n">AbstractEnsemble</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">::</span><span class="kt">Int</span><span class="p">)</span>
+</pre></div>
+
+
+<p>To construct a hidden layer with <code>num_neurons</code>, we begin by instantiating a 1-d <code>Array</code> to hold our <code>WeightedNeurons</code>.</p>
+<div class="codehilite"><pre><span></span>    <span class="n">neurons</span> <span class="o">=</span> <span class="n">Array</span><span class="p">(</span><span class="n">WeightedNeuron</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Next we instantiate the parameters for our <code>WeightedNeurons</code>.  Note <code>xavier</code> refers to a function to initialize a random set of values using the <em>Xavier</em> (TODO: Reference) initialization scheme.  <code>xavier</code> and other initialization routines are provided as part of the Latte standard library.</p>
+<div class="codehilite"><pre><span></span>    <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">input_ensemble</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">xavier</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+    <span class="n">∇weights</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+    <span class="n">∇bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+</pre></div>
+
+
+<p>With our parameters initialized, we are ready to initialize our neurons.  Note that each <code>WeightedNeuron</code> instance uses a different row of parameter values.</p>
+<div class="codehilite"><pre><span></span>    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">num_outputs</span>
+        <span class="n">neurons</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">WeightedNeuron</span><span class="p">(</span><span class="n">view</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">view</span><span class="p">(</span><span class="n">∇weights</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span>
+                                    <span class="n">view</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">view</span><span class="p">(</span><span class="n">∇bias</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">))</span>
+    <span class="k">end</span>
+</pre></div>
+
+
+<p>Finally, we are ready to instantiate our Ensemble.</p>
+<div class="codehilite"><pre><span></span>    ens = Ensemble(net, name, neurons, [Param(name,:weights, 1.0f0, 1.0f0), 
+                                        Param(name,:bias, 2.0f0, 0.0f0)])
+</pre></div>
+
+
+<p>Then we add connections to each neuron in <code>input_ensemble</code></p>
+<div class="codehilite"><pre><span></span>    <span class="n">add_connections</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">input_ensemble</span><span class="p">,</span> <span class="n">ens</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">([</span><span class="n">Colon</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="k">in</span> <span class="n">size</span><span class="p">(</span><span class="n">input_ensemble</span><span class="p">)]</span><span class="o">...</span> <span class="p">)))</span>
+</pre></div>
+
+
+<p>Finally, we return the constructed Ensemble so it can be used as an input to another layer.</p>
+<div class="codehilite"><pre><span></span>    return ens
 end
 </pre></div>
+
+
+<p><a id='Constructing-an-MLP-using-Net-1'></a></p>
+<h2 id="constructing-an-mlp-using-net">Constructing an MLP using Net</h2>
+<p>To construct an MLP we instantiate the <code>Net</code> type with a batch size of $100$.  Then we use the Latte standard library provided <code>HDF5DataLayer</code> that constructs an input ensemble that reads from <code>HDF5</code> datasets.  (TODO: Link to explanation of Latte's HDF5 format).  Then we construct two <code>FCLayer</code>s using the function that we defined.  Finally we use two more Latte standard library layers as output layers.  The <code>SoftmaxLoss</code> layer is used for train the network and the <code>AccuracyLayer</code> is used for test the network.</p>
+<div class="codehilite"><pre><span></span><span class="k">using</span> <span class="n">Latte</span>
+
+<span class="n">net</span> <span class="o">=</span> <span class="n">Net</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">label</span> <span class="o">=</span> <span class="n">HDF5DataLayer</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="s">&quot;data/train.txt&quot;</span><span class="p">,</span> <span class="s">&quot;data/test.txt&quot;</span><span class="p">)</span>
+
+<span class="n">fc1</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(:</span><span class="n">fc1</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">fc2</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(:</span><span class="n">fc2</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">fc1</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+
+<span class="n">loss</span>     <span class="o">=</span> <span class="n">SoftmaxLossLayer</span><span class="p">(:</span><span class="n">loss</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+<span class="n">accuracy</span> <span class="o">=</span> <span class="n">AccuracyLayer</span><span class="p">(:</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">net</span><span class="p">,</span> <span class="n">fc2</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+
+<span class="n">params</span> <span class="o">=</span> <span class="n">SolverParameters</span><span class="p">(</span>
+    <span class="n">lr_policy</span>    <span class="o">=</span> <span class="n">LRPolicy</span><span class="o">.</span><span class="n">Inv</span><span class="p">(</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">),</span>
+    <span class="n">mom_policy</span>   <span class="o">=</span> <span class="n">MomPolicy</span><span class="o">.</span><span class="n">Fixed</span><span class="p">(</span><span class="mf">0.9</span><span class="p">),</span>
+    <span class="n">max_epoch</span>    <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
+    <span class="n">regu_coef</span>    <span class="o">=</span> <span class="o">.</span><span class="mi">0005</span><span class="p">)</span>
+<span class="n">sgd</span> <span class="o">=</span> <span class="n">SGD</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+<span class="n">solve</span><span class="p">(</span><span class="n">sgd</span><span class="p">,</span> <span class="n">net</span><span class="p">)</span>
+</pre></div>
+
+
+<p><a id='Training-1'></a></p>
+<h2 id="training">Training</h2>
+<p>We will train the above MLP on the MNIST digit recognition dataset.  Download the data using the <code>examples/mnist/data/get-data.sh</code> directory.  Then create a folder <code>data</code> containing the files <code>train.txt</code> and <code>test.txt</code> that point to the MNIST HDF5 files.</p>
           <aside class="copyright" role="note">
             
             Documentation built with
