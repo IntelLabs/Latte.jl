@@ -2,7 +2,7 @@
     "docs": [
         {
             "location": "/", 
-            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nPublic\n\n\nInternals\n\n\nContents\n\n\nIndex\n\n\nNet\n\n\nConnections\n\n\nSynthesis and Optimization\n\n\nUtility Datastructures", 
+            "text": "Latte.jl\n\n\n\n\nManual Outline\n\n\n\n\nSetup\n\n\nPrerequisites\n\n\nQuick Install\n\n\n\n\n\n\nExamples\n\n\nMNIST\n\n\ncifar10\n\n\n\n\n\n\n\n\n\n\nLibrary Outline\n\n\n\n\nPublic\n\n\nContents\n\n\nIndex\n\n\nAPI\n\n\n\n\n\n\nInternals\n\n\nContents\n\n\nIndex\n\n\nNet\n\n\nConnections\n\n\nSynthesis and Optimization\n\n\nUtility Datastructures", 
             "title": "Home"
         }, 
         {
@@ -17,7 +17,7 @@
         }, 
         {
             "location": "/#library-outline", 
-            "text": "Public  Internals  Contents  Index  Net  Connections  Synthesis and Optimization  Utility Datastructures", 
+            "text": "Public  Contents  Index  API    Internals  Contents  Index  Net  Connections  Synthesis and Optimization  Utility Datastructures", 
             "title": "Library Outline"
         }, 
         {
@@ -62,13 +62,28 @@
         }, 
         {
             "location": "/lib/public/", 
-            "text": "Public\n\n\n{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
+            "text": "Public\n\n\n\n\nContents\n\n\n\n\nPublic\n\n\nContents\n\n\nIndex\n\n\nAPI\n\n\n\n\n\n\n\n\n\n\nIndex\n\n\n\n\nLatte.Connection\n\n\nLatte.Ensemble\n\n\nLatte.Net\n\n\nLatte.Param\n\n\nLatte.add_connections\n\n\nLatte.add_ensemble\n\n\nLatte.get_buffer\n\n\nLatte.init\n\n\nLatte.load_snapshot\n\n\nLatte.save_snapshot\n\n\n\n\n\n\nAPI\n\n\n{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
             "title": "Public"
         }, 
         {
             "location": "/lib/public/#public", 
-            "text": "{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
+            "text": "", 
             "title": "Public"
+        }, 
+        {
+            "location": "/lib/public/#contents", 
+            "text": "Public  Contents  Index  API", 
+            "title": "Contents"
+        }, 
+        {
+            "location": "/lib/public/#index", 
+            "text": "Latte.Connection  Latte.Ensemble  Latte.Net  Latte.Param  Latte.add_connections  Latte.add_ensemble  Latte.get_buffer  Latte.init  Latte.load_snapshot  Latte.save_snapshot", 
+            "title": "Index"
+        }, 
+        {
+            "location": "/lib/public/#api", 
+            "text": "{docs}\nLatte.Net\nLatte.Ensemble\nLatte.Connection\nLatte.Param\nLatte.get_buffer\n\nLatte.add_connections\nLatte.add_ensemble\nLatte.init\n\nLatte.load_snapshot\nLatte.save_snapshot\n\nLatte.forward\nLatte.backward\nLatte.test", 
+            "title": "API"
         }, 
         {
             "location": "/lib/internals/", 
