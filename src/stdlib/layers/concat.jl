@@ -36,7 +36,7 @@ function ConcatEnsemble(name::Symbol, inputs::Vector)
     for i in 1:length(neurons)
         neurons[i] = ConcatNeuron(0.0, 0.0)
     end
-    ConcatEnsemble(name, neurons, [], TrainTest, inputs, inner_size)
+    ConcatEnsemble(name, neurons, [], TrainTest, inputs, inner_size, 1)
 end
 
 function init(ensemble::ConcatEnsemble, net::Net)

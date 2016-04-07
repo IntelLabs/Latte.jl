@@ -58,7 +58,7 @@ function for_loop_wrapper(node, cbdata, index, top_level, read)
             $(body.args...)
             $(Expr(:loopend, loopvar))
         end
-    elseif isa(node, Expr) && node.head in [:parallel_loophead, :loopend, :parallel_loopend]
+    elseif isa(node, Expr) && node.head in [:parallel_loophead, :loophead, :loopend, :parallel_loopend]
         return node
     end
     ASTWALK_RECURSE

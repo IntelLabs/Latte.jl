@@ -137,6 +137,8 @@ function tile_size_inliner(node, cbdata, index, top_level, read)
         elseif node.head == :ref && node.args[end] == :NOTILE
             pop!(node.args)
             return node
+        elseif node.head in [:loophead, :parallel_loophead, :loopend, :parallel_loopend]
+            return node
         end
     elseif isa(node, Symbol) && node == :TILE_SIZE
         return cbdata[1]
@@ -157,6 +159,8 @@ function get_tile_loops(node, cbdata, index, top_level, read)
         if contains(loopvar, "_tile_idx")
             push!(cbdata, node)
         end
+    elseif isa(node, Expr) && node.head in [:loophead, :parallel_loophead, :loopend, :parallel_loopend]
+        return node
     end
     ASTWALK_RECURSE
 end

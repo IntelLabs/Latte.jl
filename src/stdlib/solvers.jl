@@ -73,6 +73,12 @@ type Decay <: LearningRatePolicy
     base_lr :: Float32
     decay   :: Float32
 end
+
+type Poly <: LearningRatePolicy
+    base_lr  :: Float32
+    max_iter :: Float32
+    power    :: Float32
+end
 end # module LRPolicy
 
 get_learning_rate(policy::LRPolicy.Fixed, state::SolverState) = policy.base_lr
@@ -84,6 +90,8 @@ get_learning_rate(policy::LRPolicy.Inv, state::SolverState) =
     policy.base_lr * (1 + policy.gamma * state.iter) ^ (-policy.power)
 get_learning_rate(policy::LRPolicy.Decay, state::SolverState) =
     policy.base_lr / (1 + state.iter * policy.decay)
+get_learning_rate(policy::LRPolicy.Poly, state::SolverState) =
+    policy.base_lr * (1 - state.iter / policy.max_iter) ^ (policy.power)
 
 abstract MomentumPolicy
 module MomPolicy

@@ -179,6 +179,7 @@ type ConcatEnsemble <: AbstractEnsemble
     phase :: Phase
     inputs :: Vector{AbstractEnsemble}
     inner_size :: Int
+    net_subgroup :: Int
 end
 
 type ReshapeNeuron <: Neuron

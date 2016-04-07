@@ -34,6 +34,8 @@ function clean_for_loops(statements)
                 node.args[2].args[1].head == :block
             node.args[2].args = clean_for_loops(node.args[2].args[1].args)
             return node
+        elseif isa(node, Expr) && node.head in [:loophead, :parallel_loophead, :loopend, :parallel_loopend]
+            return node
         end
         ASTWALK_RECURSE
     end
