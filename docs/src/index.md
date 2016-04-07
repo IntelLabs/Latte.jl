@@ -1,16 +1,10 @@
 # Latte.jl
 
-## Manual Outline
-    {contents}
-    Pages = [
-        "man/setup.md",
-        "man/examples.md"
-    ]
+Latte is a high-performance DSL for deep neural networks.  Our goal was to
+design a language that closely matched domain concepts without sacrificing
+performance.
 
-## Library Outline
-    {contents}
-    Pages = [
-        "lib/public.md",
-        "lib/internals.md"
-    ]
-    Depth = 2
+If you use Latte for research, please use the following citation:
+```
+Forthcoming...
+```
