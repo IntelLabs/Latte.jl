@@ -319,7 +319,7 @@
           <p><a id='Multi-Layer-Perceptron-1'></a></p>
 <h1 id="multi-layer-perceptron">Multi-Layer Perceptron</h1>
 <p>This tutorial is based on <a href="http://deeplearning.net/tutorial/mlp.html">http://deeplearning.net/tutorial/mlp.html</a> but uses Latte to implement the code examples.  </p>
-<p>A Multi-Layer Perceptron can be described as a logistic regression classifier where the input is first transformed using a learnt non-linear transformation $\Phi$.  This intermediate layer performing the transformation is referred to as a <strong>hidden layer</strong>.  One hidden layer is sufficient to make MLPs a <strong>universal approximator</strong><a href="http://www.sciencedirect.com/science/article/pii/0893608089900208" title="Multilayer feedforward networks are universal approximators. Hornik et al. 1989">1</a>.  </p>
+<p>A Multi-Layer Perceptron can be described as a logistic regression classifier where the input is first transformed using a learnt non-linear transformation $\Phi$.  This intermediate layer performing the transformation is referred to as a <strong>hidden layer</strong>.  One hidden layer is sufficient to make MLPs a <strong>universal approximator</strong> [<a href="http://www.sciencedirect.com/science/article/pii/0893608089900208" title="Multilayer feedforward networks are universal approximators. Hornik et al. 1989">1</a>].  </p>
 <p><a id='The-Model-1'></a></p>
 <h2 id="the-model">The Model</h2>
 <p>An MLP with a single hidden layer can be represented graphically as follows:</p>
@@ -335,7 +335,7 @@
 <li><code>bias</code>     – the bias value</li>
 <li><code>∇bias</code>    – the gradient for the bias value</li>
 </ul>
-<div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="n">WeightedNeuron</span>
+<div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="k">type</span><span class="nc"> WeightedNeuron</span>
     <span class="n">weights</span>  <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
     <span class="n">∇weights</span> <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
 
@@ -378,7 +378,7 @@
 <h2 id="building-a-layer-using-ensembles-and-connections">Building a Layer using Ensembles and Connections</h2>
 <p>In Latte, a <em>layer</em> can be described as an <code>Ensemble</code> of <code>Neuron</code>s with a specific set of connections to one or more input <code>Ensemble</code>s.  To construct a <strong>Hidden Layer</strong> for our MLP, we will use an <code>Ensemble</code> of <code>WeightedNeurons</code> with each neuron connected to each all the neurons in the input <code>Ensemble</code>.</p>
 <p>Our <code>FullyConnectedLayer</code> will be a Julia Function that instantiates an <code>Ensemble</code> of <code>WeightedNeuron</code>s and applies a full connection structure to the <code>input_ensemble</code>.  The signature looks like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">function</span><span class="nf"> FCLayer</span><span class="p">(</span><span class="n">net</span><span class="p">::</span><span class="n">Net</span><span class="p">,</span> <span class="n">input_ensemble</span><span class="p">::</span><span class="n">AbstractEnsemble</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">::</span><span class="kt">Int</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><span class="k">function</span><span class="nf"> FCLayer</span><span class="p">(</span><span class="n">name</span><span class="p">::</span><span class="n">Symbol</span><span class="p">,</span> <span class="n">net</span><span class="p">::</span><span class="n">Net</span><span class="p">,</span> <span class="n">input_ensemble</span><span class="p">::</span><span class="n">AbstractEnsemble</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">::</span><span class="kt">Int</span><span class="p">)</span>
 </pre></div>
 
 
@@ -389,16 +389,16 @@
 
 <p>Next we instantiate the parameters for our <code>WeightedNeurons</code>.  Note <code>xavier</code> refers to a function to initialize a random set of values using the <em>Xavier</em> (TODO: Reference) initialization scheme.  <code>xavier</code> and other initialization routines are provided as part of the Latte standard library.</p>
 <div class="codehilite"><pre><span></span>    <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">input_ensemble</span><span class="p">)</span>
-    <span class="n">weights</span> <span class="o">=</span> <span class="n">xavier</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
-    <span class="n">∇weights</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">xavier</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">)</span>
+    <span class="n">∇weights</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">)</span>
 
-    <span class="n">bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
-    <span class="n">∇bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_outputs</span><span class="p">)</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">)</span>
+    <span class="n">∇bias</span> <span class="o">=</span> <span class="n">zeros</span><span class="p">(</span><span class="kt">Float32</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_neurons</span><span class="p">)</span>
 </pre></div>
 
 
 <p>With our parameters initialized, we are ready to initialize our neurons.  Note that each <code>WeightedNeuron</code> instance uses a different row of parameter values.</p>
-<div class="codehilite"><pre><span></span>    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">num_outputs</span>
+<div class="codehilite"><pre><span></span>    <span class="k">for</span> <span class="n">i</span> <span class="k">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">num_neurons</span>
         <span class="n">neurons</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">WeightedNeuron</span><span class="p">(</span><span class="n">view</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">view</span><span class="p">(</span><span class="n">∇weights</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span>
                                     <span class="n">view</span><span class="p">(</span><span class="n">bias</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">),</span> <span class="n">view</span><span class="p">(</span><span class="n">∇bias</span><span class="p">,</span> <span class="p">:,</span> <span class="n">i</span><span class="p">))</span>
     <span class="k">end</span>
@@ -449,7 +449,43 @@ end
 
 <p><a id='Training-1'></a></p>
 <h2 id="training">Training</h2>
-<p>We will train the above MLP on the MNIST digit recognition dataset.  Download the data using the <code>examples/mnist/data/get-data.sh</code> directory.  Then create a folder <code>data</code> containing the files <code>train.txt</code> and <code>test.txt</code> that point to the MNIST HDF5 files.</p>
+<p>We will train the above MLP on the MNIST digit recognition dataset.  For your convenience the code in this tutorial has been provided in <code>tutorials/mlp/mlp.jl</code>.  Note that the name <code>WeightedNeuron</code> was replaced with <code>MLPNeuron</code> to resolve conflicts with the existing <code>WeightedNeuron</code> definition in the Latte standard library.  To train the network, first download and convert the dataset by running <code>tutorials/mlp/data/get-data.sh</code>.  Then train by running the script <code>julia mlp.jl</code>.  You should the following output that shows the loss values and test results:</p>
+<div class="codehilite"><pre><span></span>...
+INFO: 07-Apr 15:15:22 - Entering solve loop
+INFO: 07-Apr 15:15:23 - Iter 20 - Loss: 1.4688001
+INFO: 07-Apr 15:15:24 - Iter 40 - Loss: 0.6913204
+INFO: 07-Apr 15:15:25 - Iter 60 - Loss: 0.6053091
+INFO: 07-Apr 15:15:26 - Iter 80 - Loss: 0.6043377
+INFO: 07-Apr 15:15:27 - Iter 100 - Loss: 0.57204634
+INFO: 07-Apr 15:15:28 - Iter 120 - Loss: 0.500179
+INFO: 07-Apr 15:15:28 - Iter 140 - Loss: 0.40663132
+INFO: 07-Apr 15:15:29 - Iter 160 - Loss: 0.3704785
+INFO: 07-Apr 15:15:29 - Iter 180 - Loss: 0.3620596
+INFO: 07-Apr 15:15:30 - Iter 200 - Loss: 0.46897307
+INFO: 07-Apr 15:15:30 - Iter 220 - Loss: 0.45075363
+INFO: 07-Apr 15:15:31 - Iter 240 - Loss: 0.3376474
+INFO: 07-Apr 15:15:31 - Iter 260 - Loss: 0.5301368
+INFO: 07-Apr 15:15:32 - Iter 280 - Loss: 0.28490248
+INFO: 07-Apr 15:15:32 - Iter 300 - Loss: 0.33110633
+INFO: 07-Apr 15:15:33 - Iter 320 - Loss: 0.26910272
+INFO: 07-Apr 15:15:33 - Iter 340 - Loss: 0.32226878
+INFO: 07-Apr 15:15:33 - Iter 360 - Loss: 0.3838666
+INFO: 07-Apr 15:15:34 - Iter 380 - Loss: 0.24588501
+INFO: 07-Apr 15:15:34 - Iter 400 - Loss: 0.4209111
+INFO: 07-Apr 15:15:35 - Iter 420 - Loss: 0.25582874
+INFO: 07-Apr 15:15:35 - Iter 440 - Loss: 0.3958639
+INFO: 07-Apr 15:15:36 - Iter 460 - Loss: 0.27812394
+INFO: 07-Apr 15:15:36 - Iter 480 - Loss: 0.45379284
+INFO: 07-Apr 15:15:37 - Iter 500 - Loss: 0.35272872
+INFO: 07-Apr 15:15:38 - Iter 520 - Loss: 0.39787623
+INFO: 07-Apr 15:15:38 - Iter 540 - Loss: 0.30763283
+INFO: 07-Apr 15:15:39 - Iter 560 - Loss: 0.35435736
+INFO: 07-Apr 15:15:40 - Iter 580 - Loss: 0.33140996
+INFO: 07-Apr 15:15:41 - Iter 600 - Loss: 0.34410283
+INFO: 07-Apr 15:15:41 - Epoch 1 - Testing...
+INFO: 07-Apr 15:15:44 - Epoch 1 - Test Result: 90.88118%
+...
+</pre></div>
           <aside class="copyright" role="note">
             
             Documentation built with
