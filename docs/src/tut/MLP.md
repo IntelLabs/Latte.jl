@@ -119,6 +119,30 @@ Finally, we return the constructed Ensemble so it can be used as an input to ano
 end
 ```
 
+## Constructing an MLP using Net
+To construct an MLP we instantiate the `Net` type with a batch size of $100$.  Then we use the Latte standard library provided `HDF5DataLayer` that constructs an input ensemble that reads from `HDF5` datasets.  (TODO: Link to explanation of Latte's HDF5 format).  Then we construct two `FCLayer`s using the function that we defined.  Finally we use two more Latte standard library layers as output layers.  The `SoftmaxLoss` layer is used for train the network and the `AccuracyLayer` is used for test the network.
+```julia
+using Latte
 
+net = Net(100)
+data, label = HDF5DataLayer(net, "data/train.txt", "data/test.txt")
+
+fc1 = FCLayer(:fc1, net, data, 100)
+fc2 = FCLayer(:fc2, net, fc1, 10)
+
+loss     = SoftmaxLossLayer(:loss, net, fc2, label)
+accuracy = AccuracyLayer(:accuracy, net, fc2, label)
+
+params = SolverParameters(
+    lr_policy    = LRPolicy.Inv(0.01, 0.0001, 0.75),
+    mom_policy   = MomPolicy.Fixed(0.9),
+    max_epoch    = 50,
+    regu_coef    = .0005)
+sgd = SGD(params)
+solve(sgd, net)
+```
+
+## Training
+We will train the above MLP on the MNIST digit recognition dataset.  Download the data using the `examples/mnist/data/get-data.sh` directory.  Then create a folder `data` containing the files `train.txt` and `test.txt` that point to the MNIST HDF5 files.
 
 [1]: http://www.sciencedirect.com/science/article/pii/0893608089900208 "Multilayer feedforward networks are universal approximators. Hornik et al. 1989"
