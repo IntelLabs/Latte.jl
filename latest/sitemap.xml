@@ -10,6 +10,14 @@
     
 
     
+    <url>
+     <loc>None/setup/</loc>
+     <lastmod>2016-04-07</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
         
     <url>
      <loc>None/tut/MLP/</loc>
@@ -20,12 +28,6 @@
     
 
     
-        
-    <url>
-     <loc>None/man/setup/</loc>
-     <lastmod>2016-04-07</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
         
     <url>
      <loc>None</loc>

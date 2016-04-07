@@ -179,6 +179,15 @@
           
             
   <li>
+    <a class="" title="Setup" href="../../setup/">
+      Setup
+    </a>
+    
+  </li>
+
+          
+            
+  <li>
     <span class="section">Tutorial</span>
     <ul>
       
@@ -214,15 +223,6 @@
   <li>
     <span class="section">Manual</span>
     <ul>
-      
-        
-  <li>
-    <a class="" title="Setup" href="../../man/setup/">
-      Setup
-    </a>
-    
-  </li>
-
       
         
   <li>
@@ -305,17 +305,27 @@
 <h3 id="defining-a-neuron-in-latte">Defining a Neuron in Latte</h3>
 <p>Defining a <strong>Neuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  We define the following fields:</p>
 <ul>
-<li><code>value</code>   – stores the output value of the neuron</li>
-<li><code>inputs</code>  – a vector of <code>Float32</code> input values</li>
-<li><code>weights</code> – a vector learned weights</li>
-<li><code>bias</code>    – the bias value</li>
+<li><code>value</code>    – contains the output value of the neuron</li>
+<li><code>∇</code>        – contains the gradient of the neuron</li>
+<li><code>inputs</code>   – a vector of input values</li>
+<li><code>∇inputs</code>  – a vector of gradients for connected neurons</li>
+<li><code>weights</code>  – a vector of learned weights</li>
+<li><code>∇weights</code> – a vector of gradients for the weights</li>
+<li><code>bias</code>     – the bias value</li>
+<li><code>∇bias</code>    – the gradient for the bias value</li>
 </ul>
 <div class="codehilite"><pre><span></span><span class="p">@</span><span class="n">neuron</span> <span class="k">type</span><span class="nc"> WeightedNeuron</span> <span class="o">&lt;:</span> <span class="n">Neuron</span>
-    <span class="n">value</span>   <span class="p">::</span> <span class="kt">Float32</span>
+    <span class="n">value</span>    <span class="p">::</span> <span class="kt">Float32</span>
+    <span class="n">∇</span>        <span class="p">::</span> <span class="kt">Float32</span>
 
-    <span class="n">inputs</span>  <span class="p">::</span> <span class="n">Vector</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
-    <span class="n">weights</span> <span class="p">::</span> <span class="n">Vector</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
-    <span class="n">bias</span>    <span class="p">::</span> <span class="kt">Float32</span>
+    <span class="n">inputs</span>   <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
+    <span class="n">∇inputs</span>  <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
+
+    <span class="n">weights</span>  <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
+    <span class="n">∇weights</span> <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
+
+    <span class="n">bias</span>     <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
+    <span class="n">∇bias</span>    <span class="p">::</span> <span class="n">DenseArray</span><span class="p">{</span><span class="kt">Float32</span><span class="p">}</span>
 <span class="k">end</span>
 </pre></div>
 
@@ -346,7 +356,7 @@
   <nav class="pagination" aria-label="Footer">
     <div class="previous">
       
-        <a href="../.." title="Home">
+        <a href="../../setup/" title="Setup">
           <span class="direction">
             Previous
           </span>
@@ -356,7 +366,7 @@
             </div>
             <div class="stretch">
               <div class="title">
-                Home
+                Setup
               </div>
             </div>
           </div>
@@ -365,14 +375,14 @@
     </div>
     <div class="next">
       
-        <a href="../../man/setup/" title="Setup">
+        <a href="../../man/examples/mnist/" title="MNIST">
           <span class="direction">
             Next
           </span>
           <div class="page">
             <div class="stretch">
               <div class="title">
-                Setup
+                MNIST
               </div>
             </div>
             <div class="button button-next" role="button" aria-label="Next">
