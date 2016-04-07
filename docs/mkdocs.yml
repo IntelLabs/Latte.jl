@@ -1,0 +1,40 @@
+site_name: Latte.jl
+repo_url:  https://github.com/IntelLabs/Latte.jl
+site_description: A high-performance DSL for deep neural networks.
+site_author: Intel Labs
+
+theme: material
+
+extra:
+    palette:
+        primary: 'blue'
+        accent: 'light blue'
+
+extra_css:
+    - assets/Documenter.css
+
+extra_javascript:
+    - https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML
+    - assets/mathjaxhelper.js
+
+markdown_extensions:
+    - codehilite
+    - admonition
+    - extra
+    - tables
+    - fenced_code
+
+docs_dir: 'build'
+
+pages:
+    - Home: index.md
+    - Setup: setup.md
+    - Tutorial: 
+        - Multi-Layer Perceptron: tut/MLP.md
+    - Manual:
+        - Examples: 
+            - MNIST: man/examples/mnist.md
+            - CIFAR-10: man/examples/cifar.md
+    - Library:
+        - Public: lib/public.md
+        - Internals: lib/internals.md

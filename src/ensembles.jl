@@ -113,6 +113,18 @@ function init_inputs(ensemble::AbstractEnsemble, net::Net)
     end
 end
 
+function init_params(ensemble::AbstractEnsemble, net::Net)
+    if :params in fieldnames(ensemble)
+        for param in ensemble.params
+            param.value = get_buffer(net, param.name)
+            param.gradient = get_buffer(net, param.gradient_name)
+            param.hist = zeros(param.value)
+            set_buffer(net, param.hist_name, param.hist)
+            @latte_mpi param.request = @eval ccall((:init_request, $libComm), Cint, ())
+        end
+    end
+end
+
 @doc """
 Initialize `ensemble` of neuron type `T`
 Allocate a buffer for each field in T
@@ -140,8 +152,6 @@ inputs array using ArrayViews and remove the need for a CopyTask
             fill!(arr, field.init)
             set_buffer(net, key, arr)
             push!(ensemble.batch_fields, name)
-        elseif isa(field, Shared)
-            # Skip
         elseif !isbits(typ)
             uniform_across_dim = [true for _ in 1:length(shape)]
             first = getfield(ensemble.neurons[ones(Int, length(shape))...], name)
@@ -274,8 +284,6 @@ end
             fill!(arr, field.init)
             set_buffer(net, key, arr)
             push!(ensemble.batch_fields, name)
-        elseif isa(field, Shared)
-            throw("Not implemented error")
         else
             arr = map((elem) -> getfield(elem, name), ensemble.neurons)
             for t = 1:net.time_steps

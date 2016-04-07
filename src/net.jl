@@ -1,33 +1,32 @@
-#=
-Copyright (c) 2015, Intel Corporation
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-    * Redistributions of source code must retain the above copyright notice,
-      this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Intel Corporation nor the names of its contributors
-      may be used to endorse or promote products derived from this software
-      without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-=#
+# Copyright (c) 2015, Intel Corporation
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+#     * Redistributions of source code must retain the above copyright notice,
+#       this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of Intel Corporation nor the names of its contributors
+#       may be used to endorse or promote products derived from this software
+#       without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
 
 export Net, init, forward, backward, clear_∇, clear_values, add_ensemble,
        add_connections, copy_from_mic, copy_to_mic, get_buffer,
-       get_param, get_value, get_gradient
+       get_value, get_gradient
 importall ParallelAccelerator
 import ParallelAccelerator.CGen
 import ParallelAccelerator.CGen.mk_parallel_loophead
@@ -49,39 +48,11 @@ NOFUSE = 0
 LATTE_DISABLE_TILING = false
 LATTE_DISABLE_TILE_FUSION = false
 
-"""
-Construct a Dict{Symbol, Any} that maps the arguments of the function
-`ast` to the correspondnig value in Vector `args`.
-"""
-function build_arg_name_map(args::Vector, ast::Expr)
-    @assert is_function(ast)
-    map = Dict()
-    for (index, arg) in enumerate(ast.args[1].args[2:end])
-        map[arg.args[1]] = args[index]
-    end
-    map
-end
-
+include("transforms/util.jl")
 include("transforms/fixed_dims.jl")
-
-function distribute_batch_loops(statements)
-    new_body = []
-    for statement in statements
-        if isa(statement, Expr) && statement.head == :for
-            for expr in statement.args[2].args
-                loop = deepcopy(statement)
-                if isa(expr, LineNumberNode) || isa(expr, LabelNode) || expr.head == :line
-                    continue
-                end
-                loop.args[2].args = [expr]
-                push!(new_body, loop)
-            end
-        else
-            push!(new_body, statement)
-        end
-    end
-    new_body
-end
+include("transforms/distribute.jl")
+include("transforms/tree_cleaners.jl")
+include("transforms/neuron.jl")
 
 include("optimizers/tiling.jl")
 include("optimizers/fusion.jl")
@@ -90,7 +61,17 @@ include("optimizers/array_expr_inline.jl")
 include("optimizers/wrap_for_loops.jl")
 include("optimizers/parallelize.jl")
 
-function optimize(args::Vector, tile_fusion_factors::Vector, fn)
+"""
+Optimize a function `fn`
+
+** Params **
+
+- `args`                -- an ordered vector of arguments (buffers)
+- `tile_fusion_factors` -- factors for tile fusions determined by connection
+                           structure
+- `fn`                  -- the ast of the function to be optimized
+"""
+function optimize(args::Vector, tile_fusion_factors::Vector, fn::Expr)
     ast = macroexpand(fn)
     ast = remove_line_nodes(ast)
     arg_name_map = build_arg_name_map(args, ast)
@@ -108,7 +89,7 @@ function optimize(args::Vector, tile_fusion_factors::Vector, fn)
     ast = AstWalk(ast, pattern_match_gemm6, arg_name_map)
     ast = AstWalk(ast, pattern_match_gemm5, arg_name_map)
     ast = AstWalk(ast, pattern_match_gemm4, arg_name_map)
-    # FIXME: Above pattern matches should be cleaned up to ingest the "clean"
+    # TODO: Above pattern matches should be cleaned up to ingest the "clean"
     # ast like fuse_loops below
     ast = clean_tree(ast)
     ast.args[2].args = fuse_loops(ast.args[2].args)
@@ -118,144 +99,24 @@ function optimize(args::Vector, tile_fusion_factors::Vector, fn)
     return ast
 end
 
-include("transforms/neuron.jl")
-
-function clear_∇(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "∇")
-                fill!(net.buffers[i][t][name], 0.0)
-            end
-        end
-    end
-end
-
-function clear_values(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "value")
-                fill!(net.buffers[i][t][name], 0.0)
-            end
-        end
-    end
-end
-
-function rand_values(net::Net)
-    i = net.curr_buffer_set
-    for t in 1:net.time_steps
-        for name in keys(net.buffers[i][t])
-            if contains(string(name), "randval")
-                rand!(net.buffers[i][t][name])
-            end
-        end
-    end
-end
-
-function get_param(net::SingleNet, name::Symbol)
-    for param in net.params
-        if param.name == name
-            return param
-        end
-    end
-    throw("Param $name not found")
-end
-
-function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
-    return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
-end
-
-function get_buffer(net::SingleNet, name::Symbol, t::Int=1)
-    return net.buffers[net.curr_buffer_set][t][name]
-end
-
-function set_buffer(net::SingleNet, name::Symbol, arr::Array, t::Int)
-    net.buffers[1][t][name] = arr
-    net.buffers[2][t][name] = arr
-end
-
-function set_buffer(net::SingleNet, name::Symbol, arr::Array; _copy=true)
-    for t in 1:net.time_steps
-        if _copy
-            net.buffers[1][t][name] = copy(arr)
-            net.buffers[2][t][name] = copy(arr)
-        else
-            net.buffers[1][t][name] = arr
-            net.buffers[2][t][name] = arr
-        end
-    end
-end
-
-function init_buffer(net::SingleNet, name::Symbol, shape; func=zeros)
-    for t in 1:net.time_steps
-        net.buffers[1][t][name] = func(Float32, shape...)
-        net.buffers[2][t][name] = func(Float32, shape...)
-    end
-end
-
-"""
-Generates a loopnest with `body` as the body of the inner most loop using
-`vars` as a list of loop variables and `ranges` as a list of ranges for each
-loop nest.
-
-Example:
-    julia> gen_loop_nest(:(println((a, b))), [:a, :b], [1:2, 1:3])
-    :(for b = 1:3
-          for a = 1:2
-              println((a, b))
-          end
-      end)
-"""
-function gen_loop_nest(body, vars, ranges)
-    nest = body
-    for (var, range) in zip(vars, ranges)
-        nest = :(for $var = $range
-            $nest
-        end)
-    end
-    nest
-end
-
-"""
-Synthesizes a loop nest around body based on the dimensionality of `buffer`.
-We split each statement in `statements` into a separate synthesized loop nest
-to facilitate pattern matching of statements.  If no pattern matching occurs,
-the identical loop nests will be fused later.
-"""
-function append_neuron_loop!(body::Vector, statements::Vector, buffer::Array)
-    N = ndims(buffer)
-    for statement in statements
-        vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-        ranges = [:(1:$(size(buffer,i)))    for i in 1:N]
-        push!(body, gen_loop_nest(statement, vars, ranges))
-    end
-end
-
 mk_clamp(idx, _max) = :($idx > 0 && $idx <= $_max)
 
-function get_src_idx(mapping)
-    if isa(mapping.args[end], Expr) &&
-            mapping.args[end].head == :call &&
-            isa(mapping.args[end].args[1], TopNode)
-        return mapping.args[end].args[2:end]
+"""
+Synthesize a loopnest to copy value or ∇ to the appropriate buffer
+"""
+function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
+                        connection::Connection, index::Int; ∇::Bool=false)
+    if ∇
+        shape = size(get_buffer(net, ensemble, :∇))
+        sink_name  = symbol(ensemble.name, :∇inputs, index)
+        source_name = symbol(connection.source.name, :∇)
     else
-        return [mapping.args[end]]
+        shape = size(get_buffer(net, ensemble, :value))
+        sink_name   = symbol(ensemble.name,:inputs,index)
+        source_name = symbol(connection.source.name,:value)
     end
-end
-
-"""
-Generate a loop nest to perform the copy from the source of `connection`
-to an input buffer for `ensemble`
-"""
-function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
-                               connection::Connection, index::Int)
-    block = []
-    value = get_buffer(net, ensemble, :value)
-    N = ndims(value)
-    sink_name   = symbol(ensemble.name,:inputs,index)
-    source_name = symbol(connection.source.name,:value)
-    source      = get_buffer(net, source_name)
+    N = length(shape)
+    source = get_buffer(net, source_name)
 
     # connection.is_dim_fixed is a Bool[], we use the inverse to select non
     # fixed indices
@@ -266,21 +127,40 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
     mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
     mapping_inlined = inline(connection.mapping, mapping_args)
     src_idx = get_src_idx(mapping_inlined)
+
     body = Expr(:block)
     idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
-
     for_block = gen_loop_nest(body, idx, src_idx)
 
-    rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
-    if connection.padding > 0
-        cond = mk_clamp(idx[1], size(source, 1))
-        for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-            cond = :($cond && $(mk_clamp(i, d)))
+    if ∇
+        assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
+                       $sink_name[count, $(sink_idx...)])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            assign = :(if $cond
+                $assign
+            end)
         end
-        rhs = :(ifelse($cond, $rhs, 0.0f0))
+        statements = [
+            assign,
+            :($sink_name[count, $(sink_idx...)] = 0.0f0)
+        ]
+    else
+        rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
+        if connection.padding > 0
+            cond = mk_clamp(idx[1], size(source, 1))
+            for (i, d) in zip(idx[2:end], size(source)[2:end-1])
+                cond = :($cond && $(mk_clamp(i, d)))
+            end
+            rhs = :(ifelse($cond, $rhs, 0.0f0))
+        end
+        statements = [:($sink_name[count, $(sink_idx...)] = $rhs)]
     end
     append!(body.args, (quote
-        $sink_name[count, $(sink_idx...)] = $rhs
+        $(statements...)
         count += 1
     end).args)
     copy_block = quote
@@ -289,13 +169,44 @@ function gen_copy_block_inputs(net::Net, ensemble::AbstractEnsemble,
         $for_block
     end
     vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(value,i))) for i in 1:N-1]
-    push!(ranges, :(1:$(size(value,N))))
-    push!(block, gen_loop_nest(copy_block, vars, ranges))
-    block
+    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(shape[i])) for i in 1:N-1]
+    push!(ranges, :(1:$(shape[N])))
+    gen_loop_nest(copy_block, vars, ranges)
 end
 
-function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
+"""
+Extract the final expression of the mapping function to be used as an indexing
+expression.  Handles cases where the final expression can be a Tuple or a
+single value.
+
+** Params **
+
+- `mapping` -- an ast for a mapping function
+"""
+function get_src_idx(mapping::Expr)
+    if isa(mapping.args[end], Expr) &&
+            mapping.args[end].head == :call &&
+            isa(mapping.args[end].args[1], TopNode)
+        return mapping.args[end].args[2:end]
+    else
+        return [mapping.args[end]]
+    end
+end
+
+"""
+Synthesize the code to execute forward for an ensemble
+
+** Params **
+
+- `ensemble`     -- the `AbstractEnsemble` that is having its forward synthesized
+- `net`          -- the `Net` containing `ensemble`
+- `compute_body` -- the body that the synthesized code will be added to
+- `compute_args` -- a set of arguments reference in `compute_body`.  Any values
+                    referenced in the synthesized code should be added to
+                    `compute_args`
+"""
+function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net,
+                            compute_body::Dict{Phase, Vector},
                             compute_args::ArgSet)
     forward_tasks = net.forward_tasks
 
@@ -314,8 +225,7 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
         if connection.copy
             source_name = symbol(connection.source.name,:value)
             push!(args, source_name)
-            append!(body, gen_copy_block_inputs(net, ensemble, connection,
-                index))
+            push!(body, gen_copy_block(net, ensemble, connection, index))
         end
     end
     # Transform body of neuron function
@@ -368,57 +278,12 @@ function gen_neuron_forward(ensemble::AbstractEnsemble, net::Net, compute_body,
     end
 end
 
-function gen_copy_block_∇inputs(net::Net, ensemble::AbstractEnsemble,
-                                connection::Connection, index::Int)
-    body = []
-    ∇ = get_buffer(net, ensemble, :∇)
-    N = ndims(∇)
-    sink_name   = symbol(ensemble.name, :∇inputs, index)
-    source_name = symbol(connection.source.name, :∇)
-    source      = get_buffer(net, connection.source, :∇)
-    non_fixed_indices = [collect(1:N-1)[!connection.is_dim_fixed]..., N]
-    sink_idx = [symbol(:_neuron_index_,d) for d in non_fixed_indices]
-    mapping_args = [symbol(:_neuron_index_,d) for d in 1:N-1]
-
-    mapping_inlined = inline(connection.mapping, mapping_args)
-    src_idx = get_src_idx(mapping_inlined)
-
-    for_block = Expr(:for, Expr(:block), Expr(:block))
-    block = Expr(:block)
-    idx = [symbol(:_u__, i) for i = 1:length(src_idx)]
-    for_block = gen_loop_nest(block, idx, src_idx)
-
-    assign = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))] +=
-                   $sink_name[count, $(sink_idx...)])
-    if connection.padding > 0
-        cond = mk_clamp(idx[1], size(source, 1))
-        for (i, d) in zip(idx[2:end], size(source)[2:end-1])
-            cond = :($cond && $(mk_clamp(i, d)))
-        end
-        assign = :(if $cond
-            $assign
-        end)
-    end
-    append!(block.args, (quote
-        $assign
-        $sink_name[count, $(sink_idx...)] = 0.0f0
-        count += 1
-    end).args)
-    copy_block = quote
-        $(mapping_inlined.args[1:end-1]...)
-        count = 1
-        $for_block
-    end
-    vars   = [symbol(:_neuron_index_,i) for i in 1:N]
-    ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(size(∇,i))) for i in 1:N-1]
-    push!(ranges, :(1:$(size(∇,N))))
-    push!(body, gen_loop_nest(copy_block, vars, ranges))
-
-    body
-end
-
+"""
+TODO: doc
+"""
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
-                             compute_body, compute_args::Set)
+                             compute_body::Vector,
+                             compute_args::Set)
     if !(ensemble.phase in [Train, TrainTest])
         return
     end
@@ -465,7 +330,7 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
         if !isa(connection.source, DataEnsemble) && connection.copy
             source_name = symbol(connection.source.name, :∇)
             push!(args, source_name)
-            append!(body, gen_copy_block_∇inputs(net, ensemble, connection, index))
+            push!(body, gen_copy_block(net, ensemble, connection, index; ∇=true))
         end
     end
     defn = optimize(arg_bufs, tile_fusion_factors, :(function $fn($(params...))
@@ -482,6 +347,9 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
     union!(compute_args, args)
 end
 
+"""
+TODO: doc
+"""
 function generate_c_function(func::Function, signature::Tuple,
                              run_where::Int, signal::Array{Cint,1},
                              buffers::Dict)
@@ -536,15 +404,14 @@ function generate_c_function(func::Function, signature::Tuple,
     end
 end
 
-include("transforms/tree_cleaners.jl")
-
 """
+TODO: doc
 FIXME: My, my this function is ugly, clean this up some day...
 """
 function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                              compute_body::Dict, compute_args::ArgSet,
                              run_where::Int, signal::Array{Cint, 1};
-                             distribute=false)
+                             distribute::Bool=false)
     for phase in [Train, Test]
         args = collect(compute_args[phase])
         if length(args) == 0
@@ -634,6 +501,9 @@ function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
     end
 end
 
+"""
+TODO: doc
+"""
 function add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net)
     test_args = (ensemble, symbol(ensemble.name, :value), net, Test)
     train_args = (ensemble, symbol(ensemble.name, :value), net, Train)
@@ -641,6 +511,9 @@ function add_forward_data_tasks(ensemble::DataEnsemble, tasks::TaskSet, net::Net
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
+"""
+TODO: doc
+"""
 function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::Net)
     inputs = []
     for connection in ensemble.connections
@@ -652,13 +525,25 @@ function add_forward_julia_tasks(ensemble::JuliaEnsemble, tasks::TaskSet, net::N
     push!(tasks[Test], JuliaTask(forward, test_args))
 end
 
-function init_forward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+"""
+TODO: doc
+"""
+function init_forward(ensemble::ReshapeEnsemble, net::Net,
+                      compute_args::ArgSet, compute_body::Dict{Phase, Vector})
 end
 
-function init_backward(ensemble::ReshapeEnsemble, net::Net, compute_args::ArgSet, compute_body)
+"""
+TODO: doc
+"""
+function init_backward(ensemble::ReshapeEnsemble, net::Net,
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
 end
 
-function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+"""
+TODO: doc
+"""
+function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
+                      compute_body::Dict{Phase, Vector})
     asts = []
     output_name = symbol(ensemble.name, :value)
     push!(compute_args[Train], output_name)
@@ -691,7 +576,11 @@ function init_forward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, 
     end
 end
 
-function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet, compute_body)
+"""
+TODO: doc
+"""
+function init_backward(ensemble::ConcatEnsemble, net::Net,
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     asts = []
     output_name = symbol(ensemble.name, :∇)
     push!(compute_args[Train], output_name)
@@ -720,8 +609,11 @@ function init_backward(ensemble::ConcatEnsemble, net::Net, compute_args::ArgSet,
     append!(compute_body[Train], asts)
 end
 
+"""
+TODO: doc
+"""
 function init_forward(ensemble::NormalizationEnsemble, net::Net,
-        compute_args::ArgSet, compute_body)
+                      compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     args = get_forward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
 
@@ -743,8 +635,11 @@ function init_forward(ensemble::NormalizationEnsemble, net::Net,
     push!(compute_body[ensemble.phase], body)
 end
 
+"""
+TODO: doc
+"""
 function init_backward(ensemble::NormalizationEnsemble, net::Net,
-        compute_args::ArgSet, compute_body)
+                       compute_args::ArgSet, compute_body::Dict{Phase, Vector})
     args = get_backward_args(ensemble)
     union!(compute_args[ensemble.phase], args)
     for connection in ensemble.connections
@@ -769,8 +664,60 @@ function init_backward(ensemble::NormalizationEnsemble, net::Net,
     unshift!(compute_body[ensemble.phase], body)
 end
 
+"""
+TODO: doc
+"""
+function add_recv_expr(net::Net, source::AbstractEnsemble,
+                       ensemble::AbstractEnsemble, 
+                       compute_body::Dict{Phase, Vector}, compute_args::ArgSet)
+    key = symbol(source.name, :value)
+    source_subgroup = source.net_subgroup - 1  # -1 for zero based indexing with MPI ranks
+    tag = find(x -> x == ensemble, net.ensembles)[1]
+    expr = :(ccall((:recv_intra, $libComm), Void, 
+                   (Ptr{Float32}, Cint, Cint, Cint), 
+                   pointer($key), length($key), $tag, $source_subgroup))
+    if ensemble.phase in [Train, TrainTest] &&
+            connection.source.phase in [Train, TrainTest]
+        push!(compute_body[Train], expr)
+        push!(compute_args[Train], key)
+    end
+    if ensemble.phase in [Test, TrainTest] &&
+            connection.source.phase in [Train, TrainTest]
+        push!(compute_body[Test], expr)
+        push!(compute_args[Test], key)
+    end
+end
 
-function init(net::SingleNet)
+"""
+TODO: doc
+"""
+function add_send_exprs(net::Net, ensemble::AbstractEnsemble,
+                        compute_body::Dict{Phase, Vector},
+                        compute_args::ArgSet)
+    for (target, tag) in net.ensemble_send_list[ensemble.name]
+        target = target - 1 # 0-based indexing for MPI
+        target_phase = net.ensembles[tag].phase
+        target_buf = symbol(ensemble.name, :value)
+        expr = :(ccall((:send_intra, $libComm), Void, 
+                       (Ptr{Float32}, Cint, Cint, Cint), 
+                       pointer($target_buf), length($target_buf), $tag, $target))
+        if ensemble.phase in [Train, TrainTest] &&
+                target_phase in [Train, TrainTest]
+            push!(compute_body[Train], expr)
+            push!(compute_args[Train], target_buf)
+        end
+        if ensemble.phase in [Test, TrainTest] &&
+                target_phase in [Test, TrainTest]
+            push!(compute_body[Test], expr)
+            push!(compute_args[Test], target_buf)
+        end
+    end
+end
+
+"""
+Initialize the network `net`
+"""
+function init(net::Net)
     log_info("Initializing net...")
     forward_tasks = net.forward_tasks
     backward_tasks = net.backward_tasks
@@ -780,33 +727,42 @@ function init(net::SingleNet)
     backward_compute_body = Dict{Phase, Vector}(Train => [], Test => [])
     backward_compute_args = ArgSet()
     seen_names = Set()
-    # Initialize ensembles
     log_info("  Initializing ensembles.")
     for ensemble in net.ensembles
+        # Check for duplicate ensemble names
         if ensemble.name in seen_names
             throw("Error: Found duplicate ensemble name: $(ensemble.name)")
         end
-        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
+        push!(seen_names, ensemble.name)
+
+        # If in MPI mode skip ensembles not assigned to this subrank
+        @latte_mpi(if ensemble.net_subgroup != get_net_subrank(net) + 1
+            continue  # skip
+        end)
+        net.ensemble_send_list[ensemble.name] = Tuple{Int, Int}[]
+
+        log_info("    $(ensemble.name) size=$(size(ensemble))")
+
+        # Initialize the ensemble
+        init(ensemble, net)
+        init_params(ensemble, net)
+    end
+
+    for (index, ensemble) in enumerate(net.ensembles)
+        # If in MPI mode, populate the send_list for connected ensembles not in
+        # this subrank and skip initializations
+        @latte_mpi if ensemble.net_subgroup != get_net_subrank(net) + 1
+            for connection in ensemble.connections
+                if connection.source.net_subgroup == get_net_subrank(net) + 1
+                    push!(net.ensemble_send_list[connection.source.name], 
+                          (ensemble.net_subgroup, index))
+                end
+            end
             continue  # skip
         end
-        )
-        push!(seen_names, ensemble.name)
-        net.ensemble_send_list[ensemble.name] = Tuple{Int, Int}[]
-        map(init, ensemble)
-        log_info("    $(ensemble.name) size=$(size(ensemble))")
-        init(ensemble, net)
-    end
-    for (index, ensemble) in enumerate(net.ensembles)
-        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
-                for connection in ensemble.connections
-                    if connection.source.net_subgroup == get_net_subrank(net) + 1
-                        push!(net.ensemble_send_list[connection.source.name], 
-                              (ensemble.net_subgroup, index))
-                    end
-                end
-                continue  # skip
-            end
-        )
+
+        # Initialize the inputs for the ensemble, this is done after all
+        # ensembles have initialized their outputs (necessary for rnns)
         init_inputs(ensemble, net)
     end
     log_info("  Finished initializing ensembles.")
@@ -814,36 +770,15 @@ function init(net::SingleNet)
     log_info("  Synthesizing forward functions.")
     # Generate forward tasks
     for ensemble in net.ensembles
-        @latte_mpi (if ensemble.net_subgroup != get_net_subrank(net) + 1
+        @latte_mpi if ensemble.net_subgroup != get_net_subrank(net) + 1
             continue  # skip
-        end)
-        # TODO: Should param initialization be done in ensemble init??
-        if :params in fieldnames(ensemble)
-            for param in ensemble.params
-                param.value = get_buffer(net, param.name)
-                param.gradient = get_buffer(net, param.gradient_name)
-                param.hist = zeros(param.value)
-                set_buffer(net, param.hist_name, param.hist)
-                @latte_mpi param.request = @eval ccall((:init_request, $libComm), Cint, ())
-            end
         end
 
-        for connection in ensemble.connections
+        @latte_mpi for connection in ensemble.connections
             if connection.source.net_subgroup != ensemble.net_subgroup
-                key = symbol(connection.source.name, :value)
-                source_subgroup = connection.source.net_subgroup - 1  # -1 for zero based indexing with MPI ranks
-                tag = find(x -> x == ensemble, net.ensembles)[1]
-                expr = :(ccall((:recv_intra, $libComm), Void, (Ptr{Float32}, Cint, Cint, Cint), pointer($key), length($key), $tag, $source_subgroup))
-                if ensemble.phase in [Train, TrainTest] &&
-                        connection.source.phase in [Train, TrainTest]
-                    push!(forward_compute_body[Train], expr)
-                    push!(forward_compute_args[Train], key)
-                end
-                if ensemble.phase in [Test, TrainTest] &&
-                        connection.source.phase in [Train, TrainTest]
-                    push!(forward_compute_body[Test], expr)
-                    push!(forward_compute_args[Test], key)
-                end
+                add_recv_expr(net, connection.source, ensemble,
+                              forward_compute_body, forward_compute_args)
+
             end
         end
         # Skip code generation for data and loss ensembles
@@ -858,24 +793,9 @@ function init(net::SingleNet)
         else
             throw("Latte Error: Encountered unsupported ensemble type $(typeof(ensemble)).")
         end
-        for (target, tag) in net.ensemble_send_list[ensemble.name]
-            target = target - 1 # 0-based indexing for MPI
-            target_phase = net.ensembles[tag].phase
-            target_buf = symbol(ensemble.name, :value)
-            expr = :(ccall((:send_intra, $libComm), Void, 
-                           (Ptr{Float32}, Cint, Cint, Cint), 
-                           pointer($target_buf), length($target_buf), $tag, $target))
-            if ensemble.phase in [Train, TrainTest] &&
-                    target_phase in [Train, TrainTest]
-                push!(forward_compute_body[Train], expr)
-                push!(forward_compute_args[Train], target_buf)
-            end
-            if ensemble.phase in [Test, TrainTest] &&
-                    target_phase in [Test, TrainTest]
-                push!(forward_compute_body[Test], expr)
-                push!(forward_compute_args[Test], target_buf)
-            end
-        end
+
+        @latte_mpi add_send_exprs(net, ensemble, forward_compute_body,
+                                  forward_compute_args)
     end
     append!(net.forward_tasks, forward_data_tasks)
 
@@ -954,27 +874,33 @@ function init(net::SingleNet)
     log_info("Initialization finished.")
 end
 
+function get_task_args(net, task_args, t)
+    args = []
+    for arg in task_args
+        if isa(arg, Symbol)
+            push!(args, get_buffer(net, arg, t))
+        else
+            push!(args, arg)
+        end
+    end
+    args
+end
+
 # Use metaprogramming to generate single and multi versions of forward
 # and backward.
 for direction in [:forward, :backward]
     tasks = symbol(direction,:_tasks)
-    @eval function $direction(net::SingleNet; phase=Train, solver=nothing)
+    @eval function $direction(net::Net; phase=Train, solver=nothing)
         for t = 1:net.time_steps
             net.curr_time_step = t
-            for (index, task) in enumerate(net.$tasks[phase])
+            for task in net.$tasks[phase]
                 if isa(task, JuliaTask)
-                    args = []
-                    for arg in task.args
-                        if isa(arg, Symbol)
-                            push!(args, get_buffer(net, arg, t))
-                        else
-                            push!(args, arg)
-                        end
-                    end
-                    task.func(args...)
+                    task.func(get_task_args(net, task.args, t)...)
                 elseif isa(task, UpdateTask)
                     @assert phase == Train && solver != nothing
                     update(solver, net, task.param_id)
+                else
+                    throw("Unsupported task type $(typeof(task))")
                 end
             end
         end
@@ -990,6 +916,44 @@ function add_ensemble(net::Net, ens::AbstractEnsemble)
 end
 
 """
+TODO: doc
+"""
+function check_dimensions_fixed(mapping::Function, sink_shape::Tuple)
+    n = length(sink_shape)
+    is_dim_fixed = [true for _ in 1:n]
+    first = mapping(ones(Int, n)...)
+    if !all(map((x) -> isa(x, UnitRange) || isa(x, Colon), first))
+        is_dim_fixed = [false for _ in 1:n]
+    else
+        for d in 1:n
+            for i in 1:sink_shape[d]
+                idx = ones(Int, n)
+                idx[d] = i
+                if first != mapping(idx...)
+                    is_dim_fixed[d] = false
+                    break
+                end
+            end
+        end
+    end
+    is_dim_fixed
+end
+
+"""
+TODO: doc
+"""
+function check_one_to_one(mapping::Function, shape::Tuple)
+    is_one_to_one = true
+    for i in CartesianRange(shape)
+        if mapping(i.I...) != i.I
+            is_one_to_one = false
+            break
+        end
+    end
+    is_one_to_one
+end
+
+"""
 Connect neurons in `source` to neurons in `sink` using the function `mapping`.
 `mapping` should be a function with a parameter for the index in each dimension
 of sink.
@@ -1000,8 +964,11 @@ indices of neurons in source that should be connected to the neuron at the
 current index
 """
 function add_connections(net::Net, source::AbstractEnsemble,
-                         sink::AbstractEnsemble, mapping::Function; padding=0, recurrent=false)
+                         sink::AbstractEnsemble, mapping::Function; padding=0,
+                         recurrent=false)
     n = ndims(sink)
+
+    # Compute the size and shape of the connection
     range_size = 1
     range_shape = []
     for (index, d) in enumerate(mapping(ones(Int, n)...))
@@ -1013,39 +980,22 @@ function add_connections(net::Net, source::AbstractEnsemble,
             push!(range_shape, length(d))
         end
     end
-    is_dim_fixed = [true for _ in 1:n]
-    first = mapping(ones(Int, n)...)
-    if !all(map((x) -> isa(x, UnitRange) || isa(x, Colon), first))
-        is_dim_fixed = [false for _ in 1:n]
-    else
-        for d in 1:n
-            for i in 1:size(sink, d)
-                idx = ones(Int, n)
-                idx[d] = i
-                if first != mapping(idx...)
-                    is_dim_fixed[d] = false
-                    break
-                end
-            end
-        end
-    end
-    is_one_to_one = true
+
+    # Determine if any dimensions are fixed
+    is_dim_fixed = check_dimensions_fixed(mapping, size(sink))
+    is_one_to_one = false
     if !all(is_dim_fixed)
-        for i in CartesianRange(size(sink))
-            if mapping(i.I...) != i.I
-                is_one_to_one = false
-                break
-            end
-        end
-    else
-        is_one_to_one = false
+        is_one_to_one = check_one_to_one(mapping, size(sink))
     end
     push!(sink.connections, Connection(source, mapping, tuple(range_shape...),
                                        range_size, true, is_dim_fixed,
                                        is_one_to_one, padding, recurrent))
 end
 
-function test(net::SingleNet)
+"""
+Test `net` for one epoch
+"""
+function test(net::Net)
     curr_epoch = net.test_epoch
     accuracy = 0.0f0
     num_batches = 0.0f0
@@ -1063,6 +1013,9 @@ end
 
 export save_snapshot, load_snapshot
 
+"""
+Save a snapshot of `net` to `file`
+"""
 function save_snapshot(net::Net, file::AbstractString)
     param_dict = Dict{Symbol, Vector{Param}}()
     for ens in net.ensembles
@@ -1073,6 +1026,11 @@ function save_snapshot(net::Net, file::AbstractString)
     save(file, "param_dict", param_dict)
 end
 
+"""
+Load a network snapshot from `file`.
+
+TODO: Can we save the structure of `net` in the snapshot?
+"""
 function load_snapshot(net::Net, file::AbstractString)
     param_dict = load(file, "param_dict")
     for ens in net.ensembles
@@ -1084,6 +1042,11 @@ function load_snapshot(net::Net, file::AbstractString)
     end
 end
 
+"""
+Get the current loss for `net`
+
+TODO: This is not general, assumes one :loss ensemble
+"""
 function get_loss(net::Net)
     @latte_mpi(if haskey(net.buffers[net.curr_buffer_set][1], :lossvalue)
         loss = get_buffer(net, :lossvalue)[1]
@@ -1093,4 +1056,127 @@ function get_loss(net::Net)
         return sync_intra_loss(net, 0.0f0)
     end, 
     return get_buffer(net, :lossvalue)[1])
+end
+
+"""
+Fill buffers with names containing `∇` with zeros.
+"""
+function clear_∇(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "∇")
+                fill!(net.buffers[i][t][name], 0.0)
+            end
+        end
+    end
+end
+
+"""
+Fill buffers with names containing `value` with zeros.
+"""
+function clear_values(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "value")
+                fill!(net.buffers[i][t][name], 0.0)
+            end
+        end
+    end
+end
+
+"""
+Fill buffers with names containing `randval` with random values
+"""
+function rand_values(net::Net)
+    i = net.curr_buffer_set
+    for t in 1:net.time_steps
+        for name in keys(net.buffers[i][t])
+            if contains(string(name), "randval")
+                rand!(net.buffers[i][t][name])
+            end
+        end
+    end
+end
+
+"""
+Get a buffer associated with an ensemble
+
+** Params **
+
+- `net`   -- network to get buffer
+- `ens`   -- the ensemble
+- `name`  -- name of buffer associated with `ens`
+"""
+function get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
+    return net.buffers[net.curr_buffer_set][1][symbol(ens.name, name)]
+end
+
+"""
+Get a buffer at the time_step `t`
+
+** Params **
+
+- `net`   -- network to get buffer
+- `name`  -- name of the buffer
+- `t`     -- time step
+"""
+function get_buffer(net::Net, name::Symbol, t::Int=1)
+    return net.buffers[net.curr_buffer_set][t][name]
+end
+
+"""
+Add or update a buffer at a particular time step `t`
+
+** Params **
+
+- `net`   -- network to add/update buffer
+- `name`  -- name of the buffer
+- `arr`   -- buffer
+- `t`     -- time step to add buffer
+"""
+function set_buffer(net::Net, name::Symbol, arr::Array, t::Int)
+    net.buffers[1][t][name] = arr
+    net.buffers[2][t][name] = arr
+end
+
+"""
+Add or update a buffer
+
+** Params **
+
+- `net`   -- network to add/update buffer
+- `name`  -- name of the buffer
+- `arr`   -- buffer
+- `_copy` -- whether to copy the buffer
+"""
+function set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
+    for t in 1:net.time_steps
+        if _copy
+            net.buffers[1][t][name] = copy(arr)
+            net.buffers[2][t][name] = copy(arr)
+        else
+            net.buffers[1][t][name] = arr
+            net.buffers[2][t][name] = arr
+        end
+    end
+end
+
+"""
+Initialize a buffer in `net`
+
+** Params **
+
+- `net`   -- network to receive initialized buffer
+- `name`  -- name of the buffer
+- `shape` -- shape of the buffer
+- `func`  -- function used to initialize the buffer, should return an Array and
+             have a signature (Float32, dims...)
+"""
+function init_buffer(net::Net, name::Symbol, shape; func=zeros)
+    for t in 1:net.time_steps
+        net.buffers[1][t][name] = func(Float32, shape...)
+        net.buffers[2][t][name] = func(Float32, shape...)
+    end
 end

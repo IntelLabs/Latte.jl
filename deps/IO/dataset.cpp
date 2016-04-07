@@ -26,7 +26,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "dataset.h"
+#ifdef LATTE_BUILD_MPI
 #include "../communication/comm.h"
+#endif
 
 Dataset::Dataset(char* data_file_name, int _batch_size, bool _shuffle, bool _use_mpi, bool divide_by_rank) {
 #ifdef LATTE_BUILD_MPI

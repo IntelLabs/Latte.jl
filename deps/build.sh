@@ -1,7 +1,6 @@
 #! /bin/bash
+rm -rf build
 mkdir build
 cd build
 cmake ..
 make
-mv libLatteIO.so ../
-mv libLatteComm.so ../
