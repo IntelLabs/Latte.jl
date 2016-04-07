@@ -350,13 +350,10 @@
 <li><a href="./#Latte.add_send_exprs-Tuple{Latte.Net,Latte.AbstractEnsemble,Dict{Latte.Phase,Array{T,1}},Latte.ArgSet}"><code>Latte.add_send_exprs</code></a></li>
 <li><a href="./#Latte.check_dimensions_fixed-Tuple{Function,Tuple}"><code>Latte.check_dimensions_fixed</code></a></li>
 <li><a href="./#Latte.check_one_to_one-Tuple{Function,Tuple}"><code>Latte.check_one_to_one</code></a></li>
-<li><a href="./#Latte.clear_values-Tuple{Latte.Net}"><code>Latte.clear_values</code></a></li>
-<li><a href="./#Latte.clear_∇-Tuple{Latte.Net}"><code>Latte.clear_∇</code></a></li>
 <li><a href="./#Latte.gen_copy_block-Tuple{Latte.Net,Latte.AbstractEnsemble,Latte.Connection,Int64}"><code>Latte.gen_copy_block</code></a></li>
 <li><a href="./#Latte.gen_neuron_backward-Tuple{Latte.AbstractEnsemble,Latte.Net,Array{T,1},Set{T}}"><code>Latte.gen_neuron_backward</code></a></li>
 <li><a href="./#Latte.gen_neuron_forward-Tuple{Latte.AbstractEnsemble,Latte.Net,Dict{Latte.Phase,Array{T,1}},Set{T}}"><code>Latte.gen_neuron_forward</code></a></li>
 <li><a href="./#Latte.generate_c_function-Tuple{Function,Tuple,Int64,Array{Int32,1},Dict{K,V}}"><code>Latte.generate_c_function</code></a></li>
-<li><a href="./#Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}"><code>Latte.get_buffer</code></a></li>
 <li><a href="./#Latte.get_inner_loop_tiler"><code>Latte.get_inner_loop_tiler</code></a></li>
 <li><a href="./#Latte.get_src_idx-Tuple{Expr}"><code>Latte.get_src_idx</code></a></li>
 <li><a href="./#Latte.get_tile_fusion_factor_backward"><code>Latte.get_tile_fusion_factor_backward</code></a></li>
@@ -365,7 +362,6 @@
 <li><a href="./#Latte.init_backward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_backward</code></a></li>
 <li><a href="./#Latte.init_backward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_backward</code></a></li>
 <li><a href="./#Latte.init_backward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}"><code>Latte.init_backward</code></a></li>
-<li><a href="./#Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}"><code>Latte.init_buffer</code></a></li>
 <li><a href="./#Latte.init_forward-Tuple{Latte.ConcatEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_forward</code></a></li>
 <li><a href="./#Latte.init_forward-Tuple{Latte.NormalizationEnsemble,Latte.Net,Latte.ArgSet,Dict{Latte.Phase,Array{T,1}}}"><code>Latte.init_forward</code></a></li>
 <li><a href="./#Latte.init_forward-Tuple{Latte.ReshapeEnsemble,Latte.Net,Latte.ArgSet,Any}"><code>Latte.init_forward</code></a></li>
@@ -373,70 +369,27 @@
 <li><a href="./#Latte.is_tiled_loop"><code>Latte.is_tiled_loop</code></a></li>
 <li><a href="./#Latte.optimize-Tuple{Array{T,1},Array{T,1},Expr}"><code>Latte.optimize</code></a></li>
 <li><a href="./#Latte.push_compute_tasks!-Tuple{Latte.TaskSet,Dict{K,V},Dict{K,V},Latte.ArgSet,Int64,Array{Int32,1}}"><code>Latte.push_compute_tasks!</code></a></li>
-<li><a href="./#Latte.rand_values-Tuple{Latte.Net}"><code>Latte.rand_values</code></a></li>
-<li><a href="./#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}"><code>Latte.set_buffer</code></a></li>
-<li><a href="./#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}"><code>Latte.set_buffer</code></a></li>
 <li><a href="./#Latte.tile_size_inliner"><code>Latte.tile_size_inliner</code></a></li>
 <li><a href="./#Latte.unpack_tiled_loop"><code>Latte.unpack_tiled_loop</code></a></li>
 <li><a href="./#Latte.update_tile_var"><code>Latte.update_tile_var</code></a></li>
 </ul>
 <p><a id='Net-1'></a></p>
 <h2 id="net">Net</h2>
-<p><a id='Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}' href='#Latte.init_buffer-Tuple{Latte.Net,Symbol,Any}'>#</a>
-<strong><code>Latte.init_buffer</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Initialize a buffer in <code>net</code></p>
-<p><strong> Params </strong></p>
-<ul>
-<li><code>net</code>   – network to receive initialized buffer</li>
-<li><code>name</code>  – name of the buffer</li>
-<li><code>shape</code> – shape of the buffer</li>
-<li><code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</li>
-</ul>
-<p><a id='Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}' href='#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N}}'>#</a>
-<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Add or update a buffer</p>
-<p><strong> Params </strong></p>
-<ul>
-<li><code>net</code>   – network to add/update buffer</li>
-<li><code>name</code>  – name of the buffer</li>
-<li><code>arr</code>   – buffer</li>
-<li><code>_copy</code> – whether to copy the buffer</li>
-</ul>
-<p><a id='Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}' href='#Latte.set_buffer-Tuple{Latte.Net,Symbol,Array{T,N},Int64}'>#</a>
-<strong><code>Latte.set_buffer</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Add or update a buffer at a particular time step <code>t</code></p>
-<p><strong> Params </strong></p>
-<ul>
-<li><code>net</code>   – network to add/update buffer</li>
-<li><code>name</code>  – name of the buffer</li>
-<li><code>arr</code>   – buffer</li>
-<li><code>t</code>     – time step to add buffer</li>
-</ul>
-<p><a id='Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}' href='#Latte.get_buffer-Tuple{Latte.Net,Latte.AbstractEnsemble,Symbol}'>#</a>
-<strong><code>Latte.get_buffer</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Get a buffer associated with an ensemble</p>
-<p><strong> Params </strong></p>
-<ul>
-<li><code>net</code>   – network to get buffer</li>
-<li><code>ens</code>   – the ensemble</li>
-<li><code>name</code>  – name of buffer associated with <code>ens</code></li>
-</ul>
-<p><a id='Latte.rand_values-Tuple{Latte.Net}' href='#Latte.rand_values-Tuple{Latte.Net}'>#</a>
-<strong><code>Latte.rand_values</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>randval</code> with random values</p>
-<p><a id='Latte.clear_values-Tuple{Latte.Net}' href='#Latte.clear_values-Tuple{Latte.Net}'>#</a>
-<strong><code>Latte.clear_values</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>value</code> with zeros.</p>
-<p><a id='Latte.clear_∇-Tuple{Latte.Net}' href='#Latte.clear_∇-Tuple{Latte.Net}'>#</a>
-<strong><code>Latte.clear_∇</code></strong> &mdash; <em>Method</em>.</p>
-<hr />
-<p>Fill buffers with names containing <code>∇</code> with zeros.</p>
+<p>The <code>Net</code> datastructure is the main container used by the Latte compiler and runtime.  When constructing a <code>Net</code> a user adds ensembles and applies connections between them.  This implicitly constructs a task graph with connections as data dependencies and ensembles as groups of comptue tasks.  The <code>init(net::Net)</code> routine is the main entry point for the Latte compiler. Inside this function, the Latte compiler consumes the implicit task graph, synthesizes functions to compute various tasks and optimizes these functions.</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span><span class="n">docs</span><span class="p">}</span>
+<span class="nt">init</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">)</span>
+
+<span class="nt">init_buffer</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">,</span> <span class="nt">name</span><span class="o">:</span><span class="nd">:Symbol</span><span class="o">,</span> <span class="nt">shape</span><span class="o">;</span> <span class="nt">func</span><span class="o">=</span><span class="nt">zeros</span><span class="o">)</span>
+<span class="nt">set_buffer</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">,</span> <span class="nt">name</span><span class="o">:</span><span class="nd">:Symbol</span><span class="o">,</span> <span class="nt">arr</span><span class="o">:</span><span class="nd">:Array</span><span class="o">;</span> <span class="nt">_copy</span><span class="o">=</span><span class="nt">true</span><span class="o">)</span>
+<span class="nt">set_buffer</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">,</span> <span class="nt">name</span><span class="o">:</span><span class="nd">:Symbol</span><span class="o">,</span> <span class="nt">arr</span><span class="o">:</span><span class="nd">:Array</span><span class="o">,</span> <span class="nt">t</span><span class="o">:</span><span class="nd">:Int</span><span class="o">)</span>
+<span class="nt">get_buffer</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">,</span> <span class="nt">ens</span><span class="o">:</span><span class="nd">:AbstractEnsemble</span><span class="o">,</span> <span class="nt">name</span><span class="o">:</span><span class="nd">:Symbol</span><span class="o">)</span>
+
+<span class="nt">rand_values</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">)</span>
+<span class="nt">clear_values</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">)</span>
+<span class="nt">clear_</span><span class="err">∇</span><span class="o">(</span><span class="nt">net</span><span class="o">:</span><span class="nd">:Net</span><span class="o">)</span>
+</pre></div>
+
+
 <p><a id='Connections-1'></a></p>
 <h2 id="connections">Connections</h2>
 <p><a id='Latte.check_one_to_one-Tuple{Function,Tuple}' href='#Latte.check_one_to_one-Tuple{Function,Tuple}'>#</a>

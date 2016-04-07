@@ -431,7 +431,9 @@
 <p><a id='Latte.init-Tuple{Latte.Net}' href='#Latte.init-Tuple{Latte.Net}'>#</a>
 <strong><code>Latte.init</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
-<p>Initialize the network <code>net</code></p>
+<p>Initialize the network <code>net</code>.</p>
+<p>This function begins by initializing each <code>Ensemble</code> in the Network.  This is done by calling <code>init(ens)</code> which will be dispatched to the appropriate initialization routine.  These initialization routines are responsible for adding buffers to the network to contain neuron fields and output values.  See the specific initialization functions for different Ensemble types for more information (TODO: Reference these).  </p>
+<p>After initializaing the local fields and output values for each ensemble, we then initialize the input buffers for each ensemble.  This is done after all output values have been initialized so that we can analyze recurrent connections.  This is done by calling the <code>init_inputs(ens)</code> routine.</p>
 <p><a id='Latte.load_snapshot-Tuple{Latte.Net,AbstractString}' href='#Latte.load_snapshot-Tuple{Latte.Net,AbstractString}'>#</a>
 <strong><code>Latte.load_snapshot</code></strong> &mdash; <em>Method</em>.</p>
 <hr />
