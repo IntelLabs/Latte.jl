@@ -344,14 +344,32 @@
 <strong><code>Latte.init_buffer</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
 <p>Initialize a buffer in <code>net</code></p>
-<p><strong> Params </strong> - <code>net</code>   – network to receive initialized buffer - <code>name</code>  – name of the buffer - <code>shape</code> – shape of the buffer - <code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>net</code>   – network to receive initialized buffer</li>
+<li><code>name</code>  – name of the buffer</li>
+<li><code>shape</code> – shape of the buffer</li>
+<li><code>func</code>  – function used to initialize the buffer, should return an Array and              have a signature (Float32, dims...)</li>
+</ul>
 <p><a id='Latte.set_buffer' href='#Latte.set_buffer'>#</a>
 <strong><code>Latte.set_buffer</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
 <p>Add or update a buffer at a particular time step <code>t</code></p>
-<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>t</code>     – time step to add buffer</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>net</code>   – network to add/update buffer</li>
+<li><code>name</code>  – name of the buffer</li>
+<li><code>arr</code>   – buffer</li>
+<li><code>t</code>     – time step to add buffer</li>
+</ul>
 <p>Add or update a buffer</p>
-<p><strong> Params </strong> - <code>net</code>   – network to add/update buffer - <code>name</code>  – name of the buffer - <code>arr</code>   – buffer - <code>_copy</code> – whether to copy the buffer</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>net</code>   – network to add/update buffer</li>
+<li><code>name</code>  – name of the buffer</li>
+<li><code>arr</code>   – buffer</li>
+<li><code>_copy</code> – whether to copy the buffer</li>
+</ul>
 <p><a id='Latte.rand_values' href='#Latte.rand_values'>#</a>
 <strong><code>Latte.rand_values</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
@@ -420,7 +438,13 @@
 <strong><code>Latte.gen_neuron_forward</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
 <p>Synthesize the code to execute forward for an ensemble</p>
-<p><strong> Params </strong> - <code>ensemble</code>     – the <code>AbstractEnsemble</code> that is having its forward synthesized - <code>net</code>          – the <code>Net</code> containing <code>ensemble</code> - <code>compute_body</code> – the body that the synthesized code will be added to - <code>compute_args</code> – a set of arguments reference in <code>compute_body</code>.  Any values                     referenced in the synthesized code should be added to                     <code>compute_args</code></p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>ensemble</code>     – the <code>AbstractEnsemble</code> that is having its forward synthesized</li>
+<li><code>net</code>          – the <code>Net</code> containing <code>ensemble</code></li>
+<li><code>compute_body</code> – the body that the synthesized code will be added to</li>
+<li><code>compute_args</code> – a set of arguments reference in <code>compute_body</code>.  Any values                     referenced in the synthesized code should be added to                     <code>compute_args</code></li>
+</ul>
 <p><a id='Latte.gen_copy_block' href='#Latte.gen_copy_block'>#</a>
 <strong><code>Latte.gen_copy_block</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
@@ -429,12 +453,20 @@
 <strong><code>Latte.get_src_idx</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
 <p>Extract the final expression of the mapping function to be used as an indexing expression.  Handles cases where the final expression can be a Tuple or a single value.</p>
-<p><strong> Params </strong> - <code>mapping</code> – an ast for a mapping function</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>mapping</code> – an ast for a mapping function</li>
+</ul>
 <p><a id='Latte.optimize' href='#Latte.optimize'>#</a>
 <strong><code>Latte.optimize</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
 <p>Optimize a function <code>fn</code></p>
-<p><strong> Params </strong> - <code>args</code>                – an ordered vector of arguments (buffers) - <code>tile_fusion_factors</code> – factors for tile fusions determined by connection                            structure - <code>fn</code>                  – the ast of the function to be optimized</p>
+<p><strong> Params </strong></p>
+<ul>
+<li><code>args</code>                – an ordered vector of arguments (buffers)</li>
+<li><code>tile_fusion_factors</code> – factors for tile fusions determined by connection                            structure</li>
+<li><code>fn</code>                  – the ast of the function to be optimized</li>
+</ul>
 <p><a id='Latte.unpack_tiled_loop' href='#Latte.unpack_tiled_loop'>#</a>
 <strong><code>Latte.unpack_tiled_loop</code></strong> &mdash; <em>Function</em>.</p>
 <hr />
