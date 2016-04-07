@@ -19,6 +19,7 @@ extra_javascript:
 
 markdown_extensions:
     - codehilite
+    - admonition
     - extra
     - tables
     - fenced_code
