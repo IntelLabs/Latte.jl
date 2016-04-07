@@ -1,5 +1,8 @@
 # Public
 
+    {meta}
+    CurrentModule = Latte
+
 ## Contents
 
     {contents}
@@ -13,19 +16,20 @@
 ## API
 
     {docs}
-    Latte.Net
-    Latte.Ensemble
-    Latte.Connection
-    Latte.Param
-    Latte.get_buffer
+    Net
+    Net(batch_size::Int; time_steps=1, num_subgroups=1)
+    Ensemble
+    Connection
+    Param
+    get_buffer(net::Net, name::Symbol, t::Int)
 
-    Latte.add_connections
-    Latte.add_ensemble
-    Latte.init
+    add_connections(net::Net, source::AbstractEnsemble,
+                    sink::AbstractEnsemble, mapping::Function; padding=0,
+                    recurrent=false)
+    add_ensemble(net::Net, ens::AbstractEnsemble)
+    init(net::Net)
 
-    Latte.load_snapshot
-    Latte.save_snapshot
+    load_snapshot(net::Net, file::AbstractString)
+    save_snapshot(net::Net, file::AbstractString)
 
-    Latte.forward
-    Latte.backward
-    Latte.test
+    test(net::Net)

@@ -19,6 +19,7 @@
     init_buffer(net::Net, name::Symbol, shape; func=zeros)
     set_buffer(net::Net, name::Symbol, arr::Array; _copy=true)
     set_buffer(net::Net, name::Symbol, arr::Array, t::Int)
+    get_buffer(net::Net, ens::AbstractEnsemble, name::Symbol)
 
     rand_values(net::Net)
     clear_values(net::Net)
@@ -59,8 +60,8 @@
                         run_where::Int, signal::Array{Cint,1},
                         buffers::Dict)
     gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
-                        compute_body::Dict{Phase, Vector},
-                        compute_args::ArgSet)
+                        compute_body::Vector,
+                        compute_args::Set)
     gen_neuron_forward(ensemble::AbstractEnsemble, net::Net,
                        compute_body::Dict{Phase, Vector},
                        compute_args::Set)

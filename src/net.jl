@@ -282,7 +282,7 @@ end
 TODO: doc
 """
 function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
-                             compute_body::Dict{Phase, Vector},
+                             compute_body::Vector,
                              compute_args::Set)
     if !(ensemble.phase in [Train, TrainTest])
         return
@@ -707,7 +707,7 @@ function add_send_exprs(net::Net, ensemble::AbstractEnsemble,
 end
 
 """
-TODO: doc
+Initialize the network `net`
 """
 function init(net::Net)
     log_info("Initializing net...")
@@ -956,7 +956,8 @@ indices of neurons in source that should be connected to the neuron at the
 current index
 """
 function add_connections(net::Net, source::AbstractEnsemble,
-                         sink::AbstractEnsemble, mapping::Function; padding=0, recurrent=false)
+                         sink::AbstractEnsemble, mapping::Function; padding=0,
+                         recurrent=false)
     n = ndims(sink)
 
     # Compute the size and shape of the connection
