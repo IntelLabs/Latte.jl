@@ -1,0 +1,4 @@
+*
+!.gitignore
+!convert.jl
+!get-data.sh
