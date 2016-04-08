@@ -70,7 +70,7 @@
   
   
   
-  <body class="palette-primary-blue palette-accent-light-blue">
+  <body class="palette-primary-light-blue palette-accent-blue">
     
       
       
@@ -204,14 +204,20 @@
         <ul>
           
             <li class="anchor">
-              <a title="Stochastic Gradient Descent" href="#stochastic-gradient-descent">
-                Stochastic Gradient Descent
+              <a title="The Model" href="#the-model">
+                The Model
               </a>
             </li>
           
             <li class="anchor">
-              <a title="The Model" href="#the-model">
-                The Model
+              <a title="Backpropogation" href="#backpropogation">
+                Backpropogation
+              </a>
+            </li>
+          
+            <li class="anchor">
+              <a title="Stochastic Gradient Descent" href="#stochastic-gradient-descent">
+                Stochastic Gradient Descent
               </a>
             </li>
           
@@ -325,7 +331,15 @@
           <p><a id='Multi-Layer-Perceptron-1'></a></p>
 <h1 id="multi-layer-perceptron">Multi-Layer Perceptron</h1>
 <p>This tutorial is based on <a href="http://deeplearning.net/tutorial/mlp.html">http://deeplearning.net/tutorial/mlp.html</a> but uses Latte to implement the code examples.  </p>
-<p>A Multi-Layer Perceptron can be described as a logistic regression classifier where the input is first transformed using a learnt non-linear transformation $\Phi$.  This intermediate layer performing the transformation is referred to as a <strong>hidden layer</strong>.  One hidden layer is sufficient to make MLPs a <strong>universal approximator</strong> [<a href="http://www.sciencedirect.com/science/article/pii/0893608089900208" title="Multilayer feedforward networks are universal approximators. Hornik et al. 1989">1</a>].  </p>
+<p>A Multi-Layer Perceptron (MLP) can be described as a logistic regression classifier where the input is first transformed using a learnt non-linear transformation $\Phi$.  This intermediate layer performing the transformation is referred to as a <strong>hidden layer</strong>.  One hidden layer is sufficient to make MLPs a <strong>universal approximator</strong> [<a href="http://www.sciencedirect.com/science/article/pii/0893608089900208" title="Multilayer feedforward networks are universal approximators. Hornik et al. 1989">1</a>].  </p>
+<p><a id='The-Model-1'></a></p>
+<h2 id="the-model">The Model</h2>
+<p>An MLP with a single hidden layer can be represented graphically as follows:</p>
+<p><img alt="Single Hidden Layer MLP" src="http://deeplearning.net/tutorial/_images/mlp.png" /></p>
+<p>To understand this representation, we'll first define the properties of a singular neuron.  A <strong>Neuron</strong>, depicted in the figure as a circle, computes an output (typically called an activation) as a function of its inputs.  In this figure, an input is depicted as a directed edge flowing into a <strong>Neuron</strong>.  For an MLP, the function to compute the output of a <strong>Neuron</strong> begins with a weighted sum of the inputs.  Formally, if we describe the input as a vector of values $x$ and a vector of weights $w$, this operation can be written as $w \cdot x$ (dot product).  Next, we will shift this value by a learned bias $b$, then apply an activation function $s$ such as $tanh$, $sigmoid$ or $relu$.  The entire computation is written as $s(w \cdot x + b)$.</p>
+<p><a id='Backpropogation-1'></a></p>
+<h2 id="backpropogation">Backpropogation</h2>
+<p>Forthcoming...</p>
 <p><a id='Stochastic-Gradient-Descent-1'></a></p>
 <h2 id="stochastic-gradient-descent">Stochastic Gradient Descent</h2>
 <p>Gradient Descent is a simple algorithm that repeatedly makes small steps downward on an error surface defined by a loss function of some parameters. Traditional Gradient Descent computes the gradient after a pass over the entire input data set.  In practice, Gradient Descent proceeds more quickly when the gradient is estimated from just a few examples at time.  This extreme form computes the gradient for a single training input at a time:</p>
@@ -341,12 +355,6 @@
 
 
 <p>In practice, SGD for deep learning is performed using <em>minibatches</em>, where a <code>minibatch</code> of inputs are used to estimate the gradients.  This technique typically reduces variance in the estimation of the gradient, but more importantly allows implementations to make better use of the memory hierarchy in modern computers.</p>
-<p><a id='The-Model-1'></a></p>
-<h2 id="the-model">The Model</h2>
-<p>An MLP with a single hidden layer can be represented graphically as follows:</p>
-<p><img alt="Single Hidden Layer MLP" src="http://deeplearning.net/tutorial/_images/mlp.png" /></p>
-<p>To understand this representation, we'll first define the properties of a singular neuron.  A <strong>Neuron</strong>, depicted in the figure as a circle, computes an output (typically called an activation) as a function of its inputs.  In this figure, an input is depicted as a directed edge flowing into a <strong>Neuron</strong>.  For an MLP, the function to compute the output of a <strong>Neuron</strong> begins with a weighted sum of the inputs.  Formally, if we describe the input as a vector of values $x$ and a vector of weights $w$, this operation can be written as $w \cdot x$ (dot product).  Next, we will shift this value by a learned bias $b$, then apply an activation function $s$ such as $tanh$, $sigmoid$ or $relu$.  The entire computation is written as $s(w \cdot x + b)$.</p>
-<p>TODO: Discuss back-prop and tie into SGD</p>
 <p><a id='Defining-a-WeightedNeuron-1'></a></p>
 <h2 id="defining-a-weightedneuron">Defining a WeightedNeuron</h2>
 <p>Defining a <strong>WeightedNeuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  The <code>Neuron</code> type contains 4 default fields:</p>
