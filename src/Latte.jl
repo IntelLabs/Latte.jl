@@ -74,7 +74,7 @@ include("ensembles.jl")
 include("comm.jl")
 
 include("stdlib/solvers.jl")
-include("stdlib/DL.jl")
+include("stdlib/stdlib.jl")
 
 
 end # module Latte
