@@ -327,7 +327,13 @@
 <p>To understand this representation, we'll first define the properties of a singular neuron.  A <strong>Neuron</strong>, depicted in the figure as a circle, computes an output (typically called an activation) as a function of its inputs.  In this figure, an input is depicted as a directed edge flowing into a <strong>Neuron</strong>.  For an MLP, the function to compute the output of a <strong>Neuron</strong> begins with a weighted sum of the inputs.  Formally, if we describe the input as a vector of values $x$ and a vector of weights $w$, this operation can be written as $w \cdot x$ (dot product).  Next, we will shift this value by a learned bias $b$, then apply an activation function $s$ such as $tanh$, $sigmoid$ or $relu$.  The entire computation is written as $s(w \cdot x + b)$.  The values of $w$ and $b$ will be learnt using back-propogation.</p>
 <p><a id='Defining-a-WeightedNeuron-1'></a></p>
 <h2 id="defining-a-weightedneuron">Defining a WeightedNeuron</h2>
-<p>Defining a <strong>WeightedNeuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  The <code>Neuron</code> type contains 4 default fields: - <code>value</code>    – contains the output value of the neuron - <code>∇</code>        – contains the gradient of the neuron - <code>inputs</code>   – a vector of vectors of input values. - <code>∇inputs</code>  – a vector of gradients for connected neurons</p>
+<p>Defining a <strong>WeightedNeuron</strong> begins with a subtype of the abstract <code>Neuron</code> type.  The <code>Neuron</code> type contains 4 default fields:</p>
+<ul>
+<li><code>value</code>    – contains the output value of the neuron</li>
+<li><code>∇</code>        – contains the gradient of the neuron</li>
+<li><code>inputs</code>   – a vector of vectors of input values.</li>
+<li><code>∇inputs</code>  – a vector of gradients for connected neurons</li>
+</ul>
 <p>For our <strong>WeightedNeuron</strong> we will define the following additional fields:</p>
 <ul>
 <li><code>weights</code>  – a vector of learned weights</li>
