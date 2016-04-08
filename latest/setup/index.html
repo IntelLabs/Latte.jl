@@ -192,8 +192,8 @@
             </li>
           
             <li class="anchor">
-              <a title="Quick Install" href="#quick-install">
-                Quick Install
+              <a title="Installing the Julia package" href="#installing-the-julia-package">
+                Installing the Julia package
               </a>
             </li>
           
@@ -298,22 +298,44 @@
 <h1 id="setup">Setup</h1>
 <p><a id='Prerequisites-1'></a></p>
 <h2 id="prerequisites">Prerequisites</h2>
-<p>To build Latte, you will need HDF5 and cmake.  What to install will vary by platform and your needs.  On Ubuntu, try:</p>
-<div class="codehilite"><pre><span></span>$ sudo apt-get install hdf5-tools libhdf5-dev cmake
+<p>Latte depends on HDF5 and cmake.</p>
+<p>To build Latte, you will need HDF5, cmake, and either OpenBLAS or MKL.  What to install will vary by platform and your needs.</p>
+<p><a id='Ubuntu-1'></a></p>
+<h3 id="ubuntu">Ubuntu</h3>
+<p>The easiest setup with serial HDF5, cmake, and OpenBLAS.</p>
+<div class="codehilite"><pre><span></span>$ sudo apt-get install hdf5-tools libhdf5-dev cmake libopenblas-dev
 </pre></div>
 
 
-<p>Latte currently depends on <a href="https://software.intel.com/en-us/intel-mkl">Intel MKL</a> and the <a href="https://software.intel.com/en-us/c-compilers">Intel C++ Compiler (icpc)</a>.</p>
-<p><a id='Quick-Install-1'></a></p>
-<h2 id="quick-install">Quick Install</h2>
-<div class="codehilite"><pre><span></span><span class="c"># Latte currently depends on the master branch of these packages</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="s">&quot;https://github.com/IntelLabs/Latte.jl&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s">&quot;CompilerTools&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">checkout</span><span class="p">(</span><span class="s">&quot;ParallelAccelerator&quot;</span><span class="p">)</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># To build with MPI enabled, uncomment these lines</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># ENV[&quot;LATTE_BUILD_MPI&quot;] = 1</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="c"># ENV[&quot;CXX&quot;] = &quot;mpiicpc&quot;  # Replace with your mpi compiler wrapper</span>
-<span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="s">&quot;Latte&quot;</span><span class="p">)</span>
+<p>For MPI support you can use the mpich provided packages or compile HDF5 yourself.</p>
+<div class="codehilite"><pre><span></span>$ sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-mpich2-dev
+</pre></div>
+
+
+<p><a id='Installing-the-Julia-package-1'></a></p>
+<h2 id="installing-the-julia-package">Installing the Julia package</h2>
+<p>Until Latte is added to the Julia Package Repository, it must be directly cloned off Github as follows:</p>
+<div class="codehilite"><pre><span></span><span class="n">julia</span><span class="o">&gt;</span> <span class="n">Pkg</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="s">&quot;https://github.com/IntelLabs/Latte.jl&quot;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Latte currently depends on the master branch of some dependencies, they can be checked out as follows:</p>
+<div class="codehilite"><pre><span></span>julia&gt; Pkg.checkout(&quot;CompilerTools&quot;)
+julia&gt; Pkg.checkout(&quot;ParallelAccelerator&quot;)
+</pre></div>
+
+
+<p>Next, build the supporting libraries for Latte with</p>
+<div class="codehilite"><pre><span></span>julia&gt; Pkg.build(&quot;Latte&quot;)
+</pre></div>
+
+
+<p>To ensure everything was installed properly, run the test suite:</p>
+<div class="codehilite"><pre><span></span>julia&gt; Pkg.test(&quot;Latte&quot;)
+...
+...
+...
+INFO: Latte tests passed
 </pre></div>
           <aside class="copyright" role="note">
             
