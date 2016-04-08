@@ -410,9 +410,10 @@ FIXME: My, my this function is ugly, clean this up some day...
 """
 function push_compute_tasks!(tasks::TaskSet, buffers::Dict,
                              compute_body::Dict, compute_args::ArgSet,
-                             run_where::Int, signal::Array{Cint, 1};
+                             run_where::Int, signal::Array{Cint, 1},
+                             phases::Vector{Phase};
                              distribute::Bool=false)
-    for phase in [Train, Test]
+    for phase in phases
         args = collect(compute_args[phase])
         if length(args) == 0
             continue
@@ -813,7 +814,7 @@ function init(net::Net)
 
     push_compute_tasks!(forward_tasks, net.buffers[1][1],
                         forward_compute_body, forward_compute_args,
-                        net.run_where, net.signal; distribute=true)
+                        net.run_where, net.signal, [Train, Test]; distribute=true)
 
     log_info("  Synthesizing backward functions.")
     # Backward tasks
@@ -879,7 +880,7 @@ function init(net::Net)
     end
 
     push_compute_tasks!(backward_tasks, net.buffers[1][1], backward_compute_body,
-                        backward_compute_args, net.run_where, net.signal)
+                        backward_compute_args, net.run_where, net.signal, [Train])
     if net.run_where >= 0
         @assert false
     end
