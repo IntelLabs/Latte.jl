@@ -24,6 +24,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+include("neuron.jl")
+
 # Common initialization functions
 export gaussian
 function gaussian(;mean=0.0, std=1.0)
