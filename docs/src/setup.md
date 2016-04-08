@@ -2,25 +2,50 @@
 
 ## Prerequisites
 
-To build Latte, you will need HDF5 and cmake.  What to install will vary by
-platform and your needs.  On Ubuntu, try:
+Latte depends on HDF5 and cmake.
 
+To build Latte, you will need HDF5, cmake, and either OpenBLAS or MKL.  What to
+install will vary by platform and your needs.
+
+### Ubuntu
+
+The easiest setup with serial HDF5, cmake, and OpenBLAS.
 ```shell
-$ sudo apt-get install hdf5-tools libhdf5-dev cmake
+$ sudo apt-get install hdf5-tools libhdf5-dev cmake libopenblas-dev
 ```
 
-Latte currently depends on [Intel
-MKL](https://software.intel.com/en-us/intel-mkl) and the [Intel C++ Compiler
-(icpc)](https://software.intel.com/en-us/c-compilers).
+For MPI support you can use the mpich provided packages or compile HDF5 yourself.
+```shell
+$ sudo apt-get install libmpich2-dev mpich2 hdf5-tools libhdf5-mpich2-dev
+```
 
-## Quick Install
+## Installing the Julia package
+Until Latte is added to the Julia Package Repository, it must be directly
+cloned off Github as follows:
+
 ```julia
-# Latte currently depends on the master branch of these packages
 julia> Pkg.clone("https://github.com/IntelLabs/Latte.jl")
+```
+
+Latte currently depends on the master branch of some dependencies, they
+can be checked out as follows:
+
+```
 julia> Pkg.checkout("CompilerTools")
 julia> Pkg.checkout("ParallelAccelerator")
-julia> # To build with MPI enabled, uncomment these lines
-julia> # ENV["LATTE_BUILD_MPI"] = 1
-julia> # ENV["CXX"] = "mpiicpc"  # Replace with your mpi compiler wrapper
+```
+
+Next, build the supporting libraries for Latte with
+```
 julia> Pkg.build("Latte")
 ```
+
+To ensure everything was installed properly, run the test suite:
+```
+julia> Pkg.test("Latte")
+...
+...
+...
+INFO: Latte tests passed
+```
+
