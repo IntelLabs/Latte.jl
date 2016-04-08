@@ -13,6 +13,7 @@ To understand this representation, we'll first define the properties of a singul
 
 ## Defining a WeightedNeuron
 Defining a **WeightedNeuron** begins with a subtype of the abstract `Neuron` type.  The `Neuron` type contains 4 default fields:
+
 - `value`    -- contains the output value of the neuron
 - `∇`        -- contains the gradient of the neuron
 - `inputs`   -- a vector of vectors of input values.
