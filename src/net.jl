@@ -307,8 +307,11 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
             connection.is_dim_fixed
         sink_name = symbol(ensemble.name, :∇inputs, index)
         arg_dim_info[sink_name] = connection.is_dim_fixed
-        # Copy inputs if needed
-        if connection.copy
+        # Copy inputs if needed 
+        # inputs$index will be added to args by transform_neuron_fn if it is
+        # used in the function
+        inputs_name = symbol(ensemble.name, :inputs, index)
+        if connection.copy && inputs_name in args
             source_name = symbol(connection.source.name, :value)
             push!(args, source_name)
             push!(body, gen_copy_block(net, ensemble, connection, index))
