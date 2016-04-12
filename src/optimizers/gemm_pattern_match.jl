@@ -170,12 +170,12 @@ for (var1, var2, var3) in simple_ijk_orders
         else
             return ASTWALK_RECURSE
         end
-        C_offset = map(replace_index_with_expr, C_idx, [j_loopvar, i_loopvar], [j_start, i_start])
-        # if length(C_idx) > 2 && C_idx[3] == k_loopvar &&
-        #         contains(string(C.args[1]), "∇") && 
-        #         length(split(string(C.args[1]), "∇")[2]) > 0
-        #     push!(C_offset, 1)
-        # end
+        C_offset = map(replace_index_with_expr, C_idx[1:2], [j_loopvar, i_loopvar], [j_start, i_start])
+        if length(C_idx) > 2 && C_idx[3] == k_loopvar &&
+                contains(string(C.args[1]), "∇") && 
+                length(split(string(C.args[1]), "∇")[2]) > 0
+            push!(C_offset, 1)
+        end
         return :(gemm!($transA, $transB, $M, $N, $K, 1.0f0,
                        $(get_target(A, A_offset)), size($(A.args[1]), 1),
                        $(get_target(B, B_offset)), size($(B.args[1]), 1), 1.0f0,

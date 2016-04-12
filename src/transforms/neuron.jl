@@ -39,6 +39,15 @@ type NeuronTransformerData
         new(ensemble, Set())
 end
 
+function is_param(name::Symbol, ensemble::AbstractEnsemble)
+    for param in ensemble.params
+        if param.name == name
+            return true
+        end
+    end
+    return false
+end
+
 @doc """
 Process a neuron function replacing field references with array reference
 expressions
@@ -67,12 +76,12 @@ function transform_neuron_fn(fn, ensemble)
             name = symbol(cbdata.ensemble.name,name)
             idx = Any[symbol(:_neuron_index_,i) for i in 1:N]
             str_name = string(name)
-            # if contains(str_name, "∇")
-            #     result = split(str_name, "∇")
-            #     if !(result[2] == "" || contains(result[2], "inputs"))
-            #         push!(idx, :(_omp_get_thread_num() + 1))
-            #     end
-            # end
+            if !LOSSY_GRADIENTS && contains(str_name, "∇")
+                result = split(str_name, "∇")
+                if result[2] != "" && !contains(result[2], "inputs")
+                    push!(idx, :(_omp_get_thread_num() + 1))
+                end
+            end
             if !contains(str_name, "inputs")
                 push!(cbdata.args, name)
             end

@@ -107,8 +107,8 @@ top_diff = get_buffer(net, :conv2∇)
 # rand!(top_diff)
 expected = zeros(get_buffer(net, :conv2value))
 ∇input_expected   = zeros(∇input)
-∇filters_expected = zeros(size(∇filters))
-∇bias_expected    = zeros(size(∇bias))
+∇filters_expected = zeros(size(∇filters)[1:end-1])
+∇bias_expected    = zeros(size(∇bias)[1:end-1])
 
 params = SolverParameters(
     lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
@@ -131,10 +131,8 @@ facts("Testing Convolution Layer") do
                              ∇filters_expected, ∇bias_expected,
                              ∇input_expected)
         @fact all(-ϵ .< ∇input - ∇input_expected .< ϵ) --> true
-        # @fact sum(∇filters, ndims(∇filters)) --> roughly(∇filters_expected, atol=1e-3)
-        # @fact sum(∇bias, ndims(∇bias))       --> roughly(∇bias_expected, atol=1e-3)
-        @pending all(-ϵ .< ∇filters - ∇filters_expected .< ϵ) --> true
-        @pending all(-ϵ .< ∇bias - ∇bias_expected .< ϵ) --> true
+        @fact all(-ϵ .< sum(∇filters, 3)[:,:,1] - ∇filters_expected .< ϵ) --> true
+        @fact all(-ϵ .< sum(∇bias, 3)[:,:,1] - ∇bias_expected .< ϵ) --> true
     end
 end
 

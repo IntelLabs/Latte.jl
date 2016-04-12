@@ -97,11 +97,11 @@ function init_inputs(ensemble::AbstractEnsemble, net::Net)
                         set_buffer(net, key, source, t)
                     end
                 else
-                    _shape = shape
-                    if LATTE_DISABLE_TILING
-                        _shape[2] = TILE_SIZE * 2
+                    _shape = [shape...]
+                    if LATTE_DISABLE_TILING && length(_shape) >= 3
                         num_tiles = batch_size
                     else
+                        _shape[2] = TILE_SIZE * 2
                         num_tiles = num_threads
                     end
                     _shape = _shape[!connection.is_dim_fixed]
@@ -176,6 +176,9 @@ inputs array using ArrayViews and remove the need for a CopyTask
                 end
             end
             elem = getfield(ensemble.neurons[ones(Int, length(shape))...], name)
+            if !LOSSY_GRADIENTS && contains(string(name), "∇")
+                _shape = (_shape..., num_threads)
+            end
             buf = Array(eltype(typ), size(elem)..., _shape...)
             for index in CartesianRange(CartesianIndex(tuple(ones(Int, length(iter))...)),
                                         CartesianIndex(tuple(iter...)))
@@ -185,7 +188,13 @@ inputs array using ArrayViews and remove the need for a CopyTask
                         push!(_index, index.I[i])
                     end
                 end
-                @inbounds buf[:, _index...] = getfield(ensemble.neurons[index], name)
+                if !LOSSY_GRADIENTS && contains(string(name), "∇")
+                    for i in 1:num_threads
+                        @inbounds buf[:, _index..., i] = copy(getfield(ensemble.neurons[index], name))
+                    end
+                else
+                    @inbounds buf[:, _index...] = getfield(ensemble.neurons[index], name)
+                end
             end
             set_buffer(net, key, buf)
         else

@@ -42,11 +42,12 @@ if num_threads == nothing
 else
     num_threads = parse(Int, num_threads)
 end
+LOSSY_GRADIENTS = false
 const TILE_SIZE = 2
 const MICRO_BATCH_SIZE = num_threads
 NOFUSE = 0
 LATTE_DISABLE_TILING = false
-LATTE_DISABLE_TILE_FUSION = false
+LATTE_DISABLE_TILE_FUSION = true
 
 include("transforms/util.jl")
 include("transforms/fixed_dims.jl")
@@ -306,6 +307,12 @@ function gen_neuron_backward(ensemble::AbstractEnsemble, net::Net,
             connection.is_dim_fixed
         sink_name = symbol(ensemble.name, :∇inputs, index)
         arg_dim_info[sink_name] = connection.is_dim_fixed
+        # Copy inputs if needed
+        if connection.copy
+            source_name = symbol(connection.source.name, :value)
+            push!(args, source_name)
+            push!(body, gen_copy_block(net, ensemble, connection, index))
+        end
     end
 
     # Replace indexing expressions for shared values
