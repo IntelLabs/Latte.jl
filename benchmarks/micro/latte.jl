@@ -48,9 +48,7 @@ forward_task = net.forward_tasks[Latte.Test][end]
 forward_args = []
 for arg in forward_task.args
     if isa(arg, Symbol)
-        println(arg)
-        println(typeof(arg))
-        push!(forward_args, net.buffers[arg])
+        push!(forward_args, get_buffer(net,arg))
     else
         push!(forward_args, arg)
     end
@@ -63,7 +61,7 @@ backward_task = net.backward_tasks[Latte.Train][end]
 backward_args = []
 for arg in backward_task.args
     if isa(arg, Symbol)
-        push!(backward_args, net.buffers[arg])
+        push!(backward_args, get_buffer(net,arg))
     else
         push!(backward_args, arg)
     end

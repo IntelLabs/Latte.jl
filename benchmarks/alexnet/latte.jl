@@ -55,33 +55,33 @@ fc8     = InnerProductLayer(:fc8,     net, fc7,   1000)
 
 init(net)
 
-forward(net)
+forward(net; phase=Latte.Test)
 backward(net)
 
-forward_task = net.forward_tasks[Latte.Train][end]
-function forward_bench()
-    args = []
-    for arg in forward_task.args
-        if isa(arg, Symbol)
-            push!(args, net.buffers[arg])
-        else
-            push!(args, arg)
-        end
+forward_task = net.forward_tasks[Latte.Test][end]
+forward_args = []
+for arg in forward_task.args
+    if isa(arg, Symbol)
+        push!(forward_args, get_buffer(net, arg))
+    else
+        push!(forward_args, arg)
     end
-    forward_task.func(args...)
+end
+function forward_bench()
+    forward_task.func(forward_args...)
 end
 
 backward_task = net.backward_tasks[Latte.Train][end]
-function backward_bench()
-    args = []
-    for arg in backward_task.args
-        if isa(arg, Symbol)
-            push!(args, net.buffers[arg])
-        else
-            push!(args, arg)
-        end
+backward_args = []
+for arg in backward_task.args
+    if isa(arg, Symbol)
+        push!(backward_args, get_buffer(net, arg))
+    else
+        push!(backward_args, arg)
     end
-    backward_task.func(args...)
+end
+function backward_bench()
+    backward_task.func(backward_args...)
 end
 
 for i = 1:3

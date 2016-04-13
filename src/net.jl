@@ -47,7 +47,7 @@ const TILE_SIZE = 2
 const MICRO_BATCH_SIZE = num_threads
 NOFUSE = 0
 LATTE_DISABLE_TILING = false
-LATTE_DISABLE_TILE_FUSION = true
+LATTE_DISABLE_TILE_FUSION = false
 
 include("transforms/util.jl")
 include("transforms/fixed_dims.jl")
@@ -146,8 +146,7 @@ function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
             end)
         end
         statements = [
-            assign,
-            :($sink_name[count, $(sink_idx...)] = 0.0f0)
+            assign
         ]
     else
         rhs = :($source_name[$(idx...), $(symbol(:_neuron_index_,N))])
@@ -168,6 +167,13 @@ function gen_copy_block(net::Net, ensemble::AbstractEnsemble,
         $(mapping_inlined.args[1:end-1]...)
         count = 1
         $for_block
+    end
+    if ∇
+        push!(copy_block.args, quote
+            for i = 1:count-1
+                $sink_name[i, $(sink_idx...)] = 0.0f0
+            end
+        end)
     end
     vars   = [symbol(:_neuron_index_,i) for i in 1:N]
     ranges = [connection.is_dim_fixed[i] ? :(1:1) : :(1:$(shape[i])) for i in 1:N-1]
@@ -393,6 +399,7 @@ function generate_c_function(func::Function, signature::Tuple,
     end
     outfile_name = CGen.writec(s)
     cflags = []
+    # push!(cflags, "-qopt-report")
     @latte_mpi push!(cflags, "-I$latte_library_path/communication")
     @latte_mpi ENV["CGEN_COMPILER"] = "mpiicpc"
     CGen.compile(outfile_name; flags=cflags)
