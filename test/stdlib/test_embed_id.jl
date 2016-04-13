@@ -54,7 +54,7 @@ facts("Testing embed_id layer") do
     expected = get_buffer(net, :embed∇)
     actual = get_buffer(net, :embed∇weights)
     for i in 1:8
-        @fact actual[i, :][:] --> roughly(expected[:, i][:])
+        @fact sum(actual[i, :, :], 3)[:] --> roughly(expected[:, i][:])
     end
 end
 
