@@ -168,9 +168,14 @@ end
 
 function update(sgd::SGD, param::Param)
     @latte_mpi(@eval(ccall((:wait, $libComm), Void, (Cint,), $(param.request))))
-    l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, param.gradient)
+    if !LOSSY_GRADIENTS
+        gradient = sum(param.gradient, ndims(param.gradient))
+    else
+        gradient = param.gradient
+    end
+    l2_regularization(sgd.params.regu_coef * param.regu_coef, param.value, gradient)
     sgd_update(sgd.state.learning_rate * param.learning_rate,
-               sgd.state.momentum, param.value, param.gradient, param.hist)
+               sgd.state.momentum, param.value, gradient, param.hist)
 end
 
 function sgd_update{T}(learning_rate::Float32, momentum::Float32,

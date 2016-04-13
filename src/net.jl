@@ -856,15 +856,23 @@ function init(net::Net)
             # throw("NotImplementedError")
         elseif isa(ensemble, Union{Ensemble, ActivationEnsemble})
             for param in ensemble.params
-                @latte_mpi(
+                @latte_mpi(begin
+                    if LOSSY_GRADIENTS
+                        gradient_length = length(param.gradient)
+                    else
+                        gradient_length = length(param.gradient) / num_threads
+                        unshift(backward_compute_body[Train], quote
+                            sum($(param.gradient_name), $(ndims(param.gradient)))
+                        end)
+                    end
                     unshift!(backward_compute_body[Train], quote
                         ccall((:sync_gradients, $libComm), Void, 
                               (Ptr{Float32}, Cint, Cint), 
                               pointer($(param.gradient_name)),
-                              $(length(param.gradient)), 
+                              $(gradient_length), 
                               $(param.request))
                     end)
-                )
+                end)
                 push!(net.params, param)
             end
             gen_neuron_backward(ensemble, net, backward_compute_body[Train], backward_compute_args[Train])
