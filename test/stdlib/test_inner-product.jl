@@ -67,9 +67,9 @@ facts("Testing Inner Product Layer") do
     context("Backward") do
 
         ∇input   = get_buffer(net, :fc1∇)
-        ∇weights = get_buffer(net, :fc2∇weights)
+        ∇weights = sum(get_buffer(net, :fc2∇weights), 3)[:,:,1]
         fill!(∇weights, 0.0)
-        ∇bias    = get_buffer(net, :fc2∇bias)
+        ∇bias    = sum(get_buffer(net, :fc2∇bias), 3)[:,:,1]
 
         backward(net)
 
