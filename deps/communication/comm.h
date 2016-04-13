@@ -35,7 +35,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 extern "C" {
     void init();
     int init_request();
-    void sync_gradients(float* data, int count, int request_id);
+    void sync_gradients(float* data, int count, int request_id, int reduce_num);
     void wait(int request_id);
     float reduce_accuracy(float acc);
     int get_rank();

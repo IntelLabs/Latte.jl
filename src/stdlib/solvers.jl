@@ -266,25 +266,11 @@ function solve(solver::Solver, net::Net)
         forward(net; solver=solver)
         clear_∇(net)
         backward(net)
-        #= num_zeros = 0.0 =#
-        #= total = 0 =#
-        #= for param in net.params =#
-        #=     num_zeros += sum(param.gradient .== 0.0f0) =#
-        #=     total += length(param.gradient) =#
-        #= end =#
-        #= println("$((num_zeros / convert(Float32, total)) * 100.0f0) %") =#
 
         solver.state.obj_val = get_loss(net)
         solver.state.learning_rate = get_learning_rate(solver.params.lr_policy, solver.state)
         solver.state.momentum = get_momentum(solver.params.mom_policy, solver.state)
-        # clip_gradients(solver, net)
-        # regularize(solver, net)
 
-        # if LATTE_MPI
-        #     update_chunk(solver, net)
-        # else
-        #     update(solver, net)
-        # end
         clear_values(net)
         if solver.state.iter % 20 == 0
             @latte_mpi(if get_net_subrank(net) + 1 == net.num_subgroups
@@ -297,8 +283,9 @@ function solve(solver::Solver, net::Net)
                 write(solver.state.loss_log, "$(solver.state.iter),$(solver.state.obj_val)\n")
             end)
         end
-        @latte_mpi sync_intra_train_epoch(net)
-        # if solver.state.iter % solver.params.test_every == 0
+        @latte_mpi if net.num_subgroups > 1
+            sync_intra_train_epoch(net)
+        end
         if curr_train_epoch != net.train_epoch
             log_info("Epoch $(curr_train_epoch) - Testing...")
             acc = test(net)

@@ -44,7 +44,15 @@ int init_request() {
     return id;
 }
 
-void sync_gradients(float *data, int count, int request_id) {
+void sync_gradients(float *data, int count, int request_id, int reduce_num) {
+    if (reduce_num > 1) {
+#pragma omp parallel for simd
+        for (int j = 0; j < count; j++) {
+            for (int i = 1; i < reduce_num; i++) {
+                data[j] += data[i * count + j];
+            }
+        }
+    }
     MPI_Request *request = requests[request_id];
     MPI_Iallreduce(MPI_IN_PLACE, data, count, MPI_FLOAT, MPI_SUM, *Inter_net_communicator, request);
     // int size;

@@ -859,18 +859,17 @@ function init(net::Net)
                 @latte_mpi(begin
                     if LOSSY_GRADIENTS
                         gradient_length = length(param.gradient)
+                        reduce_num = -1
                     else
                         gradient_length = length(param.gradient) / num_threads
-                        unshift(backward_compute_body[Train], quote
-                            sum($(param.gradient_name), $(ndims(param.gradient)))
-                        end)
+                        reduce_num = num_threads
                     end
                     unshift!(backward_compute_body[Train], quote
                         ccall((:sync_gradients, $libComm), Void, 
                               (Ptr{Float32}, Cint, Cint), 
                               pointer($(param.gradient_name)),
                               $(gradient_length), 
-                              $(param.request))
+                              $(param.request), $reduce_num)
                     end)
                 end)
                 push!(net.params, param)
