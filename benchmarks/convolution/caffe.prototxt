@@ -1,0 +1,31 @@
+name: "vgg_a"
+input: "data"
+input_dim: 64
+input_dim: 64
+input_dim: 112
+input_dim: 112
+force_backward: true
+layers {
+  name: "conv1/3x3_s1"
+  type: CONVOLUTION
+  bottom: "data"
+  top: "conv1/3x3_s1"
+  blobs_lr: 1
+  blobs_lr: 2 
+  weight_decay: 1
+  weight_decay: 0 
+  convolution_param {
+    num_output: 64
+    kernel_size: 3
+    pad: 1
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.1
+    }
+    bias_filler {
+      type: "constant"
+      value: 0.2
+    }
+  }
+}
