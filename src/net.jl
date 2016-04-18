@@ -43,7 +43,7 @@ else
     num_threads = parse(Int, num_threads)
 end
 LOSSY_GRADIENTS = false
-const TILE_SIZE = 2
+const TILE_SIZE = 4
 const MICRO_BATCH_SIZE = num_threads
 NOFUSE = 0
 LATTE_DISABLE_TILING = false
