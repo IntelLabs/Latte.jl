@@ -168,7 +168,7 @@ end
 function tree_cleaner(node, cbdata, index, top_level, read)
     if isa(node, Expr)
         # Don't collapse :block nodes for nodes that need one as args[2]
-        if node.head == :for || node.head == :function || node.head == :if
+        if node.head == :for || node.head == :function #|| node.head == :if
             new_args = []
             for arg in node.args[2].args
                 result = clean_tree(arg)

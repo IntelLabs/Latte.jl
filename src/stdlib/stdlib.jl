@@ -61,4 +61,5 @@ include("layers/concat.jl")
 include("layers/rnn.jl")
 include("layers/tanh.jl")
 include("layers/reshape.jl")
+include("layers/interpolation.jl")
 
