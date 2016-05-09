@@ -102,11 +102,50 @@ end
 
 
 
-facts("Testing Interpolation Layer") do
+facts("Testing Bilinear Interpolation Layer (Enlarge)") do
 
     net = Net(1)
-    resize_factor = Float32(2.0)
-    data, data_value = MemoryDataLayer(net, :data, (8, 8, 1))
+    resize_factor = Float32(8.0)
+    data, data_value = MemoryDataLayer(net, :data, (64, 64, 1))
+    data_value[:] = rand(Float32, size(data_value)...)
+    interp1 = InterpolationLayer(:interp1, net, data, 2, 0, resize_factor)
+    
+    init(net)
+
+    params = SolverParameters(
+        lr_policy    = LRPolicy.Decay(.01f0, 5.0f-7),
+        mom_policy   = MomPolicy.Fixed(0.9),
+        max_epoch    = 300,
+        regu_coef    = .0005)
+    sgd = SGD(params)
+
+    
+    context("Forward") do
+        forward(net; solver=sgd)
+        input = get_buffer(net, :datavalue)
+        expected = zeros(get_buffer(net, :interp1value))
+        interpolation_forward(input, resize_factor, 2, 0, expected)
+        @fact expected --> roughly(get_buffer(net, :interp1value)) 
+    end
+
+    context("Backward") do
+        top_diff = get_buffer(net, :interp1∇)            
+            ∇input = get_buffer(net, :data∇)
+            ∇input_expected = deepcopy(∇input)
+        
+        backward(net; solver=sgd)  
+            
+        interpolation_backward(∇input_expected, resize_factor, 2, 0, top_diff)
+        @fact ∇input --> roughly(∇input_expected)
+    end 
+    
+end
+
+facts("Testing Bilinear Interpolation Layer (Shrink)") do
+
+    net = Net(1)
+    resize_factor = Float32(1/8.0)
+    data, data_value = MemoryDataLayer(net, :data, (64, 64, 1))
     data_value[:] = rand(Float32, size(data_value)...)
     interp1 = InterpolationLayer(:interp1, net, data, 2, 0, resize_factor)
     
